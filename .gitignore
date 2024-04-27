@@ -1,0 +1,7 @@
+backend/.env
+backend/.idea/
+**__pycache__/
+backend/alembic/script.py.mako
+backend/alembic/alembic/README
+
+
