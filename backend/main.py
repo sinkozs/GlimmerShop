@@ -8,7 +8,7 @@ from config.parser import load_config
 from config.models import Config
 from dependencies import get_session
 from models.database import build_session_maker, build_session
-from routers import auth_router
+from routers import auth_router, user_router
 
 
 def _resolve_dependencies(app: FastAPI, config: Config) -> FastAPI:
@@ -22,6 +22,7 @@ def _resolve_dependencies(app: FastAPI, config: Config) -> FastAPI:
 
 def _register_routers(app: FastAPI):
     app.include_router(auth_router.router)
+    app.include_router(user_router.router)
 
 
 def main():

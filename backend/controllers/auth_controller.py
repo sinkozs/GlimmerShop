@@ -19,4 +19,7 @@ class AuthController:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def user_logout(self, user: dict):
-        await self._service.user_logout(user)
+        try:
+            return await self._service.user_logout(user)
+        except AuthenticationException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e

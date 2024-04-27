@@ -91,7 +91,7 @@ class User(Base):
     registration_date = Column(Date, nullable=False)
 
     user_event = relationship("UserEvent", back_populates="user")
-    cart = relationship("Cart", back_populates="user")
+    cart = relationship("Cart", back_populates="user", uselist=False)
 
 
 class Cart(Base):
@@ -101,7 +101,7 @@ class Cart(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey('public.user.id'))
 
     user = relationship("User", back_populates="cart")
-    cart_items = relationship("CartItem", back_populates="cart")
+    cart_item = relationship("CartItem", back_populates="cart")
 
 
 class CartItem(Base):
