@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  db:
+    container_name: eventwave_pg_container
+    image: postgres
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5433:5432"
+  pgadmin:
+    container_name: eventwave_pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8888:80"
