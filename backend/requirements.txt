@@ -24,6 +24,7 @@ pydantic-core==2.14.6
 python==3.12.3
 python-dateutil==2.8.2
 python-dotenv==1.0.1
+python-jose==3.3.0
 setuptools==68.2.2
 six==1.16.0
 sniffio==1.3.0

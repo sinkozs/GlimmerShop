@@ -1,5 +1,6 @@
 backend/.env
 backend/.idea/
+backend/config/local.ini
 **__pycache__/
 backend/alembic/script.py.mako
 backend/alembic/alembic/README

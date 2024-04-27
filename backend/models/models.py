@@ -124,4 +124,4 @@ class UserEvent(Base):
 
     user = relationship("User", back_populates="user_event")
     event = relationship("Event", back_populates="user_event")
-    
+
