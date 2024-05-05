@@ -28,7 +28,6 @@ async def get_all_users(session: AsyncSession = Depends(get_session)):
 @router.get("/{user_id}")
 async def get_user_by_id(user_id,
                          session: AsyncSession = Depends(get_session)):
-    print(f"user_id: {user_id}")
     service = UserService(session)
     user_controller = UserController(service)
 

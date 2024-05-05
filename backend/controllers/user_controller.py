@@ -1,5 +1,6 @@
 import uuid
 
+from pydantic import EmailStr
 from sqlalchemy.dialects.postgresql import UUID
 
 from dependencies import dict_to_db_model, db_model_to_dict
@@ -55,8 +56,6 @@ class UserController:
             if user_update.is_valid_update(user_update.email, original_user.email):
                 original_user.email = user_update.email
             if not bcrypt_context.verify(user_update.password, original_user.hashed_password):
-                print(f"Is equal PW: {bcrypt_context.verify(user_update.password, original_user.hashed_password)}")
-                print(f"New pw: {user_update.password}")
                 original_user.hashed_password = self.hash_password(user_update.password)
 
         try:
@@ -65,7 +64,7 @@ class UserController:
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def get_user_by_email(self, email):
+    async def get_user_by_email(self, email: EmailStr):
         try:
             return await self._service.get_user_by_email(email)
         except UserException as e:

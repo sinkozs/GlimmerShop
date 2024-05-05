@@ -5,8 +5,8 @@ from typing_extensions import Annotated
 
 
 class UserCreate(BaseModel):
-    first_name: Annotated[str, StringConstraints(strip_whitespace=True, max_length=25, min_length=3, pattern=r'^[a-zA-Z]+$', strict=True)]
-    last_name: Annotated[str, StringConstraints(strip_whitespace=True, max_length=25, min_length=3, pattern=r'^[a-zA-Z]+$', strict=True)]
+    first_name: Annotated[str, StringConstraints(strip_whitespace=True, max_length=25, min_length=3, pattern=r'^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+$', strict=True)]
+    last_name: Annotated[str, StringConstraints(strip_whitespace=True, max_length=25, min_length=3, pattern=r'^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+$', strict=True)]
     password: Annotated[str, StringConstraints(strip_whitespace=True, max_length=64, min_length=8, strict=True)]
     email: EmailStr
 
