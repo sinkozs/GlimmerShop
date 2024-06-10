@@ -4,6 +4,8 @@ from services.auth_service import AuthService
 from fastapi.security import OAuth2PasswordRequestForm
 from dependencies import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
+from services.user_service import UserService
+from services.organizer_service import OrganizerService
 from dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -11,7 +13,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(),
-                                 session: AsyncSession = Depends(get_session)):
+                session: AsyncSession = Depends(get_session)):
+    # user_service = UserService(session)
+    # organizer_service = OrganizerService(session)
     service = AuthService(session)
     auth_controller = AuthController(service)
     try:
@@ -25,4 +29,3 @@ async def user_logout(user: dict = Depends(get_current_user), session: AsyncSess
     service = AuthService(session)
     auth_controller = AuthController(service)
     return await auth_controller.user_logout(user)
-

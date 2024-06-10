@@ -10,8 +10,10 @@ from jose import jwt
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from models.models import User
+from models.models import User, Organizer
 from config.auth_config import SECRET_KEY, ALGORITHM, TOKEN_EXPIRY_MINUTES, bcrypt_context
+from services.organizer_service import OrganizerService
+from services.user_service import UserService
 from exceptions.auth_exceptions import AuthenticationException
 from dependencies import db_model_to_dict
 
@@ -20,7 +22,6 @@ class AuthService:
 
     def __init__(self, session: AsyncSession):
         self.db = session
-
     @classmethod
     def verify_password(cls, plain_password, hashed_password) -> bool:
         return bcrypt_context.verify(plain_password, hashed_password)
@@ -73,5 +74,4 @@ class AuthService:
 
         except SQLAlchemyError:
             raise AuthenticationException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
-
+                                          detail="An error occurred when accessing the database!")
