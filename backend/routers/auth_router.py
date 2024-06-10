@@ -5,7 +5,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from dependencies import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from services.user_service import UserService
-from services.organizer_service import OrganizerService
 from dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])

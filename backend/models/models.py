@@ -3,7 +3,7 @@ from sqlalchemy import Boolean, Column, Integer, String, DateTime, Date, Foreign
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 
-from database import Base
+from .database import Base
 
 
 class Category(Base):

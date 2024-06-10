@@ -10,9 +10,8 @@ from jose import jwt
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from models.models import User, Organizer
+from models.models import User
 from config.auth_config import SECRET_KEY, ALGORITHM, TOKEN_EXPIRY_MINUTES, bcrypt_context
-from services.organizer_service import OrganizerService
 from services.user_service import UserService
 from exceptions.auth_exceptions import AuthenticationException
 from dependencies import db_model_to_dict
