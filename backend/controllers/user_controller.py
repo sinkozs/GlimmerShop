@@ -38,7 +38,10 @@ class UserController:
         user_model.email = user.email
         user_model.hashed_password = self.hash_password(user.password)
         user_model.registration_date = datetime.now(timezone.utc).date()
-        user_model.cart = Cart()
+        user_model.is_seller = user.is_seller
+
+        if not user.is_seller:
+            user_model.cart = Cart(user=user_model)
 
         try:
             await self._service.create_new_user(user_model)

@@ -31,7 +31,7 @@ class Product(Base):
 
     seller = relationship("User", back_populates="product")
     product_category = relationship("ProductCategory", back_populates="product")
-    orders = relationship("UserOrder", back_populates="product")
+    user_orders = relationship("UserOrder", back_populates="product")
 
 
 class ProductCategory(Base):
@@ -51,7 +51,7 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     first_name = Column(String(50))
     last_name = Column(String(50))
-    email = Column(String(100), nullable=False, index=True, unique=True)
+    email = Column(String(100), nullable=False, unique=True, index=True)
     hashed_password = Column(String(64), nullable=False)
     is_seller = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
@@ -59,17 +59,18 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
     registration_date = Column(Date, nullable=False)
 
-    products = relationship("Product", back_populates="user",
+    product = relationship("Product", back_populates="seller",
                             primaryjoin="and_(User.id==Product.seller_id, User.is_seller==True)")
     cart = relationship("Cart", back_populates="user", uselist=False,
-                        primaryjoin="and_(User.id==Cart.user_id, User.is_seller==False)")
+                        primaryjoin="User.id==Cart.user_id")
+    user_orders = relationship("UserOrder", back_populates="user", primaryjoin="User.id==UserOrder.user_id")
 
 
 class Cart(Base):
     __tablename__ = "cart"
     __table_args__ = {'schema': 'public'}
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('public.user.id'))
+    user_id = Column(UUID(as_uuid=True), ForeignKey('public.user.id', ondelete="CASCADE"))
 
     user = relationship("User", back_populates="cart")
     cart_item = relationship("CartItem", back_populates="cart")
@@ -93,5 +94,5 @@ class UserOrder(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey('public.user.id'))
     product_id = Column(Integer, ForeignKey('public.product.id'))
 
-    user = relationship("User", back_populates="user_order")
-    orders = relationship("Product", back_populates="user_order")
+    user = relationship("User", back_populates="user_orders")
+    product = relationship("Product", back_populates="user_orders")

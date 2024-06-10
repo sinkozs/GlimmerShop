@@ -9,6 +9,7 @@ class UserCreate(BaseModel):
     last_name: Annotated[str, StringConstraints(strip_whitespace=True, max_length=25, min_length=3, pattern=r'^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+$', strict=True)]
     password: Annotated[str, StringConstraints(strip_whitespace=True, max_length=64, min_length=8, strict=True)]
     email: EmailStr
+    is_seller: bool
 
 
 @dataclass

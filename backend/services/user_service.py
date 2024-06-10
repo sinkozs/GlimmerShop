@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status
-from models.models import User
+from models.models import User, Cart
 from exceptions.user_exceptions import UserException
 from dependencies import db_model_to_dict
 
@@ -37,6 +37,21 @@ class UserService:
                 users_model = result.scalars().all()
                 if users_model:
                     users_data = [db_model_to_dict(user) for user in users_model]
+                    return users_data
+                else:
+                    raise UserException()
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail="An error occurred when accessing the database!")
+
+    async def get_all_users_by_role(self, is_seller: bool) -> List[dict]:
+        try:
+            async with self.db.begin():
+                result = await self.db.execute(select(User).where(User.is_seller == is_seller))
+                sellers_model = result.scalars().all()
+                if sellers_model:
+                    users_data = [db_model_to_dict(user) for user in sellers_model]
                     return users_data
                 else:
                     raise UserException()
@@ -85,15 +100,19 @@ class UserService:
             async with self.db.begin():
                 stmt = select(User).filter(User.id == user_id)
                 result = await self.db.execute(stmt)
-                user_model = result.scalars().first()
+                user_model: User = result.scalars().first()
 
             if user_model is not None:
+                if not user_model.is_seller and user_model.cart:
+                    await self.db.delete(user_model.cart)
                 await self.db.delete(user_model)
+
             else:
                 raise UserException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail=f"User with {user_id} id not found!")
             await self.db.commit()
         except SQLAlchemyError as e:
+            await self.db.rollback()
             print(f"Database access error: {e}")
             raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                 detail="An error occurred when accessing the database!")
