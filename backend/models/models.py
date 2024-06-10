@@ -1,9 +1,9 @@
 import uuid
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, Date, ForeignKey, CheckConstraint
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, Date, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 
-from models.database import Base
+from database import Base
 
 
 class Category(Base):

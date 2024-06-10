@@ -1,1 +1,1 @@
-# EventWave
+# GlimmerShop
