@@ -26,6 +26,7 @@ class ServerConfig:
 @dataclass
 class AuthConfig:
     secret_key: str
+    token_expiry_minutes: int
 
 
 @dataclass

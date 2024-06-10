@@ -45,7 +45,7 @@ class UserService:
             raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                 detail="An error occurred when accessing the database!")
 
-    async def get_all_users_by_role(self, is_seller: bool) -> List[dict]:
+    async def get_users_by_role(self, is_seller: bool) -> List[dict]:
         try:
             async with self.db.begin():
                 result = await self.db.execute(select(User).where(User.is_seller == is_seller))

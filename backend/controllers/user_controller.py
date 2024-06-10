@@ -31,6 +31,12 @@ class UserController:
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
+    async def get_users_by_role(self, is_seller: bool):
+        try:
+            return await self._service.get_users_by_role(is_seller)
+        except UserException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
     async def create_new_user(self, user: UserCreate):
         user_model = User()
         user_model.first_name = user.first_name

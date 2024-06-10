@@ -25,6 +25,16 @@ async def get_all_users(session: AsyncSession = Depends(get_session)):
         raise e
 
 
+@router.get("/users-by-role")
+async def get_users_by_role(is_seller: bool, session: AsyncSession = Depends(get_session)):
+    service = UserService(session)
+    user_controller = UserController(service)
+    try:
+        return await user_controller.get_users_by_role(is_seller)
+    except HTTPException as e:
+        raise e
+
+
 @router.get("/{user_id}")
 async def get_user_by_id(user_id,
                          session: AsyncSession = Depends(get_session)):
@@ -47,7 +57,7 @@ async def create_new_user(user: UserCreate, session: AsyncSession = Depends(get_
         raise e
 
 
-@router.put("/edit")
+@router.put("/edit/{user_id}")
 async def edit_user(user_id: UUID, user: UserUpdate, session: AsyncSession = Depends(get_session)):
     service = UserService(session)
     user_controller = UserController(service)

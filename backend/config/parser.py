@@ -27,7 +27,8 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
     )
 
     auth_config = AuthConfig(
-        secret_key=os.getenv("SECRET_KEY")
+        secret_key=os.getenv("SECRET_KEY"),
+        token_expiry_minutes=os.getenv("TOKEN_EXPIRY_MINUTES")
     )
 
     config = Config(
