@@ -57,7 +57,7 @@ async def create_new_user(user: UserCreate, session: AsyncSession = Depends(get_
         raise e
 
 
-@router.put("/edit/{user_id}")
+@router.put("/edit")
 async def edit_user(user_id: UUID, user: UserUpdate, session: AsyncSession = Depends(get_session)):
     service = UserService(session)
     user_controller = UserController(service)
@@ -67,7 +67,7 @@ async def edit_user(user_id: UUID, user: UserUpdate, session: AsyncSession = Dep
         raise e
 
 
-@router.delete("/delete/{user_id}")
+@router.delete("/delete")
 async def delete_user(user_id, session: AsyncSession = Depends(get_session)):
     service = UserService(session)
     user_controller = UserController(service)

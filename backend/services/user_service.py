@@ -103,16 +103,14 @@ class UserService:
                 user_model: User = result.scalars().first()
 
             if user_model is not None:
-                if not user_model.is_seller and user_model.cart:
-                    await self.db.delete(user_model.cart)
                 await self.db.delete(user_model)
+                await self.db.commit()
 
             else:
                 raise UserException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail=f"User with {user_id} id not found!")
-            await self.db.commit()
         except SQLAlchemyError as e:
-            await self.db.rollback()
             print(f"Database access error: {e}")
             raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                 detail="An error occurred when accessing the database!")
+        

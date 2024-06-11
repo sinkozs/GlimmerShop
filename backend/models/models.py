@@ -61,7 +61,7 @@ class User(Base):
 
     product = relationship("Product", back_populates="seller",
                             primaryjoin="and_(User.id==Product.seller_id, User.is_seller==True)")
-    cart = relationship("Cart", back_populates="user", uselist=False,
+    cart = relationship("Cart", back_populates="user", uselist=False, lazy="joined",
                         primaryjoin="User.id==Cart.user_id")
     user_orders = relationship("UserOrder", back_populates="user", primaryjoin="User.id==UserOrder.user_id")
 

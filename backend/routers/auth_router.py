@@ -10,6 +10,17 @@ from dependencies import get_current_user
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+@router.post("/verify-pw")
+def verify_password(password1, password2,
+                session: AsyncSession = Depends(get_session)):
+    service = AuthService(session)
+    auth_controller = AuthController(service)
+    try:
+        return auth_controller.verify_password(password1, password2)
+    except HTTPException as e:
+        raise e
+
+
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(),
                 session: AsyncSession = Depends(get_session)):

@@ -21,8 +21,8 @@ class AuthService:
 
     def __init__(self, session: AsyncSession):
         self.db = session
-    @classmethod
-    def verify_password(cls, plain_password, hashed_password) -> bool:
+
+    def verify_password(self, plain_password, hashed_password) -> bool:
         return bcrypt_context.verify(plain_password, hashed_password)
 
     @classmethod

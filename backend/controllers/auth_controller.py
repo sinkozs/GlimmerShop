@@ -23,3 +23,9 @@ class AuthController:
             return await self._service.user_logout(user)
         except AuthenticationException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    def verify_password(self, password1, password2):
+        try:
+            return self._service.verify_password(password1, password2)
+        except AuthenticationException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
