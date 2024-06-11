@@ -24,6 +24,14 @@ class ServerConfig:
 
 
 @dataclass
+class SMTPConfig:
+    smtp_server: str
+    smtp_port: int
+    smtp_username: str
+    smtp_password: str
+
+
+@dataclass
 class AuthConfig:
     secret_key: str
     token_expiry_minutes: int
@@ -33,6 +41,7 @@ class AuthConfig:
 class Config:
     db_config: DatabaseConfig
     server_config: ServerConfig
+    smtp_config: SMTPConfig
     auth_config: AuthConfig
 
 

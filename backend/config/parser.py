@@ -2,7 +2,7 @@ from configparser import ConfigParser
 import os
 
 from dotenv import load_dotenv
-from config.models import DatabaseConfig, ServerConfig, AuthConfig, Config
+from config.models import DatabaseConfig, ServerConfig, AuthConfig, SMTPConfig, Config
 
 DEFAULT_ENV_PATH = ".env"  # for sensitive info + info for docker containers
 DEFAULT_CONFIG_PATH = "config/local.ini"  # for public application info
@@ -26,6 +26,13 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
         port=int(parser.get("server", "Port"))
     )
 
+    smtp_config = SMTPConfig(
+        smtp_server=os.getenv("SMTP_SERVER"),
+        smtp_port=os.getenv("SMTP_PORT"),
+        smtp_username=os.getenv("SMTP_USERNAME"),
+        smtp_password=os.getenv("SMTP_PASSWORD")
+    )
+
     auth_config = AuthConfig(
         secret_key=os.getenv("SECRET_KEY"),
         token_expiry_minutes=os.getenv("TOKEN_EXPIRY_MINUTES")
@@ -34,8 +41,8 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
     config = Config(
         db_config=db_config,
         server_config=server_config,
-        auth_config=auth_config,
-
+        smtp_config=smtp_config,
+        auth_config=auth_config
     )
 
     return config
