@@ -12,6 +12,16 @@ class UserCreate(BaseModel):
     is_seller: bool
 
 
+class ProductCreate(BaseModel):
+    name: Annotated[str, StringConstraints(max_length=100, strict=True)]
+    description: Annotated[str, StringConstraints(max_length=150000, strict=True)]
+    price: int
+    stock_quantity: int
+    material: str
+    color: str
+    image_path: str
+    image_path2: Optional[str]
+
 @dataclass
 class UserUpdate:
     first_name: Optional[str] = None
