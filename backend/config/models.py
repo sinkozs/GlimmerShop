@@ -29,6 +29,10 @@ class SMTPConfig:
     smtp_port: int
     smtp_username: str
     smtp_password: str
+    verification_email_sender: str
+    verification_email_subject: str
+    verification_email_message: str
+    verification_code_expiration_minutes: int
 
 
 @dataclass
