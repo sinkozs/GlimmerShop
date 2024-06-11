@@ -11,32 +11,39 @@ from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from models.models import User
-from config.auth_config import SECRET_KEY, ALGORITHM, TOKEN_EXPIRY_MINUTES, bcrypt_context
+from config.auth_config import ALGORITHM, bcrypt_context
 from services.user_service import UserService
 from exceptions.auth_exceptions import AuthenticationException
 from dependencies import db_model_to_dict
+from config.parser import load_config
 
 
 class AuthService:
 
     def __init__(self, session: AsyncSession):
         self.db = session
+        self.auth_config = load_config().auth_config
 
     def verify_password(self, plain_password, hashed_password) -> bool:
         return bcrypt_context.verify(plain_password, hashed_password)
 
-    @classmethod
-    def create_access_token(cls, user_id: UUID, email: EmailStr, expires_delta: Optional[timedelta] = None) -> str:
+    def create_access_token(self, user_id: UUID, email: EmailStr, expires_delta: Optional[timedelta] = None) -> str:
         encode = {"id": str(user_id), "email": str(email)}
+        print(
+            f"TOKEN EXP MINS: {self.auth_config.token_expiry_minutes} Type: {type(self.auth_config.token_expiry_minutes)}")
         if expires_delta:
             expire = datetime.now() + expires_delta
         else:
-            expire = datetime.now() + timedelta(minutes=TOKEN_EXPIRY_MINUTES)
+            expire = datetime.now() + timedelta(minutes=self.auth_config.token_expiry_minutes)
         encode.update({"exp": expire})
-        return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
+        return jwt.encode(encode, self.auth_config.secret_key, algorithm=ALGORITHM)
 
     def create_user_token(self, user: dict):
-        user_token_expires = timedelta(minutes=TOKEN_EXPIRY_MINUTES)
+        cfg = load_config()
+        print(
+            f"POSTGRES PORT: {cfg.db_config.port} Type: {type(cfg.db_config.port)}")
+        print(f"TOKEN EXP MINS: {self.auth_config.token_expiry_minutes} Type: {type(self.auth_config.token_expiry_minutes)}")
+        user_token_expires = timedelta(minutes=self.auth_config.token_expiry_minutes)
         return self.create_access_token(user["id"], user["email"], expires_delta=user_token_expires)
 
     async def authenticate_user(self, email: EmailStr, password: str) -> dict:
@@ -58,7 +65,7 @@ class AuthService:
                 return user_dict
         except SQLAlchemyError:
             raise AuthenticationException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
+                                          detail="An error occurred when accessing the database!")
 
     async def user_logout(self, user: dict):
         try:

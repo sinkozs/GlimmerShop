@@ -1,4 +1,3 @@
-import json
 from datetime import datetime, timedelta
 from uuid import UUID
 from fastapi import Depends, HTTPException
@@ -8,7 +7,7 @@ from starlette import status
 
 from pydantic import EmailStr
 from jose import jwt
-from config.auth_config import SECRET_KEY, ALGORITHM, oauth2_bearer
+from config.auth_config import ALGORITHM, oauth2_bearer
 from config.parser import load_config
 import random
 import smtplib

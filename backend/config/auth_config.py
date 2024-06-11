@@ -6,6 +6,3 @@ ALGORITHM = "HS256"
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="token")
 
-TOKEN_EXPIRY_MINUTES = load_config().auth_config.token_expiry_minutes
-
-SECRET_KEY = load_config().auth_config.secret_key
