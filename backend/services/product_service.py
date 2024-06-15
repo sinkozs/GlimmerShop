@@ -1,7 +1,7 @@
 from uuid import UUID
 from typing import List
 
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status
@@ -85,3 +85,22 @@ class ProductService:
             print(f"Database access error: {e}")
             raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                    detail="An error occurred when accessing the database!")
+
+    async def delete_product(self, product_id: int):
+        try:
+            async with self.db.begin():
+                stmt = select(Product).filter(Product.id == product_id)
+                product: Product = await self.db.scalar(stmt)
+
+            if product is not None:
+                await self.db.delete(product)
+
+        except NoResultFound:
+            raise UserException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Product with {product_id} id not found!"
+            )
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail="An error occurred when accessing the database!")

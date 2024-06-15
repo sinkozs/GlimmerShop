@@ -2,11 +2,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from dependencies import get_session
-from controllers.user_controller import UserController
-from services.user_service import UserService
 from controllers.product_controller import ProductController
 from services.product_service import ProductService
 from schemas.schemas import ProductCreate
+from dependencies import get_current_user
+
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -49,10 +49,28 @@ async def get_product_by_id(product_id: int,
 
 
 @router.post("/new")
-async def add_new_product(seller_id: UUID, product: ProductCreate, session: AsyncSession = Depends(get_session)):
+async def add_new_product(product: ProductCreate, current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
     service = ProductService(session)
     product_controller = ProductController(service)
     try:
+        seller_id: UUID = current_user.get("id")
+        if not seller_id:
+            raise HTTPException(status_code=400, detail="Missing seller ID")
         return await product_controller.add_new_product(seller_id, product)
+    except HTTPException as e:
+        raise e
+
+
+@router.delete("/delete/{product_id}")
+async def delete_product(product_id: int, current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    service = ProductService(session)
+    product_controller = ProductController(service)
+    try:
+        seller_id: UUID = current_user.get("id")
+        if not seller_id:
+            raise HTTPException(status_code=400, detail="Missing seller ID")
+
+        print(f"Seller id: {seller_id}")
+        return await product_controller.delete_product(product_id)
     except HTTPException as e:
         raise e

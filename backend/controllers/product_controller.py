@@ -53,3 +53,9 @@ class ProductController:
             await self._service.add_new_product(seller_id, product)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def delete_product(self, product_id: int):
+        try:
+            await self._service.delete_product(product_id)
+        except UserException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
