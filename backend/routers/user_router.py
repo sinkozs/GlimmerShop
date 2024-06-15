@@ -57,6 +57,17 @@ async def create_new_user(user: UserCreate, session: AsyncSession = Depends(get_
         raise e
 
 
+@router.post("/verify-account")
+async def verify_account(email, code, session: AsyncSession = Depends(get_session)):
+    service = UserService(session)
+    user_controller = UserController(service)
+    try:
+        print(f"Calling service.verify_user")
+        return await user_controller.verify_user(email, code)
+    except HTTPException as e:
+        raise e
+
+
 @router.put("/edit")
 async def edit_user(user_id: UUID, user: UserUpdate, session: AsyncSession = Depends(get_session)):
     service = UserService(session)

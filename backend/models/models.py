@@ -70,7 +70,7 @@ class Cart(Base):
     __tablename__ = "cart"
     __table_args__ = {'schema': 'public'}
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('public.user.id', ondelete="CASCADE"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey('public.user.id', ondelete="CASCADE"), nullable=False)
 
     user = relationship("User", back_populates="cart")
     cart_item = relationship("CartItem", back_populates="cart")

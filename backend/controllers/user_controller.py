@@ -1,5 +1,3 @@
-import uuid
-
 from pydantic import EmailStr
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -51,7 +49,14 @@ class UserController:
 
         try:
             await self._service.create_new_user(user_model)
+            await self._service.send_email_to_user(user_model)
 
+        except UserException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def verify_user(self, email, code):
+        try:
+            await self._service.verify_email(email, code)
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
@@ -83,7 +88,7 @@ class UserController:
     def hash_password(password: str) -> str:
         return bcrypt_context.hash(password)
 
-    async def delete_user(self, user_id):
+    async def delete_user(self, user_id: UUID):
         try:
             await self._service.delete_user(user_id)
         except UserException as e:

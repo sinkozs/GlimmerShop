@@ -35,7 +35,8 @@ def dict_to_db_model(model_class, data: dict):
 
 async def get_current_user(user_token: str = Depends(oauth2_bearer)) -> dict:
     try:
-        payload = jwt.decode(user_token, SECRET_KEY, algorithms=[ALGORITHM])
+        auth_config = load_config().auth_config
+        payload = jwt.decode(user_token, auth_config.secret_key, algorithms=[ALGORITHM])
         email: EmailStr = payload.get("email")
         user_id: UUID = payload.get("id")
 
@@ -74,12 +75,12 @@ async def verify_code(email: EmailStr, code):
         return True, "Account successfully verified!"
 
 
-async def send_verification_email(nickname: str, user_email: EmailStr):
+async def send_verification_email(first_name: str, user_email: EmailStr):
     sender_email = smtp_config.verification_email_sender
     receiver_email = user_email
     subject = smtp_config.verification_email_subject
     verification_code = generate_random_verification_code()
-    body = f"Hey {nickname}! \n \n " + smtp_config.verification_email_message + " \n \n" + verification_code
+    body = f"Hey {first_name}! \n \n " + smtp_config.verification_email_message + " \n \n" + verification_code
 
     message = MIMEMultipart()
     message["From"] = sender_email
@@ -93,8 +94,8 @@ async def send_verification_email(nickname: str, user_email: EmailStr):
     smtp_port = smtp_config.smtp_port
 
     # SMTP credentials
-    smtp_username = smtp_config.username
-    smtp_password = smtp_config.password
+    smtp_username = smtp_config.smtp_username
+    smtp_password = smtp_config.smtp_password
 
     try:
         server = smtplib.SMTP(smtp_server, smtp_port)
