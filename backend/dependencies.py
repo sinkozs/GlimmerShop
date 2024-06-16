@@ -33,6 +33,13 @@ def dict_to_db_model(model_class, data: dict):
     return instance
 
 
+def convert_str_to_int_if_numeric(value: str):
+    try:
+        return int(value)
+    except ValueError:
+        return value
+
+
 async def get_current_user(user_token: str = Depends(oauth2_bearer)) -> dict:
     try:
         auth_config = load_config().auth_config
