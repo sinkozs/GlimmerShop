@@ -65,8 +65,6 @@ class CategoryController:
 
     async def delete_category_from_product(self, product_id: int, category_id: int):
         try:
-            category_exists = await self._service.check_category_exists(category_id)
-            if category_exists.get("is_exist"):
-                await self._service.delete_category_from_product(product_id, category_id)
+            await self._service.delete_category_from_product(product_id, category_id)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
