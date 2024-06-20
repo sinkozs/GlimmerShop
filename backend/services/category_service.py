@@ -96,29 +96,55 @@ class CategoryService:
                     return {"is_exist": True, "category_record": db_model_to_dict(category_record)}
                 else:
                     return {"is_exist": False}
-
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise
+            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail="An error occurred when accessing the database!")
 
     async def add_category_to_product(self, product_id: int, category_id: int):
-        async with self.db.begin():
-            stmt = select(ProductCategory).where(
-                ProductCategory.product_id == product_id,
-                ProductCategory.category_id == category_id
-            )
-            result = await self.db.execute(stmt)
-            try:
-                link = result.scalar_one()
-                return {"message": "This category is already linked to the product."}
-            except NoResultFound:
-                new_association = ProductCategory(
-                    product_id=product_id,
-                    category_id=category_id
+        try:
+            async with self.db.begin():
+                stmt = select(ProductCategory).where(
+                    ProductCategory.product_id == product_id,
+                    ProductCategory.category_id == category_id
                 )
-                self.db.add(new_association)
-                await self.db.commit()
-                return {"message": "Category added to the product successfully."}
+                result = await self.db.execute(stmt)
+                try:
+                    link = result.scalar_one()
+                    return {"message": "This category is already linked to the product."}
+                except NoResultFound:
+                    new_association = ProductCategory(
+                        product_id=product_id,
+                        category_id=category_id
+                    )
+                    self.db.add(new_association)
+                    await self.db.commit()
+                    return {"message": "Category added to the product successfully."}
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail="An error occurred when accessing the database!")
+
+    async def delete_category_from_product(self, product_id: int, category_id: int):
+        try:
+            async with self.db.begin():
+                stmt = select(ProductCategory).where(
+                    ProductCategory.product_id == product_id,
+                    ProductCategory.category_id == category_id
+                )
+                product_category: ProductCategory = await self.db.scalar(stmt)
+
+                if not product_category:
+                    raise ProductException(status_code=status.HTTP_404_NOT_FOUND,
+                                        detail=f"No link between category ID {category_id} and product ID {product_id} was found.")
+
+                await self.db.delete(product_category)
+                await self.db.flush()
+                return {"message": f"Product Category link successfully deleted!"}
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail="An error occurred when accessing the database!")
 
     async def add_new_category(self, category: Category):
         try:
@@ -126,5 +152,6 @@ class CategoryService:
             await self.db.commit()
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise
+            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail="An error occurred when accessing the database!")
 
