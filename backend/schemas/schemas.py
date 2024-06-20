@@ -12,6 +12,14 @@ class UserCreate(BaseModel):
     is_seller: bool
 
 
+@dataclass
+class UserUpdate:
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+
+
 class ProductCreate(BaseModel):
     name: Annotated[str, StringConstraints(max_length=100, strict=True)]
     description: Annotated[str, StringConstraints(max_length=150000, strict=True)]
@@ -20,14 +28,16 @@ class ProductCreate(BaseModel):
     material: str
     color: str
     image_path: str
-    image_path2: Optional[str]
+    image_path2: str
+
 
 @dataclass
-class UserUpdate:
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
-
-    def is_valid_update(self, field_value, original_value):
-        return field_value is not None and field_value != '' and field_value != original_value
+class ProductUpdate:
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[int] = None
+    stock_quantity: Optional[int] = None
+    material: Optional[str] = None
+    color: Optional[str] = None
+    image_path: Optional[str] = None
+    image_path2: Optional[str] = None

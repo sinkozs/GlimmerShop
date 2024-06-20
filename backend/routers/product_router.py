@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from dependencies import get_session
 from controllers.product_controller import ProductController
 from services.product_service import ProductService
-from schemas.schemas import ProductCreate
+from schemas.schemas import ProductCreate, ProductUpdate
 from dependencies import get_current_user
 
 
@@ -57,6 +57,19 @@ async def add_new_product(product: ProductCreate, current_user: dict = Depends(g
         if not seller_id:
             raise HTTPException(status_code=400, detail="Missing seller ID")
         return await product_controller.add_new_product(seller_id, product)
+    except HTTPException as e:
+        raise e
+
+
+@router.put("/edit/{product_id}")
+async def edit_product(product_id: int, product: ProductUpdate, current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    service = ProductService(session)
+    product_controller = ProductController(service)
+    try:
+        seller_id: UUID = current_user.get("id")
+        if not seller_id:
+            raise HTTPException(status_code=400, detail="Missing seller ID")
+        return await product_controller.edit_product(product_id, product)
     except HTTPException as e:
         raise e
 

@@ -7,7 +7,7 @@ from services.product_service import ProductService
 from services.user_service import UserService
 from models.models import User, Product
 from config.auth_config import bcrypt_context
-from schemas.schemas import ProductCreate
+from schemas.schemas import ProductCreate, ProductUpdate
 from datetime import datetime, timezone
 from exceptions.user_exceptions import UserException
 from exceptions.product_exceptions import ProductException
@@ -51,6 +51,12 @@ class ProductController:
 
         try:
             await self._service.add_new_product(seller_id, product)
+        except ProductException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def edit_product(self, product_id: int, edited_product: ProductUpdate):
+        try:
+            await self._service.edit_product(product_id, edited_product)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 

@@ -22,6 +22,9 @@ async def get_session() -> AsyncSession:
     raise NotImplementedError("Please overwrite get_session dependency.")
 
 
+def is_valid_update(field_value, original_value):
+    return field_value is not None and field_value != '' and field_value != original_value
+
 def db_model_to_dict(model_instance) -> dict:
     return {column.name: getattr(model_instance, column.name) for column in model_instance.__table__.columns}
 

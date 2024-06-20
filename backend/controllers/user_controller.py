@@ -1,7 +1,7 @@
 from pydantic import EmailStr
 from sqlalchemy.dialects.postgresql import UUID
 
-from dependencies import dict_to_db_model, db_model_to_dict
+from dependencies import dict_to_db_model, db_model_to_dict, is_valid_update
 from services.user_service import UserService
 from models.models import User, Cart
 from config.auth_config import bcrypt_context
@@ -63,11 +63,11 @@ class UserController:
     async def edit_user(self, user_id: UUID, user_update: UserUpdate):
         original_user: User = dict_to_db_model(User, await self.get_user_by_id(user_id))
         if original_user:
-            if user_update.is_valid_update(user_update.first_name, original_user.first_name):
+            if is_valid_update(user_update.first_name, original_user.first_name):
                 original_user.first_name = user_update.first_name
-            if user_update.is_valid_update(user_update.last_name, original_user.last_name):
+            if is_valid_update(user_update.last_name, original_user.last_name):
                 original_user.last_name = user_update.last_name
-            if user_update.is_valid_update(user_update.email, original_user.email):
+            if is_valid_update(user_update.email, original_user.email):
                 original_user.email = user_update.email
             if user_update.password:
                 if not bcrypt_context.verify(user_update.password, original_user.hashed_password):
