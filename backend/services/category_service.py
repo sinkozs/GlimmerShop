@@ -7,7 +7,10 @@ from sqlalchemy.future import select
 from fastapi import status
 from sqlalchemy import func, and_
 from models.models import Product, User, Category, ProductCategory
+from sqlalchemy.orm import joinedload, selectinload
+
 from .product_service import ProductService
+from exceptions.category_exceptions import CategoryException
 from exceptions.product_exceptions import ProductException
 from exceptions.user_exceptions import UserException
 from dependencies import db_model_to_dict, dict_to_db_model, convert_str_to_int_if_numeric
@@ -26,10 +29,51 @@ class CategoryService:
                 if categories:
                     return [db_model_to_dict(c) for c in categories]
                 else:
-                    raise ProductException.category_not_found()
+                    raise CategoryException(status_code=status.HTTP_404_NOT_FOUND,
+                                           detail=f"No categories found!")
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            raise CategoryException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                   detail="An error occurred when accessing the database!")
+
+    async def get_product_categories(self, product_id: int) -> list:
+        try:
+            async with self.db.begin():
+                stmt = select(Product).options(
+                    selectinload(Product.product_category).selectinload(ProductCategory.category)
+                ).where(Product.id == product_id)
+
+                result = await self.db.execute(stmt)
+                product = result.scalars().one_or_none()
+
+                if product is None:
+                    raise ProductException(status_code=status.HTTP_404_NOT_FOUND,
+                                           detail=f"Product with id {product_id} not found!")
+                category_names = [pc.category.category_name for pc in product.product_category]
+                return category_names
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise CategoryException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                   detail="An error occurred when accessing the database!")
+
+    async def get_products_by_category(self, category_id: int) -> list:
+        try:
+            async with self.db.begin():
+                stmt = select(Category).options(
+                    selectinload(Category.product_category).selectinload(ProductCategory.product)
+                ).where(Category.id == category_id)
+
+                result = await self.db.execute(stmt)
+                category = result.scalars().one_or_none()
+
+                if category is None:
+                    raise CategoryException(status_code=status.HTTP_404_NOT_FOUND,
+                                            detail=f"category with id {category_id} not found!")
+                products_list = [pc.product.name for pc in category.product_category]
+                return products_list
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise CategoryException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                    detail="An error occurred when accessing the database!")
 
     async def check_category_exists(self, category_identifier: str) -> dict:
@@ -38,11 +82,9 @@ class CategoryService:
             async with self.db.begin():
                 # the identifier is the id
                 if isinstance(category_identifier, int):
-                    print(f"INT category_identifier: {category_identifier}")
                     condition = (Category.id == category_identifier)
                     # the identifier is the category name
                 elif isinstance(category_identifier, str):
-                    print(f"STR category_identifier: {category_identifier}")
                     condition = (Category.category_name == category_identifier)
                 else:
                     raise ValueError("Invalid category identifier type")
@@ -60,7 +102,7 @@ class CategoryService:
             raise
 
     async def add_category_to_product(self, product_id: int, category_id: int):
-        async with self.db.begin:
+        async with self.db.begin():
             stmt = select(ProductCategory).where(
                 ProductCategory.product_id == product_id,
                 ProductCategory.category_id == category_id

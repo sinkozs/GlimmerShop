@@ -37,6 +37,26 @@ async def get_category_by_identifier(category_identifier, session: AsyncSession 
         raise e
 
 
+@router.get("/product-categories")
+async def get_product_categories(product_id: int, session: AsyncSession = Depends(get_session)):
+    service = CategoryService(session)
+    controller = CategoryController(service)
+    try:
+        return await controller.get_product_categories(product_id)
+    except HTTPException as e:
+        raise e
+
+
+@router.get("/products-by-category")
+async def get_products_by_category(category_id: int, session: AsyncSession = Depends(get_session)):
+    service = CategoryService(session)
+    controller = CategoryController(service)
+    try:
+        return await controller.get_products_by_category(category_id)
+    except HTTPException as e:
+        raise e
+
+
 @router.post("/new")
 async def add_new_category(category_name: str, session: AsyncSession = Depends(get_session)):
     service = CategoryService(session)

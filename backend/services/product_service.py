@@ -25,7 +25,6 @@ class ProductService:
                 result = await self.db.execute(stmt)
                 product: Product = result.scalars().first()
                 if product:
-                    print(f"PRODUCT RECORD: {product}")
                     return db_model_to_dict(product)
                 else:
                     raise ProductException(status_code=status.HTTP_404_NOT_FOUND,

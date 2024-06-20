@@ -33,6 +33,18 @@ class CategoryController:
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
+    async def get_product_categories(self, product_id: int):
+        try:
+            return await self._service.get_product_categories(product_id)
+        except ProductException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def get_products_by_category(self, category_id: int):
+        try:
+            return await self._service.get_products_by_category(category_id)
+        except ProductException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
     async def add_new_category(self, category_name: str):
         try:
             category_exists = await self._service.check_category_exists(category_name)
