@@ -62,15 +62,22 @@ class UserService:
                                 detail="An error occurred when accessing the database!")
 
     async def get_user_by_email(self, email: str):
-        async with self.db.begin():
-            stmt = select(User).filter(User.email == email)
-            result = await self.db.execute(stmt)
-            user_model: User = result.scalars().first()
-            print(f"get_user_by_email user_model: {user_model}")
-            if user_model:
-                return user_model
-            else:
-                return None
+        try:
+            async with self.db.begin():
+                stmt = select(User).filter(User.email == email)
+                result = await self.db.execute(stmt)
+                user_model: User = result.scalars().first()
+                if user_model:
+                    return user_model
+                else:
+                    raise UserException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"No user found with email {email}"
+                    )
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail="An error occurred when accessing the database!")
 
     async def check_seller_exists(self, seller_id: UUID) -> bool:
         try:
@@ -83,7 +90,8 @@ class UserService:
                 return result.scalar_one() > 0
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise
+            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail="An error occurred when accessing the database!")
 
     async def create_new_user(self, user: User):
         try:

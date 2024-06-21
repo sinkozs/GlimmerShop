@@ -38,3 +38,8 @@ class ProductUpdate(BaseModel):
     color: Optional[str] = None
     image_path: Optional[str] = None
     image_path2: Optional[str] = None
+
+
+class CartItemCreate(BaseModel):
+    product_id: int
+    quantity: Annotated[int, Field(ge=0)]
