@@ -40,6 +40,6 @@ class ProductUpdate(BaseModel):
     image_path2: Optional[str] = None
 
 
-class CartItemCreate(BaseModel):
+class CartItemUpdate(BaseModel):
     product_id: int
     quantity: Annotated[int, Field(ge=0)]
