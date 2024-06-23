@@ -90,22 +90,27 @@ class CartService:
         return cart_dict, total_sum_price
 
     async def get_detailed_user_cart(self, user_id: UUID) -> dict:
-        stmt = select(CartItem).options(joinedload(CartItem.product)).join(CartItem.cart).where(Cart.user_id == user_id)
-        result = await self.db.execute(stmt)
-        cart_items = result.scalars().all()
+        try:
+            stmt = select(CartItem).options(joinedload(CartItem.product)).join(CartItem.cart).where(Cart.user_id == user_id)
+            result = await self.db.execute(stmt)
+            cart_items = result.scalars().all()
 
-        details = list()
-        for cart_item in cart_items:
-            item_detail = {
-                "product_id": cart_item.product.id,
-                "product_name": cart_item.product.name,
-                "product_quantity": cart_item.quantity,
-                "total_product_price": cart_item.product.price * cart_item.quantity
-            }
-            details.append(item_detail)
-        cart_dict, total_price = self.get_detailed_cart_dict(details)
-        return {"cart_dict": cart_dict, "total_price": total_price}
-
+            details = list()
+            for cart_item in cart_items:
+                item_detail = {
+                    "product_id": cart_item.product.id,
+                    "product_name": cart_item.product.name,
+                    "product_quantity": cart_item.quantity,
+                    "total_product_price": cart_item.product.price * cart_item.quantity
+                }
+                details.append(item_detail)
+            cart_dict, total_price = self.get_detailed_cart_dict(details)
+            return {"cart_dict": cart_dict, "total_price": total_price}
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                   detail="An error occurred when accessing the database!")
+        
     async def add_new_item_to_cart(self, user_id: UUID, cart_item: CartItemUpdate):
         try:
             user = await self.get_user_and_cart_by_user_id(user_id)
