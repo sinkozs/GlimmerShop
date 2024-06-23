@@ -32,6 +32,7 @@ class Product(Base):
     seller = relationship("User", back_populates="product")
     product_category = relationship("ProductCategory", back_populates="product")
     user_orders = relationship("UserOrder", back_populates="product")
+    cart_items = relationship("CartItem", back_populates="product")
 
 
 class ProductCategory(Base):
@@ -85,6 +86,7 @@ class CartItem(Base):
     quantity = Column(Integer)
 
     cart = relationship("Cart", back_populates="cart_item")
+    product = relationship("Product", back_populates="cart_items")
 
 
 class UserOrder(Base):

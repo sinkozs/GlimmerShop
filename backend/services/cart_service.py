@@ -6,12 +6,13 @@ from sqlalchemy.future import select
 from fastapi import status
 from models.models import Product, User, Category, ProductCategory, Cart, CartItem
 from schemas.schemas import CartItemUpdate
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from exceptions.product_exceptions import ProductException
 from exceptions.cart_exceptions import CartException
 from exceptions.user_exceptions import UserException
 from dependencies import db_model_to_dict
+from typing import List
 
 
 class CartService:
@@ -53,7 +54,7 @@ class CartService:
     async def get_all_cart_item_by_user_id(self, user_id: UUID) -> list:
         try:
             user = await self.get_user_and_cart_by_user_id(user_id)
-            stmt = select(CartItem).where(CartItem.cart_id == user.cart.id)
+            stmt = select(CartItem).options(selectinload(CartItem.cart)).where(CartItem.cart_id == user.cart.id)
             cart_item_result = await self.db.execute(stmt)
             cart_items = cart_item_result.scalars().all()
 
@@ -66,6 +67,44 @@ class CartService:
             print(f"Database access error: {e}")
             raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                    detail="An error occurred when accessing the database!")
+
+    def get_detailed_cart_dict(self, cart_items: List):
+        cart_dict = dict()
+        total_sum_price = 0
+        for item in cart_items:
+            product_id = item["product_id"]
+            product_name = item["product_name"]
+            product_quantity = item["product_quantity"]
+            total_product_price = item["total_product_price"]
+
+            if product_id in cart_dict.keys():
+                cart_dict[product_id]["product_quantity"] += product_quantity
+                cart_dict[product_id]["total_product_price"] += total_product_price
+
+            else:
+                cart_dict[product_id] = {"product_name": product_name, "product_quantity": product_quantity,
+                                         "total_product_price": total_product_price}
+
+            total_sum_price += total_product_price
+
+        return cart_dict, total_sum_price
+
+    async def get_detailed_user_cart(self, user_id: UUID) -> dict:
+        stmt = select(CartItem).options(joinedload(CartItem.product)).join(CartItem.cart).where(Cart.user_id == user_id)
+        result = await self.db.execute(stmt)
+        cart_items = result.scalars().all()
+
+        details = list()
+        for cart_item in cart_items:
+            item_detail = {
+                "product_id": cart_item.product.id,
+                "product_name": cart_item.product.name,
+                "product_quantity": cart_item.quantity,
+                "total_product_price": cart_item.product.price * cart_item.quantity
+            }
+            details.append(item_detail)
+        cart_dict, total_price = self.get_detailed_cart_dict(details)
+        return {"cart_dict": cart_dict, "total_price": total_price}
 
     async def add_new_item_to_cart(self, user_id: UUID, cart_item: CartItemUpdate):
         try:
