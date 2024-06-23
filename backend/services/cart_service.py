@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 from exceptions.product_exceptions import ProductException
 from exceptions.cart_exceptions import CartException
 from exceptions.user_exceptions import UserException
+from dependencies import db_model_to_dict
 
 
 class CartService:
@@ -44,6 +45,23 @@ class CartService:
                 raise CartException(status_code=status.HTTP_404_NOT_FOUND,
                                                detail=f"Cart item not found!")
             return existing_cart_item
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                   detail="An error occurred when accessing the database!")
+
+    async def get_all_cart_item_by_user_id(self, user_id: UUID) -> list:
+        try:
+            user = await self.get_user_and_cart_by_user_id(user_id)
+            stmt = select(CartItem).where(CartItem.cart_id == user.cart.id)
+            cart_item_result = await self.db.execute(stmt)
+            cart_items = cart_item_result.scalars().all()
+
+            if not cart_items:
+                raise CartException(status_code=status.HTTP_404_NOT_FOUND,
+
+                                               detail=f"No cart items not found!")
+            return [db_model_to_dict(c) for c in cart_items]
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -89,3 +107,17 @@ class CartService:
             print(f"Database access error: {e}")
             raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                    detail="An error occurred when accessing the database!")
+
+    # async def delete_everything_from_user_cart(self, user_id: UUID):
+    #     try:
+    #         user = await self.get_user_and_cart_by_user_id(user_id)
+    #
+    #         if user.cart.:
+    #             existing_cart_item.quantity -= cart_item.quantity
+    #         else:
+    #             raise CartException(status_code=status.HTTP_404_NOT_FOUND,
+    #                                            detail=f"Cart item not found!")
+    #     except SQLAlchemyError as e:
+    #         print(f"Database access error: {e}")
+    #         raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #                                detail="An error occurred when accessing the database!")

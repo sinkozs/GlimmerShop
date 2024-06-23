@@ -17,6 +17,19 @@ router = APIRouter(
 )
 
 
+@router.get("")
+async def get_all_cart_item_by_user_id(current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    service = CartService(session)
+    controller = CartController(service)
+    try:
+        user_id: UUID = current_user.get("id")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="Missing user ID")
+        return await controller.get_all_cart_item_by_user_id(user_id)
+    except HTTPException as e:
+        raise e
+
+
 @router.post("/add")
 async def add_new_item_to_cart(cart_item: CartItemUpdate, current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
     service = CartService(session)
