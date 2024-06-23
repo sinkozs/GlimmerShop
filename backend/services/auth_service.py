@@ -29,8 +29,6 @@ class AuthService:
 
     def create_access_token(self, user_id: UUID, email: EmailStr, expires_delta: Optional[timedelta] = None) -> str:
         encode = {"id": str(user_id), "email": str(email)}
-        print(
-            f"TOKEN EXP MINS: {self.auth_config.token_expiry_minutes} Type: {type(self.auth_config.token_expiry_minutes)}")
         if expires_delta:
             expire = datetime.now() + expires_delta
         else:
@@ -40,9 +38,6 @@ class AuthService:
 
     def create_user_token(self, user: dict):
         cfg = load_config()
-        print(
-            f"POSTGRES PORT: {cfg.db_config.port} Type: {type(cfg.db_config.port)}")
-        print(f"TOKEN EXP MINS: {self.auth_config.token_expiry_minutes} Type: {type(self.auth_config.token_expiry_minutes)}")
         user_token_expires = timedelta(minutes=self.auth_config.token_expiry_minutes)
         return self.create_access_token(user["id"], user["email"], expires_delta=user_token_expires)
 
