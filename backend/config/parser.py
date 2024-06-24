@@ -31,7 +31,7 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
         smtp_port=587,
         smtp_username=os.getenv("SMTP_USERNAME"),
         smtp_password=os.getenv("SMTP_PASSWORD"),
-        email_sender=parser.get("smtp-account-verification", "Sender"),
+        sender_email=parser.get("smtp-account-verification", "Sender"),
         verification_email_subject=parser.get("smtp-account-verification", "Subject"),
         verification_email_message=parser.get("smtp-account-verification", "Message"),
         verification_code_expiration_minutes=int(parser.get("smtp-account-verification", "CodeExpirationMinutes")),

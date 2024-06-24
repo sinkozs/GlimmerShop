@@ -1,7 +1,7 @@
 from pydantic import EmailStr
 from sqlalchemy.dialects.postgresql import UUID
 
-from dependencies import dict_to_db_model, db_model_to_dict, is_valid_update
+from dependencies import dict_to_db_model, db_model_to_dict, is_valid_update, hash_password
 from services.user_service import UserService
 from models.models import User, Cart
 from config.auth_config import bcrypt_context
@@ -83,10 +83,6 @@ class UserController:
             return await self._service.get_user_by_email(email)
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
-
-    @staticmethod
-    def hash_password(password: str) -> str:
-        return bcrypt_context.hash(password)
 
     async def delete_user(self, user_id: UUID):
         try:

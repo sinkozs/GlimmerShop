@@ -7,14 +7,16 @@ from typing import Optional
 from pydantic import EmailStr
 from fastapi import status
 from jose import jwt
-from datetime import datetime, timedelta, timezone
+import secrets
+import string
+from datetime import datetime, timedelta
 from uuid import UUID
 
 from models.models import User
 from config.auth_config import ALGORITHM, bcrypt_context
 from services.user_service import UserService
 from exceptions.auth_exceptions import AuthenticationException
-from dependencies import db_model_to_dict
+from dependencies import db_model_to_dict, send_password_reset_email, hash_password
 from config.parser import load_config
 
 
@@ -26,6 +28,21 @@ class AuthService:
 
     def verify_password(self, plain_password, hashed_password) -> bool:
         return bcrypt_context.verify(plain_password, hashed_password)
+
+    def generate_strong_password(self) -> str:
+        length = self.auth_config.min_password_length
+        alphabet = string.ascii_letters + string.digits + string.punctuation
+
+        # ensuring the password includes at least one lowercase, one uppercase, one digit, and one special character
+        while True:
+            password = ''.join(secrets.choice(alphabet) for i in range(length))
+            if (any(c.islower() for c in password)
+                    and any(c.isupper() for c in password)
+                    and any(c.isdigit() for c in password)
+                    and any(c in string.punctuation for c in password)):
+                break
+
+        return password
 
     def create_access_token(self, user_id: UUID, email: EmailStr, expires_delta: Optional[timedelta] = None) -> str:
         encode = {"id": str(user_id), "email": str(email)}
@@ -62,10 +79,23 @@ class AuthService:
             raise AuthenticationException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                           detail="An error occurred when accessing the database!")
 
-    async def user_logout(self, user: dict):
+    async def regenerate_forgotten_password(self, user_email: EmailStr):
+        async with self.db.begin():
+            stmt = select(User).filter(User.email == user_email)
+            result = await self.db.execute(stmt)
+            user_model = result.scalars().first()
+            if user_model:
+                new_password = self.generate_strong_password()
+                user_model.hashed_password = hash_password(new_password)
+                self.db.add(user_model)
+                await self.db.commit()
+                await send_password_reset_email(user_email, new_password)
+            if not user_model:
+                raise AuthenticationException()
+
+    async def user_logout(self, user_id: UUID):
         try:
             async with self.db.begin():
-                user_id: UUID = user.get("id")
                 stmt = select(User).filter(User.id == user_id)
                 result = await self.db.execute(stmt)
                 user_model = result.scalars().first()

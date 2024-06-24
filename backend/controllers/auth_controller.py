@@ -1,6 +1,10 @@
+from uuid import UUID
+
 from fastapi import Depends, HTTPException
 from exceptions.auth_exceptions import AuthenticationException
+from pydantic import EmailStr
 from services.auth_service import AuthService
+from services.user_service import UserService
 from fastapi.security import OAuth2PasswordRequestForm
 
 
@@ -27,5 +31,11 @@ class AuthController:
     def verify_password(self, password1, password2):
         try:
             return self._service.verify_password(password1, password2)
+        except AuthenticationException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def regenerate_forgotten_password(self, user_email: EmailStr):
+        try:
+            return await self._service.regenerate_forgotten_password(user_email)
         except AuthenticationException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e

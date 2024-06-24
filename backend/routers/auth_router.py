@@ -1,5 +1,8 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException
 from controllers.auth_controller import AuthController
+from pydantic import EmailStr
 from services.auth_service import AuthService
 from fastapi.security import OAuth2PasswordRequestForm
 from dependencies import get_session
@@ -24,8 +27,6 @@ def verify_password(password1, password2,
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(),
                 session: AsyncSession = Depends(get_session)):
-    # user_service = UserService(session)
-    # organizer_service = OrganizerService(session)
     service = AuthService(session)
     auth_controller = AuthController(service)
     try:
@@ -35,7 +36,23 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),
 
 
 @router.post("/logout")
-async def user_logout(user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+async def user_logout(current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
     service = AuthService(session)
     auth_controller = AuthController(service)
-    return await auth_controller.user_logout(user)
+    try:
+        user_id: UUID = current_user.get("id")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="Missing user ID")
+        return await auth_controller.user_logout(user_id)
+    except HTTPException as e:
+        raise e
+
+
+@router.post("/forgotten-password")
+async def regenerate_forgotten_password(user_email: EmailStr, session: AsyncSession = Depends(get_session)):
+    service = AuthService(session)
+    auth_controller = AuthController(service)
+    try:
+        return await auth_controller.regenerate_forgotten_password(user_email)
+    except HTTPException as e:
+        raise e
