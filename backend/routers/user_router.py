@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from dependencies import get_session
+from dependencies import get_session, get_current_user
 from controllers.user_controller import UserController
 from services.user_service import UserService
 from schemas.schemas import UserCreate, UserUpdate
@@ -69,20 +69,26 @@ async def verify_account(email, code, session: AsyncSession = Depends(get_sessio
 
 
 @router.put("/edit")
-async def edit_user(user_id: UUID, user: UserUpdate, session: AsyncSession = Depends(get_session)):
+async def edit_user(user_update: UserUpdate, current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
     service = UserService(session)
     user_controller = UserController(service)
     try:
-        return await user_controller.edit_user(user_id, user)
+        user_id: UUID = current_user.get("id")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="Missing user ID")
+        return await user_controller.edit_user(user_id, user_update)
     except HTTPException as e:
         raise e
 
 
 @router.delete("/delete")
-async def delete_user(user_id, session: AsyncSession = Depends(get_session)):
+async def delete_user(current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
     service = UserService(session)
     user_controller = UserController(service)
     try:
+        user_id: UUID = current_user.get("id")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="Missing user ID")
         return await user_controller.delete_user(user_id)
     except HTTPException as e:
         raise e
