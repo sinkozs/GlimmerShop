@@ -29,16 +29,20 @@ class SMTPConfig:
     smtp_port: int
     smtp_username: str
     smtp_password: str
-    verification_email_sender: str
+    email_sender: str
     verification_email_subject: str
     verification_email_message: str
     verification_code_expiration_minutes: int
+    password_reset_email_subject: str
+    password_reset_email_message: str
+    password_expiration_minutes: int
 
 
 @dataclass
 class AuthConfig:
     secret_key: str
     token_expiry_minutes: int
+    min_password_length: int
 
 
 @dataclass

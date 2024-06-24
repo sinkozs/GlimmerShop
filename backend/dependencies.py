@@ -86,7 +86,7 @@ async def verify_code(email: EmailStr, code):
 
 
 async def send_verification_email(first_name: str, user_email: EmailStr):
-    sender_email = smtp_config.verification_email_sender
+    sender_email = smtp_config.email_sender
     receiver_email = user_email
     subject = smtp_config.verification_email_subject
     verification_code = generate_random_verification_code()

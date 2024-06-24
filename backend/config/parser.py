@@ -31,15 +31,19 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
         smtp_port=587,
         smtp_username=os.getenv("SMTP_USERNAME"),
         smtp_password=os.getenv("SMTP_PASSWORD"),
-        verification_email_sender=parser.get("smtp", "Sender"),
-        verification_email_subject=parser.get("smtp", "Subject"),
-        verification_email_message=parser.get("smtp", "Message"),
-        verification_code_expiration_minutes=int(parser.get("smtp", "CodeExpirationMinutes")),
+        email_sender=parser.get("smtp-account-verification", "Sender"),
+        verification_email_subject=parser.get("smtp-account-verification", "Subject"),
+        verification_email_message=parser.get("smtp-account-verification", "Message"),
+        verification_code_expiration_minutes=int(parser.get("smtp-account-verification", "CodeExpirationMinutes")),
+        password_reset_email_subject=parser.get("smtp-forgotten-password", "Subject"),
+        password_reset_email_message=parser.get("smtp-forgotten-password", "Message"),
+        password_expiration_minutes=int(parser.get("smtp-forgotten-password", "PasswordExpirationMinutes")),
     )
 
     auth_config = AuthConfig(
         secret_key=os.getenv("SECRET_KEY"),
-        token_expiry_minutes=int(os.getenv("TOKEN_EXPIRY_MINUTES"))
+        token_expiry_minutes=int(os.getenv("TOKEN_EXPIRY_MINUTES")),
+        min_password_length=int(parser.get("auth", "MinPasswordLength"))
     )
 
     config = Config(
