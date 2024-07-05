@@ -12,8 +12,8 @@ class DatabaseConfig:
     connector: str = "asyncpg"
 
     @property
-    def url(self)->str:
-        url = f'{self.db_backend}+{self.connector}://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}'
+    def url(self) -> str:
+        url = f"{self.db_backend}+{self.connector}://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
         return url
 
 
@@ -21,6 +21,19 @@ class DatabaseConfig:
 class ServerConfig:
     host: str
     port: int
+
+
+@dataclass
+class RedisConfig:
+    host: str
+    port: int
+    password: str
+    connector: str = "redis"
+
+    @property
+    def url(self) -> str:
+        url = f"{self.connector}://:{self.password}@{self.host}:{self.port}"
+        return url
 
 
 @dataclass
@@ -43,12 +56,14 @@ class AuthConfig:
     secret_key: str
     token_expiry_minutes: int
     min_password_length: int
+    http_session_secret: str
 
 
 @dataclass
 class Config:
     db_config: DatabaseConfig
     server_config: ServerConfig
+    redis_config: RedisConfig
     smtp_config: SMTPConfig
     auth_config: AuthConfig
 

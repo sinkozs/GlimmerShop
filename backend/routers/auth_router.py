@@ -1,6 +1,7 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+import redis.asyncio as aioredis
+from fastapi import APIRouter, Depends, HTTPException, Response
 from controllers.auth_controller import AuthController
 from pydantic import EmailStr
 from services.auth_service import AuthService
@@ -9,6 +10,8 @@ from dependencies import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from services.user_service import UserService
 from dependencies import get_current_user
+
+from models.database import get_redis
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -25,12 +28,12 @@ def verify_password(password1, password2,
 
 
 @router.post("/login")
-async def login(form_data: OAuth2PasswordRequestForm = Depends(),
-                session: AsyncSession = Depends(get_session)):
+async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(),
+                session: AsyncSession = Depends(get_session), redis: aioredis.Redis = Depends(get_redis)):
     service = AuthService(session)
     auth_controller = AuthController(service)
     try:
-        return await auth_controller.login_for_access_token(form_data)
+        return await auth_controller.login_for_access_token(response, redis, form_data)
     except HTTPException as e:
         raise e
 

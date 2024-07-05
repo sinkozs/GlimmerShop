@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, Date, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy.dialects.postgresql import UUID
 
 from .database import Base
@@ -87,6 +87,12 @@ class CartItem(Base):
 
     cart = relationship("Cart", back_populates="cart_item")
     product = relationship("Product", back_populates="cart_items")
+
+    @validates('quantity')
+    def validate_quantity(self, key, value):
+        if value < 0:
+            raise ValueError(f"{key.capitalize()} cannot be negative")
+        return value
 
 
 class UserOrder(Base):

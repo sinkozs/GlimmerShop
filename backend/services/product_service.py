@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, exists
 from models.models import Product, User, ProductCategory, Category
 from schemas.schemas import ProductCreate, ProductUpdate
 from .user_service import UserService
@@ -34,6 +34,11 @@ class ProductService:
             print(f"Database access error: {e}")
             raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                    detail="An error occurred when accessing the database!")
+
+    async def product_exists(self, product_id: int) -> bool:
+        stmt = select(exists().where(Product.id == product_id))
+        result = await self.db.execute(stmt)
+        return result.scalar()
 
     async def get_all_products_by_seller(self, seller_id: UUID) -> list:
         try:
@@ -154,7 +159,6 @@ class ProductService:
 
             self.db.add(product)
             await self.db.commit()
-
 
     async def delete_product(self, product_id: int):
         try:

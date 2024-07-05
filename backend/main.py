@@ -1,22 +1,27 @@
 import logging
 from functools import partial
+from typing import Callable
+
 from fastapi import FastAPI
+from fastapi_sessions.frontends.implementations import SessionCookie, CookieParameters
 import uvicorn
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from config.parser import load_config
 from config.models import Config
 from dependencies import get_session
-from models.database import build_session_maker, build_session
+from models.database import build_session_maker, build_session, get_redis
 from routers import auth_router, user_router, product_router, category_router, cart_router
 
 
 def _resolve_dependencies(app: FastAPI, config: Config) -> FastAPI:
     engine = create_async_engine(config.db_config.url)
     session_factory = build_session_maker(engine)
-    get_session_fn = partial(build_session, session_factory)
+    get_session_fn: Callable = partial(build_session, session_factory)
     app.dependency_overrides[get_session] = get_session_fn
 
+    get_redis_fn: Callable = partial(get_redis)
+    app.dependency_overrides[get_redis] = get_redis_fn
     return app
 
 

@@ -9,7 +9,6 @@ from sqlalchemy import func, and_
 from models.models import Product, User, Category, ProductCategory
 from sqlalchemy.orm import joinedload, selectinload
 
-from .product_service import ProductService
 from exceptions.category_exceptions import CategoryException
 from exceptions.product_exceptions import ProductException
 from exceptions.user_exceptions import UserException

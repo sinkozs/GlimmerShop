@@ -1,16 +1,18 @@
 from datetime import datetime, timedelta
+from typing import Optional
 from uuid import UUID
-from fastapi import Depends, HTTPException
+
+from fastapi import Depends, HTTPException, Response, Request
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
-
 from pydantic import EmailStr
 from jose import jwt
+
 from config.auth_config import ALGORITHM, oauth2_bearer, bcrypt_context
 from config.parser import load_config
 import random
 import smtplib
+import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -20,6 +22,10 @@ verification_storage = dict()
 
 async def get_session() -> AsyncSession:
     raise NotImplementedError("Please overwrite get_session dependency.")
+
+
+def generate_session_id():
+    return str(uuid.uuid4())
 
 
 def is_valid_update(field_value, original_value):
@@ -44,7 +50,16 @@ def convert_str_to_int_if_numeric(value: str):
         return value
 
 
-async def get_current_user(user_token: str = Depends(oauth2_bearer)) -> dict:
+async def get_optional_token(request: Request):
+    authorization: str = request.headers.get("Authorization")
+    if not authorization:
+        return None
+    return await oauth2_bearer(request)
+
+
+async def get_current_user(user_token: Optional[str] = Depends(get_optional_token)) -> Optional[dict]:
+    if user_token is None:
+        return None
     try:
         auth_config = load_config().auth_config
         payload = jwt.decode(user_token, auth_config.secret_key, algorithms=[ALGORITHM])
@@ -52,20 +67,11 @@ async def get_current_user(user_token: str = Depends(oauth2_bearer)) -> dict:
         user_id: UUID = payload.get("id")
 
         if email is None or user_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"}
-            )
-        else:
-            return {"email": email, "id": user_id}
+            return None
+        return {"email": email, "id": user_id}
 
     except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
+        return None
 
 
 def generate_random_verification_code() -> str:
@@ -84,7 +90,8 @@ async def verify_code(email: EmailStr, code):
     if verification_storage[email]['code'] != code:
         return False, "Invalid verification code"
 
-    if datetime.now() - verification_storage[email]['timestamp'] > timedelta(minutes=smtp_config.verification_code_expiration_minutes):
+    if datetime.now() - verification_storage[email]['timestamp'] > timedelta(
+            minutes=smtp_config.verification_code_expiration_minutes):
         return False, "Verification code expired"
     else:
         return True, "Account successfully verified!"

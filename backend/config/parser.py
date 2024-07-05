@@ -2,7 +2,7 @@ from configparser import ConfigParser
 import os
 
 from dotenv import load_dotenv
-from config.models import DatabaseConfig, ServerConfig, AuthConfig, SMTPConfig, Config
+from config.models import DatabaseConfig, ServerConfig, AuthConfig, SMTPConfig, RedisConfig, Config
 
 DEFAULT_ENV_PATH = ".env"  # for sensitive info + info for docker containers
 DEFAULT_CONFIG_PATH = "config/local.ini"  # for public application info
@@ -26,6 +26,12 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
         port=int(parser.get("server", "Port"))
     )
 
+    redis_config = RedisConfig(
+        host=os.getenv("REDIS_HOST"),
+        port=int(os.getenv("REDIS_PORT")),
+        password=os.getenv("REDIS_PASSWORD")
+    )
+
     smtp_config = SMTPConfig(
         smtp_server="smtp.gmail.com",
         smtp_port=587,
@@ -43,12 +49,14 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
     auth_config = AuthConfig(
         secret_key=os.getenv("SECRET_KEY"),
         token_expiry_minutes=int(os.getenv("TOKEN_EXPIRY_MINUTES")),
-        min_password_length=int(parser.get("auth", "MinPasswordLength"))
+        min_password_length=int(parser.get("auth", "MinPasswordLength")),
+        http_session_secret=os.getenv("HTTP_SESSION_SECRET"),
     )
 
     config = Config(
         db_config=db_config,
         server_config=server_config,
+        redis_config=redis_config,
         smtp_config=smtp_config,
         auth_config=auth_config
     )

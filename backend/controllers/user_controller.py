@@ -40,7 +40,7 @@ class UserController:
         user_model.first_name = user.first_name
         user_model.last_name = user.last_name
         user_model.email = user.email
-        user_model.hashed_password = self.hash_password(user.password)
+        user_model.hashed_password = hash_password(user.password)
         user_model.registration_date = datetime.now(timezone.utc).date()
         user_model.is_seller = user.is_seller
 
