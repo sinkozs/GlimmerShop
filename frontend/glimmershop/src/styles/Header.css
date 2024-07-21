@@ -1,0 +1,108 @@
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 24px 70px;
+  background-color: #fff;
+  border-bottom: 1px solid black;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  height: 3vh !important;
+  z-index: 1000;
+}
+
+.logo {
+  font-family: "Raleway+Dots", serif;
+  font-size: 26px;
+  font-weight: bold;
+  letter-spacing: 5px;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  margin-left: 3rem;
+}
+
+nav a {
+  margin-right: 20px;
+  color: black;
+  text-decoration: none;
+}
+
+.menu-icons {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+.nav-link .fa-icon {
+  color: lightgray;
+  text-decoration: none;
+  font-size: 20px;
+  margin: 0 10px;
+}
+
+.fa-icon:hover {
+  color: #e0ba34;
+}
+
+.hamburger {
+  display: none;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+/* Media query for tablet and mobile sizes */
+@media (max-width: 768px) {
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 10px 24px 10px;
+  }
+
+  .left {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .logo {
+    margin-left: 1rem;
+  }
+
+  nav {
+    flex-direction: column;
+    position: absolute;
+    top: 70px;
+    background-color: white;
+    display: none;
+    width: 100%;
+  }
+
+  nav.open {
+    display: flex;
+    justify-content: flex-start;
+    align-self: center;
+  }
+
+  .hamburger {
+    display: flex;
+    justify-content: flex-start;
+    align-self: center;
+  }
+
+  .menu-icons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .menu-items {
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
+  }
+}
