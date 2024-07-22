@@ -1,11 +1,13 @@
 import logging
+import os
 from functools import partial
 from typing import Callable
 
 from fastapi import FastAPI
-from fastapi_sessions.frontends.implementations import SessionCookie, CookieParameters
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 from sqlalchemy.ext.asyncio import create_async_engine
+from fastapi.middleware.cors import CORSMiddleware
 
 from config.parser import load_config
 from config.models import Config
@@ -22,6 +24,21 @@ def _resolve_dependencies(app: FastAPI, config: Config) -> FastAPI:
 
     get_redis_fn: Callable = partial(get_redis)
     app.dependency_overrides[get_redis] = get_redis_fn
+
+    # Add CORS middleware
+    origins = [
+        "http://localhost:3000"
+    ]
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    app.mount("/images", StaticFiles(directory="images"), name="static")
     return app
 
 
@@ -55,4 +72,8 @@ def run_server():
 
 
 if __name__ == '__main__':
+    if not os.path.exists("images"):
+        os.makedirs("images")
+
     run_server()
+

@@ -1,6 +1,5 @@
-
 from sqlalchemy.dialects.postgresql import UUID
-
+from PIL import Image
 from dependencies import dict_to_db_model, db_model_to_dict
 from services.user_service import UserService
 from services.product_service import ProductService
@@ -11,7 +10,7 @@ from schemas.schemas import ProductCreate, ProductUpdate
 from datetime import datetime, timezone
 from exceptions.user_exceptions import UserException
 from exceptions.product_exceptions import ProductException
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile, File
 
 
 class ProductController:
@@ -51,6 +50,12 @@ class ProductController:
 
         try:
             await self._service.add_new_product(seller_id, product)
+        except ProductException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def upload_image(self, product_id: int, image_number: int, image: Image):
+        try:
+            await self._service.upload_image(product_id, image_number, image)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 

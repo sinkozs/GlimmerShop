@@ -1,10 +1,12 @@
+import os
 from uuid import UUID
 from typing import List
-
+from PIL import Image
+from io import BytesIO
 from sqlalchemy.exc import SQLAlchemyError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from fastapi import status
+from fastapi import status, UploadFile, File
 from sqlalchemy import func, and_, exists
 from models.models import Product, User, ProductCategory, Category
 from schemas.schemas import ProductCreate, ProductUpdate
@@ -21,19 +23,18 @@ class ProductService:
 
     async def get_product_by_id(self, product_id: int) -> dict:
         try:
-            async with self.db.begin():
-                stmt = select(Product).filter(Product.id == product_id)
-                result = await self.db.execute(stmt)
-                product: Product = result.scalars().first()
-                if product:
-                    return db_model_to_dict(product)
-                else:
-                    raise ProductException(status_code=status.HTTP_404_NOT_FOUND,
-                                           detail=f"Product with id {product_id} not found!")
+            stmt = select(Product).where(Product.id == product_id)
+            result = await self.db.execute(stmt)
+            product: Product = result.scalars().first()
+            if product:
+                return db_model_to_dict(product)
+            else:
+                raise ProductException(status_code=status.HTTP_404_NOT_FOUND,
+                                       detail=f"Product with id {product_id} not found!")
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
-            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                   detail="An error occurred when accessing the database!")
+                print(f"Database access error: {e}")
+                raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                       detail="An error occurred when accessing the database!")
 
     async def product_exists(self, product_id: int) -> bool:
         stmt = select(exists().where(Product.id == product_id))
@@ -127,6 +128,51 @@ class ProductService:
             print(f"Database access error: {e}")
             raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                    detail="An error occurred when accessing the database!")
+
+    async def upload_image(self, product_id: int, image_number: int, image: UploadFile = File(...)):
+        try:
+            image_data = await image.read()
+            original_image = Image.open(BytesIO(image_data))
+
+            # Resize the image
+            max_size = (640, 480)
+            original_image.thumbnail(max_size, Image.Resampling.LANCZOS)
+
+            # Convert RGBA to RGB if necessary
+            if original_image.mode == 'RGBA':
+                original_image = original_image.convert('RGB')
+
+            output_buffer = BytesIO()
+            original_image.save(output_buffer, format="JPEG")
+            output_buffer.seek(0)
+
+            filename = image.filename
+            # Ensure the filename has a valid extension
+            if not filename.lower().endswith(('.jpg', '.jpeg', '.jfif', '.png')):
+                filename += ".jpg"
+
+            save_path = os.path.join(os.path.dirname(__file__), '..', 'images', filename)
+            full_path = os.path.abspath(save_path)
+
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+            with open(full_path, "wb") as f:
+                f.write(output_buffer.getvalue())
+
+            original_image.close()
+            output_buffer.close()
+
+            # Update the product with the image path
+            edited_product = ProductUpdate()
+            print(f"Image filename: {filename}")
+            if image_number == 1:
+                edited_product.image_path = f"images/{filename}"
+            elif image_number == 2:
+                edited_product.image_path2 = f"images/{filename}"
+            if await self.edit_product(product_id, edited_product):
+                return {"message": "Image uploaded and resized successfully"}
+        except Exception as e:
+            return {"error": str(e)}
 
     async def edit_product(self, product_id: int, edited_product: ProductUpdate):
         async with self.db.begin():
