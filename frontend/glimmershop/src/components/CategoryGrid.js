@@ -23,7 +23,7 @@ const categories = [
 
 function CategoryGrid() {
   return (
-    <Container fluid className="wrapper">
+    <Container fluid className="category-grid-wrapper">
       <Container fluid className="category-grid">
         {categories.map((category, idx) => (
           <Card key={idx} className="category-card">

@@ -8,7 +8,7 @@ function Header() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="main-header">
+    <Container fluid className="main-header">
       <Container fluid className="left">
         <FaBars className="hamburger" onClick={() => setIsOpen(!isOpen)} />
         <div className="logo">GLIMMER</div>
@@ -40,7 +40,7 @@ function Header() {
           <FaShoppingCart className="fa-icon" />
         </NavLink>
       </div>
-    </header>
+    </Container>
   );
 }
 

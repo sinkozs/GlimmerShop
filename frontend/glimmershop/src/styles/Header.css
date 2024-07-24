@@ -49,12 +49,12 @@ nav a {
 
 .hamburger {
   display: none;
-  font-size: 30px;
+  font-size: 24px;
   cursor: pointer;
 }
 
-/* Media query for tablet and mobile sizes */
-@media (max-width: 768px) {
+/* Media query for mobile, tablet and smaller-screen laptop sizes */
+@media (max-width: 1900px) {
   .main-header {
     display: flex;
     justify-content: space-between;
