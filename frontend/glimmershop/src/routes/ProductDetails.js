@@ -57,14 +57,29 @@ function ProductDetails() {
           <img
             src={`http://localhost:8000/${productData.image_path}`}
             alt={productData.name}
-            className={`image-col-1 product-image ${currentImage === 1 ? "" : "hide-on-mobile"}`}
+            className={`image-col-1 product-image ${
+              currentImage === 1 ? "" : "hide-on-mobile"
+            }`}
           />
           <img
             src={`http://localhost:8000/${productData.image_path2}`}
             alt={productData.name}
-            className={`image-col-2 product-image ${currentImage === 2 ? "" : "hide-on-mobile"}`}
+            className={`image-col-2 product-image ${
+              currentImage === 2 ? "" : "hide-on-mobile"
+            }`}
           />
+          <Container className="image-indicators">
+            <span
+              className={`indicator ${currentImage === 1 ? "active" : ""}`}
+            ></span>
+            <span
+              className={`second-image indicator ${
+                currentImage === 2 ? "active" : ""
+              }`}
+            ></span>
+          </Container>
         </Container>
+
         <Container fluid className="details-section">
           <h1 className="product-name">{productData.name}</h1>
           <p className="product-price">${productData.price}</p>
