@@ -13,9 +13,10 @@ import { Container } from "react-bootstrap";
 
 function Home() {
   return (
-    <Container fluid>
+    <Container fluid className="home-page">
       <HeroSection />
       <CategoryGrid />
+      <h1 className="h1-section-title">TRENDING JEWELRY</h1>
       <TrendingJewelry />
     </Container>
   );

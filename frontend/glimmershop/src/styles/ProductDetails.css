@@ -1,5 +1,12 @@
+.product-details-page TrendingJewelry h1{
+    background-color: gray;
+}
 .product-description-wrapper {
   display: flex;
+}
+
+.h1-section-container{
+  max-width: 90%;
 }
 
 .product-grid {
@@ -16,7 +23,7 @@
 .product-grid .details-section {
   padding: 40px 20px 0 20px;
   overflow-y: auto;
-  height: calc(100vh - 80px);
+  height: auto;
   scrollbar-width: none;
 }
 

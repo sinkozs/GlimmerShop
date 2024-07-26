@@ -1,0 +1,42 @@
+.home-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: auto;
+  overflow: hidden;
+  position: relative;
+}
+
+.h1-section-title{
+  align-self: flex-start;
+  text-align: left;
+  width: 100%;
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 42px;
+  padding: 88px 80px 40px 80px;
+}
+
+@media (max-width: 768px) {
+  .h1-section-title{
+    font-weight: 700;
+    font-size: 28px;
+    padding: 50px 80px 0 20px;
+  }
+}
+
+/* Media query for larger screens */
+@media (min-width: 768px) and (max-width: 1900px) {
+  .h1-section-title {
+    font-weight: 700;
+    font-size: 28px;
+    padding: 60px 80px 40px 80px;
+  }
+}
+
+/* Media query for extra large screens */
+@media (min-width: 1901px) {
+  .home-page {
+    margin: auto;
+  }
+}

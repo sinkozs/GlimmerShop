@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import "../App.css";
 import "../styles/Home.css";
@@ -18,6 +18,7 @@ function ProductDetails() {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   const [error, setError] = useState(null);
+  const detailsRef = useRef(null);
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -64,91 +65,96 @@ function ProductDetails() {
   };
 
   return (
-    <Container fluid>
-      <Container fluid className="product-detail-wrapper">
-        <Container fluid className="product-grid">
-          <Container className="image-section" onClick={handleImageClick}>
-            <img
-              src={`http://localhost:8000/${productData.image_path}`}
-              alt={productData.name}
-              className={`image-col-1 product-image ${
-                currentImage === 1 ? "" : "hide-on-mobile"
-              }`}
-            />
-            <img
-              src={`http://localhost:8000/${productData.image_path2}`}
-              alt={productData.name}
-              className={`image-col-2 product-image ${
-                currentImage === 2 ? "" : "hide-on-mobile"
-              }`}
-            />
-            <Container className="image-indicators">
-              <span
-                className={`indicator ${currentImage === 1 ? "active" : ""}`}
-              ></span>
-              <span
-                className={`second-image indicator ${
-                  currentImage === 2 ? "active" : ""
+    <>
+      <Container fluid className="product-details-page">
+        <Container fluid className="product-detail-wrapper">
+          <Container fluid className="product-grid">
+            <Container className="image-section" onClick={handleImageClick}>
+              <img
+                src={`http://localhost:8000/${productData.image_path}`}
+                alt={productData.name}
+                className={`image-col-1 product-image ${
+                  currentImage === 1 ? "" : "hide-on-mobile"
                 }`}
-              ></span>
+              />
+              <img
+                src={`http://localhost:8000/${productData.image_path2}`}
+                alt={productData.name}
+                className={`image-col-2 product-image ${
+                  currentImage === 2 ? "" : "hide-on-mobile"
+                }`}
+              />
+              <Container className="image-indicators">
+                <span
+                  className={`indicator ${currentImage === 1 ? "active" : ""}`}
+                ></span>
+                <span
+                  className={`second-image indicator ${
+                    currentImage === 2 ? "active" : ""
+                  }`}
+                ></span>
+              </Container>
             </Container>
-          </Container>
 
-          <Container fluid className="details-section">
-            <h1 className="product-name">{productData.name}</h1>
-            <p className="product-price">${productData.price}</p>
-            <p className="product-material">{productData.material}</p>
-            <p className="size-guide">Size Guide</p>
-            <Container fluid className="stock-quantity-container">
-              <p className="stock-quantity">
-                {availability ? "✓ In Stock" : "✗ Out of Stock"}
-              </p>
-            </Container>
-            <Button className="add-to-bag-btn">ADD TO BAG</Button>
-            <Container fluid className="additional-info">
-              <Container fluid className="icon-container">
-                <FaTruck className="product-detail-fa-icon" />
-                <p>Free Shipping on orders over $150</p>
+            <Container fluid className="details-section" ref={detailsRef}>
+              <h1 className="product-name">{productData.name}</h1>
+              <p className="product-price">${productData.price}</p>
+              <p className="product-material">{productData.material}</p>
+              <p className="size-guide">Size Guide</p>
+              <Container fluid className="stock-quantity-container">
+                <p className="stock-quantity">
+                  {availability ? "✓ In Stock" : "✗ Out of Stock"}
+                </p>
               </Container>
-              <Container fluid className="icon-container">
-                <FaRecycle className="product-detail-fa-icon" />
-                <p>Free 30 Day Returns</p>
-              </Container>
-              <Container fluid className="icon-container">
-                <FaHandshake className="product-detail-fa-icon" />
-                <p>2 Year Warranty</p>
-              </Container>
-            </Container>
-            <Container fluid className="expandable-section">
-              <Button onClick={toggleDescription} className="expand-btn">
-                <span className="details-text">Description</span>
-                <span className="expand-icon">
-                  {isDescriptionExpanded ? "-" : "+"}
-                </span>
-              </Button>
-              {isDescriptionExpanded && (
-                <Container className="product-description">
-                  <p>{productData.description}</p>
+              <Button className="add-to-bag-btn">ADD TO BAG</Button>
+              <Container fluid className="additional-info">
+                <Container fluid className="icon-container">
+                  <FaTruck className="product-detail-fa-icon" />
+                  <p>Free Shipping on orders over $150</p>
                 </Container>
-              )}
+                <Container fluid className="icon-container">
+                  <FaRecycle className="product-detail-fa-icon" />
+                  <p>Free 30 Day Returns</p>
+                </Container>
+                <Container fluid className="icon-container">
+                  <FaHandshake className="product-detail-fa-icon" />
+                  <p>2 Year Warranty</p>
+                </Container>
+              </Container>
+              <Container fluid className="expandable-section">
+                <Button onClick={toggleDescription} className="expand-btn">
+                  <span className="details-text">Description</span>
+                  <span className="expand-icon">
+                    {isDescriptionExpanded ? "-" : "+"}
+                  </span>
+                </Button>
+                {isDescriptionExpanded && (
+                  <Container className="product-description">
+                    <p>{productData.description}</p>
+                  </Container>
+                )}
 
-              <Button onClick={toggleDetails} className="expand-btn">
-                <span className="details-text">Details</span>
-                <span className="expand-icon">
-                  {isDetailsExpanded ? "-" : "+"}
-                </span>
-              </Button>
-              {isDetailsExpanded && (
-                <Container className="product-description">
-                  <p>{productData.description}</p>
-                </Container>
-              )}
+                <Button onClick={toggleDetails} className="expand-btn">
+                  <span className="details-text">Details</span>
+                  <span className="expand-icon">
+                    {isDetailsExpanded ? "-" : "+"}
+                  </span>
+                </Button>
+                {isDetailsExpanded && (
+                  <Container className="product-description">
+                    <p>{productData.description}</p>
+                  </Container>
+                )}
+              </Container>
             </Container>
           </Container>
         </Container>
+        <Container fluid className="h1-section-container">
+          <h1 className="h1-section-title">YOU MIGHT ALSO LIKE</h1>
+        </Container>
       </Container>
       <TrendingJewelry />
-    </Container>
+    </>
   );
 }
 
