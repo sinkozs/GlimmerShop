@@ -47,6 +47,18 @@ async def get_user_by_id(user_id,
         raise e
 
 
+@router.get("/public/{user_id}")
+async def get_public_user_info_by_id(user_id,
+                         session: AsyncSession = Depends(get_session)):
+    service = UserService(session)
+    user_controller = UserController(service)
+
+    try:
+        return await user_controller.get_public_user_info_by_id(user_id)
+    except HTTPException as e:
+        raise e
+
+
 @router.post("/new")
 async def create_new_user(user: UserCreate, session: AsyncSession = Depends(get_session)):
     service = UserService(session)

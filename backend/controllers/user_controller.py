@@ -23,6 +23,16 @@ class UserController:
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
+    async def get_public_user_info_by_id(self, user_id: UUID) -> dict:
+        try:
+            detailed_user_model = await self._service.get_user_by_id(user_id)
+            public_user_model = dict()
+            public_user_model["first_name"] = detailed_user_model["first_name"]
+            public_user_model["last_name"] = detailed_user_model["last_name"]
+            return public_user_model
+        except UserException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
     async def get_all_users(self):
         try:
             return await self._service.get_all_users()
