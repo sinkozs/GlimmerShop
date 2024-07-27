@@ -7,44 +7,49 @@ import "../App.css";
 import "../styles/Home.css";
 import "../styles/ProductsByCategory.css";
 import "../styles/TrendingJewelry.css";
+import FilterByPrice from "../components/FilterByPrice";
 
-function TrendingJewelry() {
-  const [categoryData, setCategoryData] = useState(null);
-  const [categoryProducts, setCategoryProducts] = useState([]);
-  const [error, setError] = useState(null);
-  const { category_name } = useParams();
-  const navigate = useNavigate();
+function ProductsByCategory() {
+    const [products, setProducts] = useState([]);
+    const [categoryData, setCategoryData] = useState(null);
+    const [error, setError] = useState(null);
+    const { category_name } = useParams();
+    const navigate = useNavigate();
   
 
   useEffect(() => {
     const fetchCategoryAndProducts = async () => {
-      try {
-        // Fetch category data
-        const categoryResponse = await axios.get(
-          `http://localhost:8000/categories/category-by-identifier?category_identifier=${category_name}`
-        );
-        setCategoryData(categoryResponse.data);
+        try {
+            const categoryResponse = await axios.get(
+                `http://localhost:8000/categories/category-by-identifier?category_identifier=${category_name}`
+            );
+            setCategoryData(categoryResponse.data);
 
-        // Fetch products using the category ID
-        const productsResponse = await axios.get(
-          `http://localhost:8000/categories/products-by-category/?category_id=${categoryResponse.data.category_record.id}`
-        );
-        setCategoryProducts(productsResponse.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setError("Failed to fetch data. Please try again later.");
-      }
+            // Initially fetch all products for the category
+            const productsResponse = await axios.get(
+                `http://localhost:8000/categories/products-by-category/?category_id=${categoryResponse.data.category_record.id}`
+            );
+            setProducts(productsResponse.data);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            setError("Failed to fetch data. Please try again later.");
+        }
     };
 
     fetchCategoryAndProducts();
-  }, [category_name]);
+}, [category_name]);
+
 
   const handleCardClick = (productId) => {
     console.log("Navigating to product with ID:", productId);
     navigate(`/products/${productId}`);
   };
 
-  if (!categoryData || !categoryProducts) {
+  const handleProductsFetched = (fetchedProducts) => {
+    setProducts(fetchedProducts);
+};
+
+  if (!categoryData || !products) {
     return <div>Loading...</div>;
   }
 
@@ -56,14 +61,11 @@ function TrendingJewelry() {
       <Container fluid className="category-products-wrapper">
       <h1>{category_name.charAt(0).toUpperCase() + category_name.slice(1)}</h1>
       <h3>{categoryData.category_record.category_description}</h3>
-        {error && (
-          <p style={{ color: "red" }}>
-            Error fetching products: {error.message}
-          </p>
-        )}
+      <FilterByPrice category_id={categoryData.category_record.id} onProductsFetched={handleProductsFetched} />
+      {error && <p style={{ color: "red" }}>Error fetching products: {error.message}</p>}
         <Container fluid className="category-products-grid">
-          {categoryProducts.length > 0 ? (
-            categoryProducts.map((product, idx) => (
+          {products.length > 0 ? (
+            products.map((product, idx) => (
               <Card
                 key={idx}
                 className="category-products-card"
@@ -99,4 +101,4 @@ function TrendingJewelry() {
   );
 }
 
-export default TrendingJewelry;
+export default ProductsByCategory;
