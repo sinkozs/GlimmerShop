@@ -50,7 +50,7 @@ class CategoryController:
             category_exists = await self._service.check_category_exists(category_name)
             if not category_exists.get("is_exist"):
                 category = Category()
-                category.category_name = category_name
+                category.category_name = category_name.lower()
                 await self._service.add_new_category(category)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e

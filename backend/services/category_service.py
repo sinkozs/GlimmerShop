@@ -29,11 +29,11 @@ class CategoryService:
                     return [db_model_to_dict(c) for c in categories]
                 else:
                     raise CategoryException(status_code=status.HTTP_404_NOT_FOUND,
-                                           detail=f"No categories found!")
+                                            detail=f"No categories found!")
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise CategoryException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                   detail="An error occurred when accessing the database!")
+                                    detail="An error occurred when accessing the database!")
 
     async def get_product_categories(self, product_id: int) -> list:
         try:
@@ -53,7 +53,7 @@ class CategoryService:
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise CategoryException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                   detail="An error occurred when accessing the database!")
+                                    detail="An error occurred when accessing the database!")
 
     async def get_products_by_category(self, category_id: int) -> list:
         try:
@@ -67,13 +67,28 @@ class CategoryService:
 
                 if category is None:
                     raise CategoryException(status_code=status.HTTP_404_NOT_FOUND,
-                                            detail=f"category with id {category_id} not found!")
-                products_list = [pc.product.name for pc in category.product_category]
+                                            detail=f"Category with id {category_id} not found!")
+
+                products_list = [
+                    {
+                        "id": pc.product.id,
+                        "seller_id": pc.product.seller_id,
+                        "name": pc.product.name,
+                        "description": pc.product.description,
+                        "price": pc.product.price,
+                        "stock_quantity": pc.product.stock_quantity,
+                        "material": pc.product.material,
+                        "color": pc.product.color,
+                        "image_path": pc.product.image_path,
+                        "image_path2": pc.product.image_path2
+                    }
+                    for pc in category.product_category
+                ]
                 return products_list
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise CategoryException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                   detail="An error occurred when accessing the database!")
+                                    detail="An error occurred when accessing the database!")
 
     async def check_category_exists(self, category_identifier: str) -> dict:
         try:
@@ -135,7 +150,7 @@ class CategoryService:
 
                 if not product_category:
                     raise ProductException(status_code=status.HTTP_404_NOT_FOUND,
-                                        detail=f"No link between category ID {category_id} and product ID {product_id} was found.")
+                                           detail=f"No link between category ID {category_id} and product ID {product_id} was found.")
 
                 await self.db.delete(product_category)
                 await self.db.flush()
@@ -153,4 +168,3 @@ class CategoryService:
             print(f"Database access error: {e}")
             raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                 detail="An error occurred when accessing the database!")
-
