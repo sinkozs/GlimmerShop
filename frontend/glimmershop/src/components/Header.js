@@ -18,16 +18,16 @@ function Header() {
         <NavLink to="/new" onClick={() => setIsOpen(false)}>
           NEW
         </NavLink>
-        <NavLink to="/earrings" onClick={() => setIsOpen(false)}>
+        <NavLink to="/categories/earrings" onClick={() => setIsOpen(false)}>
           EARRINGS
         </NavLink>
-        <NavLink to="/rings" onClick={() => setIsOpen(false)}>
+        <NavLink to="/categories/rings" onClick={() => setIsOpen(false)}>
           RINGS
         </NavLink>
-        <NavLink to="/necklaces" onClick={() => setIsOpen(false)}>
+        <NavLink to="/categories/necklaces" onClick={() => setIsOpen(false)}>
           NECKLACES
         </NavLink>
-        <NavLink to="/bracelets" onClick={() => setIsOpen(false)}>
+        <NavLink to="/categories/bracelets" onClick={() => setIsOpen(false)}>
           BRACELETS
         </NavLink>
       </nav>
