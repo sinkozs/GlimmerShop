@@ -1,4 +1,6 @@
 import React from "react";
+import { useNavigate } from 'react-router-dom';
+
 import "../App.css";
 import "../styles/CategoryGrid.css";
 import necklace1 from "../images/category-necklace1.jpg";
@@ -22,11 +24,17 @@ const categories = [
 ];
 
 function CategoryGrid() {
+  const navigate = useNavigate();
+
+  const handleCategoryClick = (categoryName) => {
+    navigate(`/categories/${categoryName}`);
+  };
+
   return (
     <Container fluid className="category-grid-wrapper">
       <Container fluid className="category-grid">
         {categories.map((category, idx) => (
-          <Card key={idx} className="category-card">
+          <Card key={idx} className="category-card" onClick={() => handleCategoryClick(category.name.toLowerCase())}>
             <Card.Body className="card-body">
               <div className="card-content" style={{ backgroundImage: `url(${category.img})` }}>
                 <div className="hover-overlay" style={{ backgroundImage: `url(${category.hoverImg})` }}></div>
