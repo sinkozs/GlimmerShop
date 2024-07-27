@@ -8,7 +8,7 @@ from services.user_service import UserService
 from services.category_service import CategoryService
 from models.models import User, Product, Category
 from config.auth_config import bcrypt_context
-from schemas.schemas import ProductCreate
+from schemas.schemas import ProductCreate, CategoryUpdate
 from datetime import datetime, timezone
 from exceptions.user_exceptions import UserException
 from exceptions.product_exceptions import ProductException
@@ -52,6 +52,14 @@ class CategoryController:
                 category = Category()
                 category.category_name = category_name.lower()
                 await self._service.add_new_category(category)
+        except ProductException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def edit_category(self, category_id: int, category_update: CategoryUpdate):
+        try:
+            category_exists = await self._service.check_category_exists(category_id)
+            if category_exists.get("is_exist"):
+                await self._service.edit_category(category_id, category_update)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 

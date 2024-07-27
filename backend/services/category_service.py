@@ -12,7 +12,8 @@ from sqlalchemy.orm import joinedload, selectinload
 from exceptions.category_exceptions import CategoryException
 from exceptions.product_exceptions import ProductException
 from exceptions.user_exceptions import UserException
-from dependencies import db_model_to_dict, dict_to_db_model, convert_str_to_int_if_numeric
+from dependencies import db_model_to_dict, dict_to_db_model, convert_str_to_int_if_numeric, is_valid_update
+from schemas.schemas import CategoryUpdate
 
 
 class CategoryService:
@@ -168,3 +169,21 @@ class CategoryService:
             print(f"Database access error: {e}")
             raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                 detail="An error occurred when accessing the database!")
+
+    async def edit_category(self, category_id: int, category_update: CategoryUpdate):
+        async with self.db.begin():
+            stmt = select(Category).where(Category.id == category_id)
+            result = await self.db.execute(stmt)
+            category: Category = result.scalars().first()
+
+            if category is None:
+                raise ProductException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No category found with id {category_id}"
+                )
+            if is_valid_update(category_update.category_name, category.category_name):
+                category.category_name = category_update.category_name
+            if is_valid_update(category_update.category_description, category.category_description):
+                category.category_description = category_update.category_description
+            self.db.add(category)
+            await self.db.commit()

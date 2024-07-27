@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Response, Request
+from fastapi import Depends, Request
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import EmailStr

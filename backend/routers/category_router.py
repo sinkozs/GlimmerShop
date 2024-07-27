@@ -6,6 +6,7 @@ from controllers.category_controller import CategoryController
 from services.product_service import ProductService
 from services.category_service import CategoryService
 from dependencies import get_current_user, get_session
+from schemas.schemas import CategoryUpdate
 
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -63,6 +64,16 @@ async def add_new_category(category_name: str, session: AsyncSession = Depends(g
     controller = CategoryController(service)
     try:
         return await controller.add_new_category(category_name)
+    except HTTPException as e:
+        raise e
+
+
+@router.put("/edit")
+async def edit_category(category_id: int, category_update: CategoryUpdate, session: AsyncSession = Depends(get_session)):
+    service = CategoryService(session)
+    controller = CategoryController(service)
+    try:
+        return await controller.edit_category(category_id, category_update)
     except HTTPException as e:
         raise e
 

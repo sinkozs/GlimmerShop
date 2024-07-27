@@ -33,8 +33,8 @@ class ProductCreate(BaseModel):
     stock_quantity: Annotated[int, Field(ge=0)]
     material: str
     color: str
-    image_path: str
-    image_path2: str
+    image_path: Optional[str] = None
+    image_path2: Optional[str] = None
 
 
 class ProductUpdate(BaseModel):
@@ -51,3 +51,8 @@ class ProductUpdate(BaseModel):
 class CartItemUpdate(BaseModel):
     product_id: int
     quantity: Annotated[int, Field(ge=0)]
+
+
+class CategoryUpdate(BaseModel):
+    category_name: Optional[Annotated[str, Field(max_length=200)]] = None
+    category_description: Optional[Annotated[str, Field(max_length=200)]] = None
