@@ -8,12 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status, UploadFile, File
 from sqlalchemy import func, and_, exists
-from models.models import Product, User, ProductCategory, Category
-from schemas.schemas import ProductCreate, ProductUpdate
+from models.models import Product, Category, ProductCategory
+from schemas.schemas import ProductUpdate, PriceFilter
 from .user_service import UserService
 from exceptions.product_exceptions import ProductException
 from exceptions.user_exceptions import UserException
-from dependencies import dict_to_db_model, db_model_to_dict, is_valid_update
+from dependencies import db_model_to_dict, is_valid_update
 
 
 class ProductService:
@@ -102,6 +102,29 @@ class ProductService:
             raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                    detail="An error occurred when accessing the database!")
 
+    async def get_products_by_price_range(self, category_id: int, price_range: PriceFilter):
+        try:
+            async with self.db.begin():
+                stmt = (
+                    select(Product)
+                    .join(Product.product_category)
+                    .filter(ProductCategory.category_id == category_id)
+                    .filter((Product.price >= price_range.min_price) & (Product.price <= price_range.max_price))
+                )
+
+                # Execute the query
+                result = await self.db.execute(stmt)
+                products = result.scalars().all()
+                if products:
+                    product_data = [db_model_to_dict(q) for q in products]
+                    return product_data
+                else:
+                    raise ProductException()
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                   detail="An error occurred when accessing the database!")
+
     async def check_product_exists(self, product_id: int) -> bool:
         try:
             async with self.db.begin():
@@ -135,7 +158,7 @@ class ProductService:
             original_image = Image.open(BytesIO(image_data))
 
             # Resize the image
-            max_size = (640, 480)
+            max_size = (564, 564)
             original_image.thumbnail(max_size, Image.Resampling.LANCZOS)
 
             # Convert RGBA to RGB if necessary
@@ -185,7 +208,6 @@ class ProductService:
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"No product found with id {product_id}"
                 )
-            print(f"Product: {db_model_to_dict(product)}")
             if is_valid_update(edited_product.name, product.name):
                 product.name = edited_product.name
             if is_valid_update(edited_product.description, product.description):

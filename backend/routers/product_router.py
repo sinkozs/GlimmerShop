@@ -1,12 +1,10 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from PIL import Image
-from io import BytesIO
 from dependencies import get_session
 from controllers.product_controller import ProductController
 from services.product_service import ProductService
-from schemas.schemas import ProductCreate, ProductUpdate
+from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter
 from dependencies import get_current_user
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,9 +21,7 @@ async def get_all_products(session: AsyncSession = Depends(get_session)):
     service = ProductService(session)
     product_controller = ProductController(service)
     try:
-        resp = await product_controller.get_all_products()
-        print(resp)
-        return resp
+        return await product_controller.get_all_products()
     except HTTPException as e:
         raise e
 
@@ -46,7 +42,20 @@ async def get_product_by_id(product_id: int,
     service = ProductService(session)
     product_controller = ProductController(service)
     try:
-        return await product_controller.get_product_by_id(product_id)
+        resp = await product_controller.get_product_by_id(product_id)
+        print(resp)
+        return resp
+    except HTTPException as e:
+        raise e
+
+
+@router.post("/filter_by_price")
+async def get_products_by_price_range(category_id: int, price_range: PriceFilter, session: AsyncSession = Depends(get_session)):
+    try:
+        print(f"category_id: {category_id}, price_range: {price_range}")
+        service = ProductService(session)
+        product_controller = ProductController(service)
+        return await product_controller.get_products_by_price_range(category_id, price_range)
     except HTTPException as e:
         raise e
 

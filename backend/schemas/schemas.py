@@ -56,3 +56,8 @@ class CartItemUpdate(BaseModel):
 class CategoryUpdate(BaseModel):
     category_name: Optional[Annotated[str, Field(max_length=200)]] = None
     category_description: Optional[Annotated[str, Field(max_length=200)]] = None
+
+
+class PriceFilter(BaseModel):
+    min_price: Annotated[int, Field(ge=0)] = 0
+    max_price: Annotated[int, Field(ge=0, le=1000000)] = 1000000

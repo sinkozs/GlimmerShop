@@ -1,16 +1,11 @@
 from sqlalchemy.dialects.postgresql import UUID
 from PIL import Image
-from dependencies import dict_to_db_model, db_model_to_dict
-from services.user_service import UserService
 from services.product_service import ProductService
-from services.user_service import UserService
-from models.models import User, Product
-from config.auth_config import bcrypt_context
-from schemas.schemas import ProductCreate, ProductUpdate
-from datetime import datetime, timezone
+from models.models import Product
+from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter
 from exceptions.user_exceptions import UserException
 from exceptions.product_exceptions import ProductException
-from fastapi import HTTPException, UploadFile, File
+from fastapi import HTTPException
 
 
 class ProductController:
@@ -33,6 +28,12 @@ class ProductController:
     async def get_all_products_by_seller(self, seller_id: UUID):
         try:
             return await self._service.get_all_products_by_seller(seller_id)
+        except ProductException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def get_products_by_price_range(self, category_id: int, price_range: PriceFilter):
+        try:
+            return await self._service.get_products_by_price_range(category_id, price_range)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
