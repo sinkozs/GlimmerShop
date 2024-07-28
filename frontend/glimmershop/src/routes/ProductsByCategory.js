@@ -7,8 +7,7 @@ import "../App.css";
 import "../styles/Home.css";
 import "../styles/ProductsByCategory.css";
 import "../styles/TrendingJewelry.css";
-import FilterByPrice from "../components/FilterByPrice";
-import FilterByMaterial from "../components/FilterByMaterial";
+import ProductFilters from "../components/ProductFilters";
 
 function ProductsByCategory() {
     const [products, setProducts] = useState([]);
@@ -64,10 +63,10 @@ function ProductsByCategory() {
       <Container fluid className="category-products-wrapper">
       <h1>{category_name.charAt(0).toUpperCase() + category_name.slice(1)}</h1>
       <h3>{categoryData.category_record.category_description}</h3>
-      <FilterByPrice category_id={categoryData.category_record.id} onProductsFetched={handleProductsFetched} />
+      <ProductFilters category_id={categoryData.category_record.id} onProductsFetched={handleProductsFetched} />
       {error && <p style={{ color: "red" }}>Error fetching products: {error.message}</p>}
-      <FilterByMaterial category_id={categoryData.category_record.id} onProductsFetched={handleProductsFetched} />
-      {error && <p style={{ color: "red" }}>Error fetching products: {error.message}</p>}
+      {/* <FilterByMaterial category_id={categoryData.category_record.id} onProductsFetched={handleProductsFetched} />
+      {error && <p style={{ color: "red" }}>Error fetching products: {error.message}</p>} */}
         <Container fluid className="category-products-grid">
           {products.length > 0 ? (
             products.map((product, idx) => (
