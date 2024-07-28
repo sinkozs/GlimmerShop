@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field
 from typing_extensions import Annotated
 
@@ -61,3 +61,7 @@ class CategoryUpdate(BaseModel):
 class PriceFilter(BaseModel):
     min_price: Annotated[int, Field(ge=0)] = 0
     max_price: Annotated[int, Field(ge=0, le=1000000)] = 1000000
+
+
+class MaterialsFilter(BaseModel):
+    materials: List[str]

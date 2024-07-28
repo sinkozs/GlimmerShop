@@ -7,9 +7,9 @@ from sqlalchemy.exc import SQLAlchemyError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status, UploadFile, File
-from sqlalchemy import func, and_, exists
+from sqlalchemy import func, and_, exists, or_
 from models.models import Product, Category, ProductCategory
-from schemas.schemas import ProductUpdate, PriceFilter
+from schemas.schemas import ProductUpdate, PriceFilter, MaterialsFilter
 from .user_service import UserService
 from exceptions.product_exceptions import ProductException
 from exceptions.user_exceptions import UserException
@@ -124,21 +124,21 @@ class ProductService:
             raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                    detail="An error occurred when accessing the database!")
 
-    async def get_products_by_material(self, category_id: int, material: str) -> list:
+    async def get_products_by_material(self, category_id: int, materials: MaterialsFilter) -> list:
         try:
             async with self.db.begin():
-                material_like = f"%{material}%"
+                material_conditions = [Product.material.ilike(f"%{material}%") for material in materials.materials]
                 stmt = (
                     select(Product)
                     .join(Product.product_category)
                     .filter(ProductCategory.category_id == category_id)
-                    .filter(Product.material.ilike(material_like))
+                    .filter(or_(*material_conditions))
                 )
 
                 result = await self.db.execute(stmt)
                 products = result.scalars().all()
                 if products:
-                    product_data = [db_model_to_dict(q) for q in products]
+                    product_data = [db_model_to_dict(p) for p in products]
                     return product_data
                 else:
                     raise ProductException(detail="Failed to fetch products by material")

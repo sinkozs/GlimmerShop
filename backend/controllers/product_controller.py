@@ -2,7 +2,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from PIL import Image
 from services.product_service import ProductService
 from models.models import Product
-from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter
+from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter, MaterialsFilter
 from exceptions.user_exceptions import UserException
 from exceptions.product_exceptions import ProductException
 from fastapi import HTTPException
@@ -37,9 +37,9 @@ class ProductController:
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def get_products_by_material(self, category_id: int, material: str):
+    async def get_products_by_material(self, category_id: int, materials: MaterialsFilter):
         try:
-            return await self._service.get_products_by_material(category_id, material)
+            return await self._service.get_products_by_material(category_id, materials)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 

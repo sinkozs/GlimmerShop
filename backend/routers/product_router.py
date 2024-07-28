@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from dependencies import get_session
 from controllers.product_controller import ProductController
 from services.product_service import ProductService
-from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter
+from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter, MaterialsFilter
 from dependencies import get_current_user
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -60,11 +60,12 @@ async def get_products_by_price_range(category_id: int, price_range: PriceFilter
 
 
 @router.post("/filter_by_material")
-async def get_products_by_material(category_id: int, material: str, session: AsyncSession = Depends(get_session)):
+async def get_products_by_material(category_id: int, materials: MaterialsFilter, session: AsyncSession = Depends(get_session)):
     try:
+        print(f"MATERIALS: {materials}")
         service = ProductService(session)
         product_controller = ProductController(service)
-        return await product_controller.get_products_by_material(category_id, material)
+        return await product_controller.get_products_by_material(category_id, materials)
     except HTTPException as e:
         raise e
 
