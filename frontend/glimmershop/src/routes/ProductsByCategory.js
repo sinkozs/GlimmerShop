@@ -65,8 +65,6 @@ function ProductsByCategory() {
       <h3>{categoryData.category_record.category_description}</h3>
       <ProductFilters category_id={categoryData.category_record.id} onProductsFetched={handleProductsFetched} />
       {error && <p style={{ color: "red" }}>Error fetching products: {error.message}</p>}
-      {/* <FilterByMaterial category_id={categoryData.category_record.id} onProductsFetched={handleProductsFetched} />
-      {error && <p style={{ color: "red" }}>Error fetching products: {error.message}</p>} */}
         <Container fluid className="category-products-grid">
           {products.length > 0 ? (
             products.map((product, idx) => (

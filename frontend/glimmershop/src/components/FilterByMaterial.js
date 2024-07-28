@@ -1,15 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Button } from "react-bootstrap";
 
-function FilterByMaterial({ onMaterialsSelected }) {
-    const [selectedMaterials, setSelectedMaterials] = useState([]);
+function FilterByMaterial({ selectedMaterials, resetFilter, onMaterialsSelected }) {
     const [isMaterialFilterExpanded, setIsMaterialFilterExpanded] = useState(false);
 
+    useEffect(() => {
+        if (resetFilter) {
+            onMaterialsSelected([]);
+        }
+    }, [resetFilter, onMaterialsSelected]);
+
     const handleMaterialChange = material => {
-        const newMaterials = selectedMaterials.includes(material) ? 
+        const updatedMaterials = selectedMaterials.includes(material) ? 
             selectedMaterials.filter(m => m !== material) : [...selectedMaterials, material];
-        setSelectedMaterials(newMaterials);
-        onMaterialsSelected(newMaterials);
+        onMaterialsSelected(updatedMaterials);
     };
 
     const toggleFilterBtn = () => setIsMaterialFilterExpanded(!isMaterialFilterExpanded);

@@ -1,12 +1,14 @@
-import React, { useState } from "react";
-import { Container, Button } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Container } from "react-bootstrap";
 
-function FilterByPrice({ onPriceRangeSelected }) {
-    const [selectedPriceRange, setSelectedPriceRange] = useState("");
-    
+function FilterByPrice({ selectedPriceRange, resetFilter, onPriceRangeSelected }) {
+    useEffect(() => {
+        if (resetFilter) {
+            onPriceRangeSelected({ min: null, max: null });
+        }
+    }, [resetFilter, onPriceRangeSelected]);
 
     const handlePriceRangeChange = range => {
-        setSelectedPriceRange(range);
         let min_price, max_price;
         switch (range) {
             case "0-150": min_price = 0; max_price = 150; break;
@@ -26,7 +28,7 @@ function FilterByPrice({ onPriceRangeSelected }) {
                         type="radio"
                         name="priceRange"
                         value={range}
-                        checked={selectedPriceRange === range}
+                        checked={selectedPriceRange && selectedPriceRange.min === parseInt(range.split("-")[0])}
                         onChange={() => handlePriceRangeChange(range)}
                     />
                     {range.includes("+") ? `${range.slice(0, -1)}+` : range.replace("-", " - ")}
