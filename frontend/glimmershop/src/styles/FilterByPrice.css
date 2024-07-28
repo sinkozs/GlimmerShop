@@ -1,0 +1,53 @@
+.filters-section-wrapper{
+    display: flex;
+    width: 100%;
+}
+
+.filters-section {
+    overflow-y: auto;
+    height: auto;
+    scrollbar-width: none;
+    width: 100%;
+  }
+
+.expandable-section {
+    margin-top: 20px;
+    padding-left: 80px;
+    padding-right: 80px;
+  }
+  
+  .filters-section .expand-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 30%;
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    padding: 10px;
+    padding-bottom: 0;
+    text-align: left;
+  }
+  
+  .filters-section input{
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    flex-grow: 1;
+  }
+
+  label{
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    flex-grow: 1;
+  }
+
+  .expand-icon {
+    font-size: 24px;
+  }
+  

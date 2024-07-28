@@ -8,6 +8,7 @@ import "../styles/Home.css";
 import "../styles/ProductsByCategory.css";
 import "../styles/TrendingJewelry.css";
 import FilterByPrice from "../components/FilterByPrice";
+import FilterByMaterial from "../components/FilterByMaterial";
 
 function ProductsByCategory() {
     const [products, setProducts] = useState([]);
@@ -46,7 +47,9 @@ function ProductsByCategory() {
   };
 
   const handleProductsFetched = (fetchedProducts) => {
+    console.log("Fetched Products:", fetchedProducts);
     setProducts(fetchedProducts);
+    console.log("Updated State:", products); 
 };
 
   if (!categoryData || !products) {
@@ -62,6 +65,8 @@ function ProductsByCategory() {
       <h1>{category_name.charAt(0).toUpperCase() + category_name.slice(1)}</h1>
       <h3>{categoryData.category_record.category_description}</h3>
       <FilterByPrice category_id={categoryData.category_record.id} onProductsFetched={handleProductsFetched} />
+      {error && <p style={{ color: "red" }}>Error fetching products: {error.message}</p>}
+      <FilterByMaterial category_id={categoryData.category_record.id} onProductsFetched={handleProductsFetched} />
       {error && <p style={{ color: "red" }}>Error fetching products: {error.message}</p>}
         <Container fluid className="category-products-grid">
           {products.length > 0 ? (
