@@ -32,9 +32,9 @@ class ProductService:
                 raise ProductException(status_code=status.HTTP_404_NOT_FOUND,
                                        detail=f"Product with id {product_id} not found!")
         except SQLAlchemyError as e:
-                print(f"Database access error: {e}")
-                raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                       detail="An error occurred when accessing the database!")
+            print(f"Database access error: {e}")
+            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                   detail="An error occurred when accessing the database!")
 
     async def product_exists(self, product_id: int) -> bool:
         stmt = select(exists().where(Product.id == product_id))
@@ -102,7 +102,7 @@ class ProductService:
             raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                    detail="An error occurred when accessing the database!")
 
-    async def get_products_by_price_range(self, category_id: int, price_range: PriceFilter):
+    async def get_products_by_price_range(self, category_id: int, price_range: PriceFilter) -> list:
         try:
             async with self.db.begin():
                 stmt = (
@@ -112,14 +112,36 @@ class ProductService:
                     .filter((Product.price >= price_range.min_price) & (Product.price <= price_range.max_price))
                 )
 
-                # Execute the query
                 result = await self.db.execute(stmt)
                 products = result.scalars().all()
                 if products:
                     product_data = [db_model_to_dict(q) for q in products]
                     return product_data
                 else:
-                    raise ProductException()
+                    raise ProductException(detail="Failed to fetch products by price range")
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                   detail="An error occurred when accessing the database!")
+
+    async def get_products_by_material(self, category_id: int, material: str) -> list:
+        try:
+            async with self.db.begin():
+                material_like = f"%{material}%"
+                stmt = (
+                    select(Product)
+                    .join(Product.product_category)
+                    .filter(ProductCategory.category_id == category_id)
+                    .filter(Product.material.ilike(material_like))
+                )
+
+                result = await self.db.execute(stmt)
+                products = result.scalars().all()
+                if products:
+                    product_data = [db_model_to_dict(q) for q in products]
+                    return product_data
+                else:
+                    raise ProductException(detail="Failed to fetch products by material")
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -52,10 +52,19 @@ async def get_product_by_id(product_id: int,
 @router.post("/filter_by_price")
 async def get_products_by_price_range(category_id: int, price_range: PriceFilter, session: AsyncSession = Depends(get_session)):
     try:
-        print(f"category_id: {category_id}, price_range: {price_range}")
         service = ProductService(session)
         product_controller = ProductController(service)
         return await product_controller.get_products_by_price_range(category_id, price_range)
+    except HTTPException as e:
+        raise e
+
+
+@router.post("/filter_by_material")
+async def get_products_by_material(category_id: int, material: str, session: AsyncSession = Depends(get_session)):
+    try:
+        service = ProductService(session)
+        product_controller = ProductController(service)
+        return await product_controller.get_products_by_material(category_id, material)
     except HTTPException as e:
         raise e
 

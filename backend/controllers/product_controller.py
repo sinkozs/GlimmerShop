@@ -37,6 +37,12 @@ class ProductController:
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
+    async def get_products_by_material(self, category_id: int, material: str):
+        try:
+            return await self._service.get_products_by_material(category_id, material)
+        except ProductException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
     async def add_new_product(self, seller_id: UUID, new_product: ProductCreate):
         product = Product()
         product.name = new_product.name
