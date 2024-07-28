@@ -42,7 +42,6 @@ function ProductFilters({ category_id, onProductsFetched }) {
 
   const fetchAllProducts = async () => {
     try {
-        console.log("Fetch all");
         const response = await axios.get(`http://127.0.0.1:8000/categories/products-by-category?category_id=${category_id}`);
         onProductsFetched(response.data);
     } catch (error) {
@@ -52,9 +51,6 @@ function ProductFilters({ category_id, onProductsFetched }) {
 };
 
   const clearAllFilters = () => {
-    console.log("clear");
-    setShouldFetch(false);
-    setResetFilter(true);
     setSelectedMaterials([]);
     setSelectedPriceRange({ min: null, max: null });
     fetchAllProducts(); 
