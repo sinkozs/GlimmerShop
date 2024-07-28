@@ -31,15 +31,31 @@ class ProductController:
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def get_products_by_price_range(self, category_id: int, price_range: PriceFilter):
+    async def get_products_by_price_range(self, category_id: int, price_range: PriceFilter) -> set:
         try:
             return await self._service.get_products_by_price_range(category_id, price_range)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def get_products_by_material(self, category_id: int, materials: MaterialsFilter):
+    async def get_products_by_material(self, category_id: int, materials: MaterialsFilter) -> set:
         try:
             return await self._service.get_products_by_material(category_id, materials)
+        except ProductException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    def get_common_products(self, products_by_material, products_by_price_range):
+        material_dict = {product['id']: product for product in products_by_material}
+        common_products = [product for product in products_by_price_range if product['id'] in material_dict]
+
+        return common_products
+
+    async def filter_products_by_material_and_price(self, category_id: int, materials: MaterialsFilter,
+                                                    price_range: PriceFilter):
+        try:
+            products_by_material = await self._service.get_products_by_material(category_id, materials)
+            products_by_price_range = await self._service.get_products_by_price_range(category_id, price_range)
+
+            return self.get_common_products(products_by_material, products_by_price_range)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
