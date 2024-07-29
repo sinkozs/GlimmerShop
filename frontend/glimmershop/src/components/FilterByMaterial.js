@@ -20,12 +20,12 @@ function FilterByMaterial({ selectedMaterials, resetFilter, onMaterialsSelected 
 
     return (
         <Container fluid className="filters-section-wrapper">
-            <Button onClick={toggleFilterBtn} className="expand-btn">
-                Filter by material
+            <Button onClick={toggleFilterBtn} className="filter-expand-btn">
+                Material
                 <span className="expand-icon">{isMaterialFilterExpanded ? "-" : "+"}</span>
             </Button>
             {isMaterialFilterExpanded && (
-                <Container className="material-options">
+                <Container fluid className="filter-options">
                     {["14k White Gold", "14k Yellow Gold", "Gold Vermeil", "Sterling Silver"].map(material => (
                         <label key={material}>
                             <input

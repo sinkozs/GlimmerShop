@@ -1,0 +1,135 @@
+.all-filters-section {
+  position: fixed;
+  left: -100%;
+  top: 0;
+  width: 300px;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  overflow-y: auto;
+  transition: left 0.3s ease;
+  z-index: 1050;
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid black;
+  padding-bottom: 10px;
+}
+
+.all-filters-section.show {
+  left: 0;
+}
+
+.all-filters-btn {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  padding: 10px 15px 10px 15px;
+  margin-top: 20px;
+  margin-left: 80px;
+  outline: none;
+  border: none;
+  background-color: #ededed;
+}
+
+.all-filters-btn:hover {
+  background-color: lightgray;
+  box-shadow: none;
+}
+
+.close-filters-section-btn {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-size: 13px;
+  justify-content: center;
+  font-weight: bold;
+  padding: 0;
+  margin: 0;
+}
+
+.filters-header h3 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  padding: 8px;
+  padding-left: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  outline: none;
+}
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-options label {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  padding-bottom: 10px;
+}
+
+.filter-category {
+  border-bottom: 1px solid black;
+}
+
+.filter-expand-btn {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  border: none;
+  text-align: left;
+  padding: 10px;
+  border-radius: 0;
+  margin-bottom: 5px;
+  background-color: transparent;
+}
+
+.expand-icon {
+  float: right;
+}
+
+.price-options,
+.material-options {
+  padding-left: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.apply-filter-btn {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  border: none;
+  padding: 10px;
+  margin-top: 40px;
+  background-color: #ededed;
+}
+
+.apply-filter-btn:hover {
+  background-color: lightgray;
+}
+
+input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.apply-filter-btn {
+  margin-right: 10px;
+  margin-top: 10px;
+}
+
+.filter-toggle-button {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
