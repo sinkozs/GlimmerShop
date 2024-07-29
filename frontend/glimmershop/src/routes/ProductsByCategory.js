@@ -73,6 +73,7 @@ function ProductsByCategory() {
             Error fetching products: {error.message}
           </p>
         )}
+        
       </Container>
 
       <Container fluid className="category-products-grid">
