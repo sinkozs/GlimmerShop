@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+
 import axios from "axios";
 import "../App.css";
 import "../styles/Home.css";
@@ -8,9 +9,11 @@ import "../styles/TrendingJewelry.css";
 import { Container, Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { FaTruck, FaRecycle, FaHandshake } from "react-icons/fa";
+import { useCart } from "../context/CartContext";
 
 function ProductDetails() {
   const { product_id } = useParams();
+  const { addToCart } = useCart(); 
   const [productData, setProductData] = useState(null);
   const [sellerData, setSellerData] = useState(null);
   const [currentImage, setCurrentImage] = useState(1);
@@ -41,6 +44,17 @@ function ProductDetails() {
     fetchProductData();
   }, [product_id]);
 
+  const handleAddToCart = () => {
+    if (productData) {
+      addToCart({
+        id: productData.id,
+        name: productData.name,
+        price: productData.price,
+        quantity: 1
+      });
+    }
+  };
+
   if (error) {
     return <div>Error: {error}</div>;
   }
@@ -60,7 +74,6 @@ function ProductDetails() {
   };
 
   const toggleDetails = () => {
-    // New function for toggling details
     setIsDetailsExpanded(!isDetailsExpanded);
   };
 
@@ -106,7 +119,7 @@ function ProductDetails() {
                   {availability ? "✓ In Stock" : "✗ Out of Stock"}
                 </p>
               </Container>
-              <Button className="add-to-bag-btn">ADD TO BAG</Button>
+              <Button onClick={handleAddToCart} className="add-to-bag-btn">ADD TO BAG</Button>
               <Container fluid className="additional-info">
                 <Container fluid className="icon-container">
                   <FaTruck className="product-detail-fa-icon" />

@@ -3,7 +3,6 @@ import "../App.css";
 import "../styles/Home.css";
 import HeroSection from "../components/HeroSection";
 import "../styles/HeroSection.css";
-
 import CategoryGrid from "../components/CategoryGrid";
 import "../styles/CategoryGrid.css";
 

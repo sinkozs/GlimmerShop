@@ -1,17 +1,35 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { FaUser, FaShoppingCart, FaBars } from "react-icons/fa";
+import { Container, Button } from "react-bootstrap";
+import { useCart } from "../context/CartContext";
 import "../styles/Header.css";
-import { Container } from "react-bootstrap";
+import "../styles/Cart.css";
+import "../styles/ProductFilters.css";
+import "../styles/ProductDetails.css";
 
 function Header() {
+  const {
+    cart,
+    removeFromCart,
+    increaseQuantity,
+    decreaseQuantity,
+    calculateSubtotal,
+  } = useCart();
   const [isOpen, setIsOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const toggleCartDropdown = () => {
+    setIsCartOpen(!isCartOpen);
+  };
 
   return (
     <Container fluid className="main-header">
       <Container fluid className="left">
         <FaBars className="hamburger" onClick={() => setIsOpen(!isOpen)} />
-        <div className="logo">GLIMMER</div>
+        <NavLink to="/" className="logo">
+          GLIMMER
+        </NavLink>
       </Container>
 
       <nav className={`menu-items ${isOpen ? "open" : ""}`}>
@@ -32,14 +50,84 @@ function Header() {
         </NavLink>
       </nav>
 
-      <div className="menu-icons">
+      <Container className="menu-icons">
         <NavLink className="nav-link" to="/login">
           <FaUser className="fa-icon" />
         </NavLink>
-        <NavLink className="nav-link" to="/cart">
-          <FaShoppingCart className="fa-icon" />
-        </NavLink>
-      </div>
+        <Container className="nav-link">
+          <FaShoppingCart className="fa-icon" onClick={toggleCartDropdown} />
+          {cart.length > 0 && <span className="item-count">{cart.length}</span>}
+        </Container>
+        <Container className={`show-cart-sidebar ${isCartOpen ? "show" : ""}`}>
+          {cart.length > 0 ? (
+            <Container fluid>
+              <Container fluid className="filters-header">
+                <h3>Your Bag ({cart.length})</h3>
+                <Button
+                  className="close-filters-section-btn"
+                  onClick={toggleCartDropdown}
+                >
+                  X
+                </Button>
+              </Container>
+              <ul>
+                {cart.map((item) => (
+                  <Container key={item.id} className="cart-item">
+                    <Container fluid className="cart-item-section">
+                      <Container fluid className="cart-item-section-header">
+                        <span className="cart-item-name">{item.name}</span>
+                        <span className="cart-item-quantity">
+                          ${item.price}
+                        </span>
+                      </Container>
+                      <Container fluid className="cart-item-details">
+                        <img
+                          className="cart-item-image"
+                          src={`http://localhost:8000/${item.image_path}`}
+                          alt={item.image_path}
+                        />
+                        <Container className="cart-item-info">
+                          <span className="cart-item-material">
+                            {item.material}
+                          </span>
+                        </Container>
+                      </Container>
+                      <Container className="item-controls">
+                        <Button
+                          onClick={() => decreaseQuantity(item.id)}
+                          aria-label="Decrease quantity"
+                        >
+                          -
+                        </Button>
+                        <span>{item.quantity}</span>
+                        <Button
+                          onClick={() => increaseQuantity(item.id)}
+                          aria-label="Increase quantity"
+                        >
+                          +
+                        </Button>
+                        <Button
+                          onClick={() => removeFromCart(item.id)}
+                          aria-label="Remove item"
+                        >
+                          Remove
+                        </Button>
+                      </Container>
+                    </Container>
+                  </Container>
+                ))}
+              </ul>
+              <Button className="add-to-bag-btn">CHECKOUT</Button>
+              <Container className="cart-subtotal-section">
+                <h3>Subtotal: </h3>
+                <h3>${calculateSubtotal()}</h3>
+              </Container>
+            </Container>
+          ) : (
+            <p>Your cart is empty.</p>
+          )}
+        </Container>
+      </Container>
     </Container>
   );
 }
