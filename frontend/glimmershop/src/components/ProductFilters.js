@@ -68,8 +68,8 @@ function ProductFilters({ category_id, onProductsFetched }) {
   const clearAllFilters = () => {
     setSelectedMaterials([]);
     setSelectedPriceRange({ min: null, max: null });
-    fetchAllProducts(); 
-};
+    fetchAllProducts();
+  };
 
   const applyFilters = () => {
     setShouldFetch(true);
@@ -84,6 +84,14 @@ function ProductFilters({ category_id, onProductsFetched }) {
       <Button onClick={toggleAllFilters} className="all-filters-btn">
         {showAllFilters ? "Hide Filters" : "All Filters"}
       </Button>
+      <Button
+        onClick={clearAllFilters}
+        className="all-filters-btn"
+        style={{ marginLeft: "10px" }}
+      >
+        Clear All Filters
+      </Button>
+
       <Container
         fluid
         className={`all-filters-section ${showAllFilters ? "show" : ""}`}

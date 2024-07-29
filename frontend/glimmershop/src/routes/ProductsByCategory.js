@@ -58,7 +58,7 @@ function ProductsByCategory() {
 
   return (
     <Container fluid className="category-products-wrapper">
-      <Container>
+      <Container className="category-products-header">
         <h1>
           {category_name.charAt(0).toUpperCase() + category_name.slice(1)}
         </h1>

@@ -66,6 +66,7 @@
   flex-direction: column;
   justify-content: space-between;
   transition: all 0.3s ease-in-out;
+  margin-bottom: 15px;
 }
 
 .trending-card-body {
@@ -102,6 +103,9 @@
 }
 
 .card-footer {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 10px;
   background-color: white;
   text-align: center;
@@ -141,19 +145,24 @@
 
   .trending-section-grid {
     padding: 20px;
+    margin-bottom: 30px;
   }
 
   .trending-card {
-    flex: 0 0 45%; 
+    flex: 0 0 45%;
     width: 45%;
   }
 
   .left-arrow {
     left: 30px;
   }
-  
+
   .right-arrow {
     right: 30px;
+  }
+
+  .footer-text {
+    font-size: 14px;
   }
 }
 
@@ -167,25 +176,16 @@
   .left-arrow {
     left: 130px;
   }
-  
+
   .right-arrow {
     right: 40px;
   }
 
   .footer-text {
-    font-family: "Poppins", sans-serif;
-    font-weight: 700;
     text-align: left;
     font-size: 14px;
   }
-  
-  .footer-text-price {
-    font-family: "Poppins", sans-serif;
-    font-weight: 300;
-    font-size: 12px;
-    margin-top: 0.3rem;
-    text-align: left;
-  }
+
 }
 
 /* Media query for extra large screens */
@@ -202,7 +202,7 @@
   .left-arrow {
     left: 130px;
   }
-  
+
   .right-arrow {
     right: 40px;
   }
