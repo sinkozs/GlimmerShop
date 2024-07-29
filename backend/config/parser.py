@@ -23,7 +23,8 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
 
     server_config = ServerConfig(
         host=parser.get("server", "Host"),
-        port=int(parser.get("server", "Port"))
+        port=int(parser.get("server", "Port")),
+        frontend_port=int(parser.get("server", "DefaultFrontendPort")),
     )
 
     redis_config = RedisConfig(
@@ -51,6 +52,7 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
         token_expiry_minutes=int(os.getenv("TOKEN_EXPIRY_MINUTES")),
         min_password_length=int(parser.get("auth", "MinPasswordLength")),
         http_session_secret=os.getenv("HTTP_SESSION_SECRET"),
+        stripe_secret_key=os.getenv("STRIPE_API_KEY"),
     )
 
     config = Config(

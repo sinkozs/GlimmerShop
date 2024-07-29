@@ -21,6 +21,13 @@ class DatabaseConfig:
 class ServerConfig:
     host: str
     port: int
+    frontend_port: int
+    connector: str = "http"
+
+    @property
+    def frontend_domain(self) -> str:
+        frontend_domain = f"{self.connector}://{self.host}:{self.frontend_port}"
+        return frontend_domain
 
 
 @dataclass
@@ -57,6 +64,7 @@ class AuthConfig:
     token_expiry_minutes: int
     min_password_length: int
     http_session_secret: str
+    stripe_secret_key: str
 
 
 @dataclass
