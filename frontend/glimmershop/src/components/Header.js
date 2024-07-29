@@ -15,6 +15,7 @@ function Header() {
     increaseQuantity,
     decreaseQuantity,
     calculateSubtotal,
+    calculateTotalCartItemCount
   } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -56,13 +57,13 @@ function Header() {
         </NavLink>
         <Container className="nav-link">
           <FaShoppingCart className="fa-icon" onClick={toggleCartDropdown} />
-          {cart.length > 0 && <span className="item-count">{cart.length}</span>}
+          {cart.length > 0 && <span className="item-count">{calculateTotalCartItemCount()}</span>}
         </Container>
         <Container className={`show-cart-sidebar ${isCartOpen ? "show" : ""}`}>
           {cart.length > 0 ? (
-            <Container fluid>
+            <Container fluid className="cart-sidebar">
               <Container fluid className="filters-header">
-                <h3>Your Bag ({cart.length})</h3>
+                <h3>Your Bag ({calculateTotalCartItemCount()})</h3>
                 <Button
                   className="close-filters-section-btn"
                   onClick={toggleCartDropdown}
@@ -70,13 +71,13 @@ function Header() {
                   X
                 </Button>
               </Container>
-              <ul>
+              <Container fluid className="cart-items-list">
                 {cart.map((item) => (
                   <Container key={item.id} className="cart-item">
                     <Container fluid className="cart-item-section">
                       <Container fluid className="cart-item-section-header">
                         <span className="cart-item-name">{item.name}</span>
-                        <span className="cart-item-quantity">
+                        <span className="cart-item-info">
                           ${item.price}
                         </span>
                       </Container>
@@ -99,7 +100,7 @@ function Header() {
                         >
                           -
                         </Button>
-                        <span>{item.quantity}</span>
+                        <span className="cart-item-info">{item.quantity}</span>
                         <Button
                           onClick={() => increaseQuantity(item.id)}
                           aria-label="Increase quantity"
@@ -116,12 +117,12 @@ function Header() {
                     </Container>
                   </Container>
                 ))}
-              </ul>
-              <Button className="add-to-bag-btn">CHECKOUT</Button>
-              <Container className="cart-subtotal-section">
+              </Container>   
+              <Container className="subtotal-section">
                 <h3>Subtotal: </h3>
                 <h3>${calculateSubtotal()}</h3>
               </Container>
+              <Button className="add-to-bag-btn">CHECKOUT</Button>
             </Container>
           ) : (
             <p>Your cart is empty.</p>

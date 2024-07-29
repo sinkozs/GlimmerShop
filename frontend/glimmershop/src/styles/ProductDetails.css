@@ -180,6 +180,10 @@
   margin-bottom: 0.8rem;
 }
 
+.add-to-bag-btn:hover {
+  opacity: 0.8;
+}
+
 .additional-info {
   margin-top: 20px;
 }

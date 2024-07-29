@@ -20,6 +20,12 @@
 .cart-item {
     width: 100%;
     margin: 0;
+    margin-top: 10px;
+}
+
+.cart-items-list{
+    width: 90%;
+    margin: auto;
 }
 
 .cart-item-section {
@@ -50,11 +56,10 @@
   
 
   .cart-item-name,
-  .cart-item-quantity,
+  .cart-item-info,
   .cart-item-material,
-  .cart-item-price,
   .item-count,
-  .cart-subtotal-section h3 {
+  .subtotal-section h3 {
     font-family: "Poppins", sans-serif;
     font-weight: 500;
     font-size: 13px;
@@ -84,14 +89,17 @@
     width: 100px;
 }  
 
-.cart-subtotal-section{
+.subtotal-section{
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
     width: 100%;
+    justify-content: space-between;
+    margin: auto;
     border-top: 1px solid black;
     margin-top: 20px;
-    margin-bottom: 50px;
-    padding: 5px 10px;
+    padding-top: 10px;
+}
 
+
+.cart-sidebar .add-to-bag-btn{
+    margin-bottom: 50px;
 }
