@@ -45,13 +45,16 @@ function ProductDetails() {
   }, [product_id]);
 
   const handleAddToCart = () => {
-    if (productData) {
+    if (productData && availability) {
       addToCart({
         id: productData.id,
         name: productData.name,
         price: productData.price,
         quantity: 1
       });
+    }
+    else if (!availability){
+      console.log("Currently out of stock!");
     }
   };
 

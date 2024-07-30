@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { FaUser, FaShoppingCart, FaBars } from "react-icons/fa";
 import { Container, Button } from "react-bootstrap";
@@ -17,14 +17,22 @@ function Header() {
     decreaseQuantity,
     calculateSubtotal,
     calculateTotalCartItemCount,
-    deleteCart
+    deleteCart,
   } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const toggleCartDropdown = () => {
-    setIsCartOpen(!isCartOpen);
+    if (cart.length > 0) {
+      setIsCartOpen(!isCartOpen);
+    }
   };
+
+  useEffect(() => {
+    if (cart.length == 0) {
+      setIsCartOpen(false);
+    }
+  }, [cart.length == 0]);
 
   return (
     <Container fluid className="main-header">
@@ -59,7 +67,9 @@ function Header() {
         </NavLink>
         <Container className="nav-link">
           <FaShoppingCart className="fa-icon" onClick={toggleCartDropdown} />
-          {cart.length > 0 && <span className="item-count">{calculateTotalCartItemCount()}</span>}
+          {cart.length > 0 && (
+            <span className="item-count">{calculateTotalCartItemCount()}</span>
+          )}
         </Container>
         <Container className={`show-cart-sidebar ${isCartOpen ? "show" : ""}`}>
           {cart.length > 0 ? (
@@ -79,9 +89,7 @@ function Header() {
                     <Container fluid className="cart-item-section">
                       <Container fluid className="cart-item-section-header">
                         <span className="cart-item-name">{item.name}</span>
-                        <span className="cart-item-info">
-                          ${item.price}
-                        </span>
+                        <span className="cart-item-info">${item.price}</span>
                       </Container>
                       <Container fluid className="cart-item-details">
                         <img
@@ -119,7 +127,7 @@ function Header() {
                     </Container>
                   </Container>
                 ))}
-              </Container>   
+              </Container>
               <Container className="subtotal-section">
                 <h3>Subtotal: </h3>
                 <h3>${calculateSubtotal()}</h3>
