@@ -68,22 +68,22 @@ async def add_new_category(category_name: str, session: AsyncSession = Depends(g
         raise e
 
 
-@router.put("/edit")
-async def edit_category(category_id: int, category_update: CategoryUpdate, session: AsyncSession = Depends(get_session)):
-    service = CategoryService(session)
-    controller = CategoryController(service)
-    try:
-        return await controller.edit_category(category_id, category_update)
-    except HTTPException as e:
-        raise e
-
-
 @router.post("/add-category-to-product")
 async def add_category_to_product(product_id: int, category_id: int, session: AsyncSession = Depends(get_session)):
     service = CategoryService(session)
     controller = CategoryController(service)
     try:
         return await controller.add_category_to_product(product_id, category_id)
+    except HTTPException as e:
+        raise e
+
+
+@router.put("/edit")
+async def edit_category(category_id: int, category_update: CategoryUpdate, session: AsyncSession = Depends(get_session)):
+    service = CategoryService(session)
+    controller = CategoryController(service)
+    try:
+        return await controller.edit_category(category_id, category_update)
     except HTTPException as e:
         raise e
 

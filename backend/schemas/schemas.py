@@ -53,6 +53,14 @@ class CartItemUpdate(BaseModel):
     quantity: Annotated[int, Field(ge=0)]
 
 
+class CartItemForCheckout(BaseModel):
+    id: int
+    name: str
+    price: int
+    quantity: int
+    image_path: str
+
+
 class CategoryUpdate(BaseModel):
     category_name: Optional[Annotated[str, Field(max_length=200)]] = None
     category_description: Optional[Annotated[str, Field(max_length=200)]] = None

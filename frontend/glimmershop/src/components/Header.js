@@ -7,6 +7,7 @@ import "../styles/Header.css";
 import "../styles/Cart.css";
 import "../styles/ProductFilters.css";
 import "../styles/ProductDetails.css";
+import Checkout from "./Checkout";
 
 function Header() {
   const {
@@ -15,7 +16,8 @@ function Header() {
     increaseQuantity,
     decreaseQuantity,
     calculateSubtotal,
-    calculateTotalCartItemCount
+    calculateTotalCartItemCount,
+    deleteCart
   } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -122,7 +124,7 @@ function Header() {
                 <h3>Subtotal: </h3>
                 <h3>${calculateSubtotal()}</h3>
               </Container>
-              <Button className="add-to-bag-btn">CHECKOUT</Button>
+              <Checkout userCart={cart} deleteCart={deleteCart} />
             </Container>
           ) : (
             <p>Your cart is empty.</p>

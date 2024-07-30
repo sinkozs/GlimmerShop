@@ -38,14 +38,11 @@ function ProductsByCategory() {
   }, [category_name]);
 
   const handleCardClick = (productId) => {
-    console.log("Navigating to product with ID:", productId);
     navigate(`/products/${productId}`);
   };
 
   const handleProductsFetched = (fetchedProducts) => {
-    console.log("Fetched Products:", fetchedProducts);
     setProducts(fetchedProducts);
-    console.log("Updated State:", products);
   };
 
   if (!categoryData || !products) {
@@ -85,7 +82,7 @@ function ProductsByCategory() {
               onClick={() => handleCardClick(product.id)}
             >
               <Card.Body className="trending-card-body">
-                <div className="image-container">
+                <Container className="image-container">
                   <Card.Img
                     variant="top"
                     className="trending-card-image"
@@ -96,7 +93,7 @@ function ProductsByCategory() {
                     className="trending-card-hover"
                     src={`http://localhost:8000/${product.image_path2}`}
                   />
-                </div>
+                </Container>
               </Card.Body>
               <Card.Footer className="card-footer">
                 <Card.Text className="footer-text">{product.name}</Card.Text>

@@ -11,9 +11,7 @@ class CheckoutController:
 
     async def create_checkout_session(self, cart_items: List[CartItemForCheckout]):
         try:
-            session_id = await self._service.create_checkout_session(cart_items)
-            if session_id:
-                return session_id
+            return await self._service.create_checkout_session(cart_items)
         except HTTPException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 

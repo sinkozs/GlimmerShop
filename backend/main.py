@@ -13,7 +13,7 @@ from config.parser import load_config
 from config.models import Config
 from dependencies import get_session
 from models.database import build_session_maker, build_session, get_redis
-from routers import auth_router, user_router, product_router, category_router, cart_router
+from routers import auth_router, user_router, product_router, category_router, cart_router, checkout_router
 
 
 def _resolve_dependencies(app: FastAPI, config: Config) -> FastAPI:
@@ -48,6 +48,7 @@ def _register_routers(app: FastAPI):
     app.include_router(product_router.router)
     app.include_router(category_router.router)
     app.include_router(cart_router.router)
+    app.include_router(checkout_router.router)
 
 
 def main():
