@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, Component } from "react";
 
 import axios from "axios";
 import "../App.css";
 import "../styles/Home.css";
 import "../styles/ProductDetails.css";
 import TrendingJewelry from "../components/TrendingJewelry";
+import Modal from "../components/Modal";
 import "../styles/TrendingJewelry.css";
 import { Container, Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
@@ -13,13 +14,14 @@ import { useCart } from "../context/CartContext";
 
 function ProductDetails() {
   const { product_id } = useParams();
-  const { addToCart } = useCart(); 
+  const { cart, addToCart, increaseQuantity } = useCart();
   const [productData, setProductData] = useState(null);
   const [sellerData, setSellerData] = useState(null);
   const [currentImage, setCurrentImage] = useState(1);
-  const [availability, setAvailability] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+  const [availability, setAvailability] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
   const detailsRef = useRef(null);
 
@@ -46,16 +48,25 @@ function ProductDetails() {
 
   const handleAddToCart = () => {
     if (productData && availability) {
-      addToCart({
-        id: productData.id,
-        name: productData.name,
-        price: productData.price,
-        quantity: 1
-      });
+      const existingItem = cart.find(item => item.id === productData.id);
+      if (existingItem) {
+        increaseQuantity(productData.id);
+      } else {
+        addToCart({
+          id: productData.id,
+          name: productData.name,
+          price: productData.price,
+          quantity: 1,
+        });
+      }
+    } else if (!availability) {
+      setShowModal(true);
     }
-    else if (!availability){
-      console.log("Currently out of stock!");
-    }
+  };
+
+  
+  const closeModal = () => {
+    setShowModal(false);
   };
 
   if (error) {
@@ -122,7 +133,12 @@ function ProductDetails() {
                   {availability ? "✓ In Stock" : "✗ Out of Stock"}
                 </p>
               </Container>
-              <Button onClick={handleAddToCart} className="add-to-bag-btn">ADD TO BAG</Button>
+              <Button onClick={handleAddToCart} className="add-to-bag-btn">
+                ADD TO BAG
+              </Button>
+              <Modal show={showModal} onClose={closeModal} title="Sorry!">
+                <p>This product is currently out of stock.</p>
+              </Modal>
               <Container fluid className="additional-info">
                 <Container fluid className="icon-container">
                   <FaTruck className="product-detail-fa-icon" />

@@ -22,6 +22,7 @@ export const CartProvider = ({ children }) => {
                 ...item,
                 image_path: product.data.image_path,
             };
+            
 
             setCart(prevCart => {
                 const existingItemIndex = prevCart.findIndex(i => i.id === newItem.id);
@@ -37,6 +38,7 @@ export const CartProvider = ({ children }) => {
             console.error("Failed to add product to cart:", error);
         }
     };
+    
 
     const removeFromCart = (itemId) => {
         setCart(prevCart => prevCart.filter(item => item.id !== itemId));
