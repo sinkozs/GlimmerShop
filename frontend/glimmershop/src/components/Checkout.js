@@ -1,16 +1,14 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "react-bootstrap";
 import axios from "axios";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import Modal from "../components/Modal";
 
 const Checkout = ({ userCart, deleteCart }) => {
   const STRIPE_PUBLIC_KEY =
     "pk_test_51PUqvPIeh1QUOUnUzvMbKUAG4GiIQFHQLpEgV0DaYRzIZt6sxNwQdsxwXMh5O7DkVLqRTtJ551JhqfFeuVRAko4i00JDT5DFCV";
   const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
   const DOMAIN = "http://localhost:3000/";
-  const [showModal, setShowModal] = useState(false);
   const effectRan = useRef(false);
 
   useEffect(() => {
@@ -19,18 +17,11 @@ const Checkout = ({ userCart, deleteCart }) => {
     const query = new URLSearchParams(window.location.search);
     if (query.get('success') === 'true') {
       handleSuccessfulPayment();
-      setShowModal(true);
     }
 
     effectRan.current = true;
   }, []);
 
-  const closeModal = () => {
-    setShowModal(false);
-    const url = new URL(window.location);
-    url.searchParams.delete('success');
-    window.history.replaceState({}, document.title, url);
-  };
 
   const handleSuccessfulPayment = async () => {
     try {
@@ -78,9 +69,6 @@ const Checkout = ({ userCart, deleteCart }) => {
           CHECKOUT
         </Button>
       </Elements>
-      <Modal show={showModal} onClose={closeModal} title="Yay!">
-        <p>We received your order!</p>
-      </Modal>
     </>
   );
 };
