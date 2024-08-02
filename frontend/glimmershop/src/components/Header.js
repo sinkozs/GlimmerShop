@@ -28,6 +28,10 @@ function Header() {
     }
   };
 
+  const toggleHeaderSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
   useEffect(() => {
     if (cart.length == 0) {
       setIsCartOpen(false);
@@ -43,20 +47,52 @@ function Header() {
         </NavLink>
       </Container>
 
-      <nav className={`menu-items ${isOpen ? "open" : ""}`}>
-        <NavLink to="/new" onClick={() => setIsOpen(false)}>
+      <nav className={`header-sidebar ${isOpen ? "open" : ""}`}>
+        {isOpen && (
+          <Container fluid className="header-sidebar-top">
+            {" "}
+            <h3>Glimmershop</h3>
+            <Button
+              className="close-header-sidebar-btn"
+              onClick={toggleHeaderSidebar}
+            >
+              X
+            </Button>
+          </Container>
+        )}
+        <NavLink
+          to="/new"
+          className="sidebar-item"
+          onClick={toggleHeaderSidebar}
+        >
           NEW
         </NavLink>
-        <NavLink to="/categories/earrings" onClick={() => setIsOpen(false)}>
+        <NavLink
+          to="/categories/earrings"
+          className="sidebar-item"
+          onClick={toggleHeaderSidebar}
+        >
           EARRINGS
         </NavLink>
-        <NavLink to="/categories/rings" onClick={() => setIsOpen(false)}>
+        <NavLink
+          to="/categories/rings"
+          className="sidebar-item"
+          onClick={toggleHeaderSidebar}
+        >
           RINGS
         </NavLink>
-        <NavLink to="/categories/necklaces" onClick={() => setIsOpen(false)}>
+        <NavLink
+          to="/categories/necklaces"
+          className="sidebar-item"
+          onClick={toggleHeaderSidebar}
+        >
           NECKLACES
         </NavLink>
-        <NavLink to="/categories/bracelets" onClick={() => setIsOpen(false)}>
+        <NavLink
+          to="/categories/bracelets"
+          className="sidebar-item"
+          onClick={toggleHeaderSidebar}
+        >
           BRACELETS
         </NavLink>
       </nav>

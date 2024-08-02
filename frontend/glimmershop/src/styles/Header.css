@@ -17,13 +17,13 @@
   letter-spacing: 5px;
   text-decoration: none;
   color: black;
+  margin-right: 3rem;
 }
 
 nav {
   display: flex;
-  align-items: center;
+  align-items: left;
   flex-grow: 1;
-  margin-left: 3rem;
 }
 
 nav a {
@@ -56,7 +56,7 @@ nav a {
 }
 
 /* Media query for mobile, tablet and smaller-screen laptop sizes */
-@media (max-width: 1900px) {
+@media (max-width: 1200px) {
   .main-header {
     display: flex;
     justify-content: space-between;
@@ -78,15 +78,61 @@ nav a {
     flex-direction: column;
     position: absolute;
     top: 70px;
-    background-color: white;
     display: none;
     width: 100%;
   }
 
   nav.open {
     display: flex;
-    justify-content: flex-start;
-    align-self: center;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 80%;
+    height: 100%;
+    padding: 20px;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+    z-index: 1050;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  nav a {
+    margin-left: 5px;
+    color: black;
+    text-decoration: none;
+    padding: 10px 0;
+  }
+
+  nav a:hover {
+    background-color: #f0f0f0;
+  }
+
+  .header-sidebar-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid black;
+    justify-content: center;
+  }
+
+  .header-sidebar-top h3{
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .close-header-sidebar-btn {
+    display: flex;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 20px;
+    font-weight: bold;
+    margin-left: auto;
+    padding-bottom: 10px;
   }
 
   .hamburger {
