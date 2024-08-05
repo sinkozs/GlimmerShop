@@ -47,7 +47,6 @@ function TrendingJewelry() {
   };
 
   const handleCardClick = (productId) => {
-    console.log("Navigating to product with ID:", productId);
     navigate(`/products/${productId}`);
   };
 

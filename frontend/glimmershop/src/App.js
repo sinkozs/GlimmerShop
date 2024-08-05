@@ -5,6 +5,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./routes/Home";
+import LoginAndSignup from "./components/LoginAndSignup";
+import SellerHome from "./routes/SellerHome";
 import { CartProvider } from "./context/CartContext";
 
 const ProductDetails = lazy(() => import("./routes/ProductDetails"));
@@ -19,6 +21,15 @@ function App() {
           <div className="content-container">
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/sign-in" element={<LoginAndSignup />} />
+              <Route
+                path="/seller/:seller_id"
+                element={
+                  <Suspense fallback={<div>Loading Seller Admin page...</div>}>
+                    <SellerHome />
+                  </Suspense>
+                }
+              />
               <Route
                 path="/products/:product_id"
                 element={

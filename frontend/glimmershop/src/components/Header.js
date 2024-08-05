@@ -98,7 +98,7 @@ function Header() {
       </nav>
 
       <Container className="menu-icons">
-        <NavLink className="nav-link" to="/login">
+        <NavLink className="nav-link" to="/sign-in">
           <FaUser className="fa-icon" />
         </NavLink>
         <Container className="nav-link">

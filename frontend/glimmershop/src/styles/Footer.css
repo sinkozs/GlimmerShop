@@ -1,12 +1,12 @@
 .footer-container {
   width: 100%;
-  min-height: 15vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   padding-top: 3rem;
   padding-bottom: 1rem;
+  flex-grow: 0;
 }
 
 .footer-container .social-icons {
@@ -64,13 +64,12 @@
 
 /* Media query for larger screens */
 @media (min-width: 768px) and (max-width: 1900px) {
-    .footer-icon {
-        color: lightgray;
-        font-size: 24px;
-      }
-    
-      .footer-container a {
-        font-size: 16px;
-      }
-}
+  .footer-icon {
+    color: lightgray;
+    font-size: 24px;
+  }
 
+  .footer-container a {
+    font-size: 16px;
+  }
+}
