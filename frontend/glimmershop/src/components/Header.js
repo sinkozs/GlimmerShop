@@ -51,7 +51,7 @@ function Header() {
         {isOpen && (
           <Container fluid className="header-sidebar-top">
             {" "}
-            <h3>Glimmershop</h3>
+            <h3>Glimmer</h3>
             <Button
               className="close-header-sidebar-btn"
               onClick={toggleHeaderSidebar}

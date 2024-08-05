@@ -154,3 +154,13 @@ nav a {
     padding: 0;
   }
 }
+
+@media (min-width: 1200px) {
+  .header-sidebar-top {
+    display: none;
+  }
+
+  .hamburger {
+    display: none;
+  }
+}
