@@ -3,7 +3,7 @@ import "../App.css";
 import "../styles/Home.css";
 import "../styles/SellerHome.css";
 import Modal from "../components/Modal";
-import { Container} from "react-bootstrap";
+import { Container, Form, Button } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import ProductsGrid from "../components/ProductsGrid";
@@ -12,6 +12,7 @@ function SellerHome() {
   const [products, setProducts] = useState(null);
   const [sellerData, setSellerData] = useState(null);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const location = useLocation();
   const { sellerId } = location.state || {};
 
@@ -41,10 +42,42 @@ function SellerHome() {
     }
   }, [sellerId]);
 
+  const handleSearch = async (event) => {
+    event.preventDefault();
+    try {
+      console.log(searchQuery);
+      const response = await axios.get(
+        `http://127.0.0.1:8000/products/search`,
+        {
+          params: { query: searchQuery, seller_id: sellerId },
+        }
+      );
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Error searching products:", error);
+      setError("Failed to search products. Please try again later.");
+    }
+  };
+
   return (
     <Container fluid className="seller-home-wrapper">
-      {sellerData && <h1>Hello {sellerData.first_name}!</h1>}
-      {error && <p>{error}</p>}
+      <Container fluid className="seller-home-header-section">
+        {sellerData && <h1>Hello {sellerData.first_name}!</h1>}
+        {error && <p>{error}</p>}
+
+        <Form onSubmit={handleSearch} className="seller-home-searchbar">
+          <Form.Control
+            type="text"
+            placeholder="Search products by name"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Button type="submit" className="submit-search-btn">
+            Search
+          </Button>
+        </Form>
+      </Container>
+
       <ProductsGrid products={products} />
     </Container>
   );
