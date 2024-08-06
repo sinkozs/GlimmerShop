@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, Component } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 import axios from "axios";
 import "../App.css";
@@ -48,7 +48,7 @@ function ProductDetails() {
 
   const handleAddToCart = () => {
     if (productData && availability) {
-      const existingItem = cart.find(item => item.id === productData.id);
+      const existingItem = cart.find((item) => item.id === productData.id);
       if (existingItem) {
         increaseQuantity(productData.id);
       } else {
@@ -64,7 +64,6 @@ function ProductDetails() {
     }
   };
 
-  
   const closeModal = () => {
     setShowModal(false);
   };

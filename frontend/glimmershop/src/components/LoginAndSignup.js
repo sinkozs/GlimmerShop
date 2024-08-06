@@ -49,7 +49,7 @@ function LoginAndSignup() {
         setPassword("");
 
         const sellerId = response.data.user_id;
-        navigate(`/seller/${sellerId}`);
+        navigate(`/seller/${sellerId}`, { state: { sellerId } });
       })
       .catch((error) => {
         console.error("Login failed:", error);
