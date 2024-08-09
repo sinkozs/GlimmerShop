@@ -22,7 +22,6 @@ function AddNewProduct() {
   const [error, setError] = useState(null);
   const seller_id = localStorage.getItem("sellerId");
   const token = localStorage.getItem("token");
-  const navigate = useNavigate();
 
   function generateUniqueFileName(file) {
     const fileExtension = file.name.split(".").pop();
@@ -42,7 +41,7 @@ function AddNewProduct() {
       color: color,
     };
 
-         try {
+    try {
       const response = await axios.post(
         "http://127.0.0.1:8000/products/new",
         productData,
@@ -52,7 +51,7 @@ function AddNewProduct() {
             "Content-Type": "application/json",
           },
         }
-      ); 
+      );
 
       const productId = response.data;
       setProductId(productId);
@@ -93,7 +92,7 @@ function AddNewProduct() {
         );
       }
 
-      console.log("Product and images added successfully!");
+      setShowModal(true);
 
       setName("");
       setDescription("");
@@ -106,8 +105,11 @@ function AddNewProduct() {
     } catch (error) {
       console.error("There was an error adding the product!", error);
       setError(error.response?.data?.detail || "An unexpected error occurred");
-      setShowModal(true);
     }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
   };
 
   const handleImage1Change = (event) => {
@@ -210,6 +212,9 @@ function AddNewProduct() {
                 SAVE
               </Button>
             </Form>
+            <Modal show={showModal} onClose={closeModal} title="Yay!">
+              <p>You successfully uploaded this product.</p>
+            </Modal>
           </>
         </Container>
       </Container>

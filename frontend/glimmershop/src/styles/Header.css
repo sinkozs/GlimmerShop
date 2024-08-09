@@ -32,6 +32,22 @@ nav a {
   text-decoration: none;
 }
 
+.logout-btn{
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  padding: 10px 15px 10px 15px;
+  margin-left: 80px;
+  outline: none;
+  border: none;
+  background-color: #ededed;
+}
+
+.logout-btn:hover {
+  background-color: lightgray;
+  box-shadow: none;
+}
+
 .menu-icons {
   display: flex;
   justify-content: flex-end;

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import React, { useEffect, useState, useContext } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { FaUser, FaShoppingCart, FaBars } from "react-icons/fa";
 import { Container, Button } from "react-bootstrap";
 import { useCart } from "../context/CartContext";
+import { AuthContext } from "../context/AuthContext";
 import "../styles/Header.css";
 import "../styles/Cart.css";
 import "../styles/ProductFilters.css";
@@ -21,6 +22,9 @@ function Header() {
   } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const { isAuthenticated, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
 
   const toggleCartDropdown = () => {
     if (cart.length > 0) {
@@ -33,10 +37,15 @@ function Header() {
   };
 
   useEffect(() => {
-    if (cart.length == 0) {
+    if (cart.length === 0) {
       setIsCartOpen(false);
     }
-  }, [cart.length == 0]);
+  }, [cart.length]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <Container fluid className="main-header">
@@ -50,7 +59,6 @@ function Header() {
       <nav className={`header-sidebar ${isOpen ? "open" : ""}`}>
         {isOpen && (
           <Container fluid className="header-sidebar-top">
-            {" "}
             <h3>Glimmer</h3>
             <Button
               className="close-header-sidebar-btn"
@@ -95,17 +103,30 @@ function Header() {
         >
           BRACELETS
         </NavLink>
-        <NavLink
-          to="/products/new"
-        >
-          ADD NEW PRODUCT
-        </NavLink>
+
+        {isAuthenticated && (
+          <>
+            <NavLink
+              to="/products/new"
+              className="sidebar-item"
+              onClick={toggleHeaderSidebar}
+            >
+              ADD NEW PRODUCT
+            </NavLink>
+          </>
+        )}
       </nav>
 
       <Container className="menu-icons">
-        <NavLink className="nav-link" to="/sign-in">
-          <FaUser className="fa-icon" />
-        </NavLink>
+        {!isAuthenticated ? (
+          <NavLink className="nav-link" to="/sign-in">
+            <FaUser className="fa-icon" />
+          </NavLink>
+        ) : (
+          <Button className="nav-link logout-btn" onClick={handleLogout}>
+            Logout
+          </Button>
+        )}
         <Container className="nav-link">
           <FaShoppingCart className="fa-icon" onClick={toggleCartDropdown} />
           {cart.length > 0 && (

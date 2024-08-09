@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import "../App.css";
 import "../styles/LoginAndSignup.css";
+import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Container, Form, Button } from "react-bootstrap";
+import Modal from "./Modal";
 
 function LoginAndSignup() {
   const [email, setEmail] = useState("");
@@ -14,6 +16,8 @@ function LoginAndSignup() {
   const [error, setError] = useState(null);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const { login } = useContext(AuthContext); 
 
   const navigate = useNavigate();
 
@@ -26,7 +30,7 @@ function LoginAndSignup() {
     setIsSignup(false);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const formData = new URLSearchParams();
@@ -35,27 +39,38 @@ function LoginAndSignup() {
     formData.append("password", password);
 
     axios
-      .post("http://127.0.0.1:8000/auth/login", formData, {
+      .post("http://127.0.0.1:8000/auth/login?is_seller=true", formData, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       })
       .then((response) => {
-        const token = response.data.user_token;
+        const token = response.data.seller_token;
+        login(token);
         localStorage.setItem("token", token);
-
-        console.log("Login successful:", token);
         setEmail("");
         setPassword("");
 
-        const sellerId = response.data.user_id;
+        const sellerId = response.data.seller_id;
         navigate(`/seller/${sellerId}`, { state: { sellerId } });
         localStorage.setItem("sellerId", sellerId);
       })
       .catch((error) => {
-        console.error("Login failed:", error);
-        setError(error.response.data.detail);
+        if (error.response) {
+          setError(error.response.data.detail);
+          setShowModal(true);
+        } else if (error.request) {
+          setError("No response from server. Please try again.");
+          setShowModal(true);
+        } else {
+          setError("An unexpected error occurred. Please try again.");
+          setShowModal(true);
+        }
       });
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
   };
 
   const handleForgotPasswordSubmit = (event) => {
@@ -225,6 +240,9 @@ function LoginAndSignup() {
                   LOG IN
                 </Button>
               </Form>
+              <Modal show={showModal} onClose={closeModal} title="Login Error">
+                <p>{error}</p>
+              </Modal>
               <Container fluid className="login-form-footer">
                 <Button
                   onClick={() => setIsSignup(true)}
