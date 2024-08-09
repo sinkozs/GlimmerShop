@@ -1,10 +1,11 @@
+from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from dependencies import get_session
 from controllers.product_controller import ProductController
 from services.product_service import ProductService
-from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter, MaterialsFilter
+from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter, MaterialsFilter, ProductData
 from dependencies import get_current_user
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,6 +46,16 @@ async def get_product_by_id(product_id: int,
         resp = await product_controller.get_product_by_id(product_id)
         print(resp)
         return resp
+    except HTTPException as e:
+        raise e
+
+
+@router.get("/search/", response_model=List[ProductData])
+async def search_products(query: str = Query(...), seller_id: UUID = Query(...), session: AsyncSession = Depends(get_session)):
+    service = ProductService(session)
+    product_controller = ProductController(service)
+    try:
+        return await product_controller.search_products(query, seller_id)
     except HTTPException as e:
         raise e
 

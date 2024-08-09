@@ -22,7 +22,6 @@ function SellerHome() {
         const seller = await axios.get(
           `http://localhost:8000/users/public/${sellerId}`
         );
-        console.log(seller.first_name);
         setSellerData(seller.data);
 
         const sellerProducts = await axios.get(
@@ -45,9 +44,8 @@ function SellerHome() {
   const handleSearch = async (event) => {
     event.preventDefault();
     try {
-      console.log(searchQuery);
       const response = await axios.get(
-        `http://127.0.0.1:8000/products/search`,
+        `http://127.0.0.1:8000/products/search/`,
         {
           params: { query: searchQuery, seller_id: sellerId },
         }

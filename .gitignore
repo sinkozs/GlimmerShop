@@ -6,5 +6,7 @@ backend/config/local.ini
 **__pycache__/
 backend/alembic/script.py.mako
 backend/alembic/alembic/README
+frontend/glimmershop/src/images/
+backend/images/
 
 

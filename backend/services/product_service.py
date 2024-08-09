@@ -9,7 +9,7 @@ from sqlalchemy.future import select
 from fastapi import status, UploadFile, File
 from sqlalchemy import func, and_, exists, or_
 from models.models import Product, Category, ProductCategory
-from schemas.schemas import ProductUpdate, PriceFilter, MaterialsFilter
+from schemas.schemas import ProductUpdate, PriceFilter, MaterialsFilter, ProductData
 from .user_service import UserService
 from exceptions.product_exceptions import ProductException
 from exceptions.user_exceptions import UserException
@@ -158,6 +158,24 @@ class ProductService:
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise
+
+    async def search_products(self, query: str, seller_id: UUID) -> List[ProductData]:
+        async with self.db.begin():
+            try:
+                query_as_uuid = UUID(query)
+            except ValueError:
+                query_as_uuid = None
+
+            stmt = select(Product).where(
+                (Product.seller_id == seller_id) &
+                (
+                        Product.name.ilike(f"%{query}%") |
+                        (Product.id == query_as_uuid if query_as_uuid else False)
+                )
+            )
+            result = await self.db.execute(stmt)
+            products = result.scalars().all()
+            return [ProductData.model_validate(product) for product in products]
 
     async def add_new_product(self, seller_id: UUID, product: Product):
         try:

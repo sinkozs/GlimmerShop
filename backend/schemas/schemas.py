@@ -48,6 +48,22 @@ class ProductUpdate(BaseModel):
     image_path2: Optional[str] = None
 
 
+class ProductData(BaseModel):
+    id: int
+    name: Annotated[str, Field(max_length=100)]
+    description: Annotated[str, Field(max_length=150000)]
+    price: Annotated[int, Field(gt=0)]
+    stock_quantity: Annotated[int, Field(ge=0)]
+    material: str
+    color: str
+    image_path: Optional[str] = None
+    image_path2: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
+
 class CartItemUpdate(BaseModel):
     product_id: int
     quantity: Annotated[int, Field(ge=0)]

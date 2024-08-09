@@ -1,32 +1,32 @@
 .seller-home-header-section {
-  padding: 50px 80px 0 80px;
-  margin-bottom: 0;
-  align-self: flex-start;
-  text-align: left;
-}
-
-.seller-home-wrapper h1 {
-  font-family: "Poppins", sans-serif;
-  font-weight: 700;
-  font-size: 42px;
-}
-
-.seller-home-searchbar{
-    width: 20%;
-}
-
-.submit-search-btn {
-  font-family: "Poppins", sans-serif;
-  font-weight: 400;
-  font-size: 14px;
-  padding: 10px 15px 10px 15px;
-  margin-top: 20px;
-  outline: none;
-  border: none;
-  background-color: #ededed;
-}
-
-.submit-search-btn:hover {
-  background-color: lightgray;
-  box-shadow: none;
-}
+    padding: 50px 80px 0 80px;
+    margin-bottom: 0;
+    align-self: flex-start;
+    text-align: left;
+  }
+  
+  .seller-home-wrapper h1 {
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    font-size: 42px;
+  }
+  
+  .seller-home-searchbar{
+      width: 20%;
+  }
+  
+  .submit-search-btn {
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    padding: 10px 15px 10px 15px;
+    margin-top: 20px;
+    outline: none;
+    border: none;
+    background-color: #ededed;
+  }
+  
+  .submit-search-btn:hover {
+    background-color: lightgray;
+    box-shadow: none;
+  }

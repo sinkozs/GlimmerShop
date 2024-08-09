@@ -127,6 +127,17 @@ function Header() {
             Logout
           </Button>
         )}
+
+        {isAuthenticated ? (
+          <NavLink className="nav-link" to="/sign-in">
+            <FaUser className="fa-icon" />
+          </NavLink>
+        ) : (
+          <Button className="nav-link logout-btn" onClick={handleLogout}>
+            Logout
+          </Button>
+        )}
+        
         <Container className="nav-link">
           <FaShoppingCart className="fa-icon" onClick={toggleCartDropdown} />
           {cart.length > 0 && (

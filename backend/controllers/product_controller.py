@@ -1,11 +1,13 @@
+from typing import List
+
 from sqlalchemy.dialects.postgresql import UUID
 from PIL import Image
 from services.product_service import ProductService
 from models.models import Product
-from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter, MaterialsFilter
+from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter, MaterialsFilter, ProductData
 from exceptions.user_exceptions import UserException
 from exceptions.product_exceptions import ProductException
-from fastapi import HTTPException
+from fastapi import HTTPException, Query
 
 
 class ProductController:
@@ -56,6 +58,12 @@ class ProductController:
             products_by_price_range = await self._service.get_products_by_price_range(category_id, price_range)
 
             return self.get_common_products(products_by_material, products_by_price_range)
+        except ProductException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def search_products(self, query: str = Query(...), seller_id: UUID = Query(...))  -> List[ProductData]:
+        try:
+            return await self._service.search_products(query, seller_id)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
