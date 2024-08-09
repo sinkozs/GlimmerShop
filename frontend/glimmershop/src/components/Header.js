@@ -95,6 +95,11 @@ function Header() {
         >
           BRACELETS
         </NavLink>
+        <NavLink
+          to="/products/new"
+        >
+          ADD NEW PRODUCT
+        </NavLink>
       </nav>
 
       <Container className="menu-icons">

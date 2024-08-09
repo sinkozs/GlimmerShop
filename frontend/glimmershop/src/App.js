@@ -7,6 +7,7 @@ import Footer from "./components/Footer";
 import Home from "./routes/Home";
 import LoginAndSignup from "./components/LoginAndSignup";
 import SellerHome from "./routes/SellerHome";
+import AddNewProduct from "./components/AddNewProduct";
 import { CartProvider } from "./context/CartContext";
 
 const ProductDetails = lazy(() => import("./routes/ProductDetails"));
@@ -22,6 +23,14 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/sign-in" element={<LoginAndSignup />} />
+              <Route
+                path="/products/new"
+                element={
+                  <Suspense fallback={<div>Loading Add new product page...</div>}>
+                    <AddNewProduct />
+                  </Suspense>
+                }
+              />
               <Route
                 path="/seller/:seller_id"
                 element={

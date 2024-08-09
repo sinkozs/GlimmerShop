@@ -50,6 +50,7 @@ function LoginAndSignup() {
 
         const sellerId = response.data.user_id;
         navigate(`/seller/${sellerId}`, { state: { sellerId } });
+        localStorage.setItem("sellerId", sellerId);
       })
       .catch((error) => {
         console.error("Login failed:", error);
