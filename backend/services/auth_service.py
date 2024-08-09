@@ -79,14 +79,16 @@ class AuthService:
 
     async def authenticate_user(self, email: EmailStr, password: str) -> dict:
         async with self.db.begin():
-            stmt = select(User).filter(User.email == email)
+            stmt = select(User).filter((User.email == email) & (User.is_seller == False))
             result = await self.db.execute(stmt)
             user_model = result.scalars().first()
             if user_model:
                 user_dict = db_model_to_dict(user_model)
 
-            if not user_model or not self.verify_password(password, user_model.hashed_password):
-                raise AuthenticationException()
+            if not user_model:
+                raise AuthenticationException(detail="User not found!")
+            if not self.verify_password(password, user_model.hashed_password):
+                raise AuthenticationException(detail="Invalid credentials!")
 
             user_model.is_active = True
             user_model.last_login = datetime.now()
@@ -94,20 +96,47 @@ class AuthService:
             await self.db.commit()
             return user_dict
 
+    async def authenticate_seller(self, email: EmailStr, password: str) -> dict:
+        try:
+            async with self.db.begin():
+                stmt = select(User).filter((User.email == email) & (User.is_seller == True))
+                result = await self.db.execute(stmt)
+                seller_model = result.scalars().first()
+                if seller_model:
+                    seller_dict = db_model_to_dict(seller_model)
+
+                if not seller_model:
+                    raise AuthenticationException(detail="Seller not found!")
+                if not self.verify_password(password, seller_model.hashed_password):
+                    raise AuthenticationException(detail="Invalid credentials!")
+
+                seller_model.is_active = True
+                seller_model.last_login = datetime.now()
+                self.db.add(seller_model)
+                await self.db.commit()
+                return seller_dict
+        except SQLAlchemyError:
+            raise AuthenticationException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                          detail="An error occurred when accessing the database!")
 
     async def regenerate_forgotten_password(self, user_email: EmailStr):
-        async with self.db.begin():
-            stmt = select(User).filter(User.email == user_email)
-            result = await self.db.execute(stmt)
-            user_model = result.scalars().first()
-            if user_model:
-                new_password = self.generate_strong_password()
-                user_model.hashed_password = hash_password(new_password)
-                self.db.add(user_model)
-                await self.db.commit()
-                await send_password_reset_email(user_email, new_password)
-            if not user_model:
-                raise AuthenticationException()
+        try:
+            async with self.db.begin():
+                stmt = select(User).filter(User.email == user_email)
+                result = await self.db.execute(stmt)
+                user_model = result.scalars().first()
+                if user_model:
+                    new_password = self.generate_strong_password()
+                    user_model.hashed_password = hash_password(new_password)
+                    self.db.add(user_model)
+                    await self.db.commit()
+                    await send_password_reset_email(user_email, new_password)
+                if not user_model:
+                    raise AuthenticationException()
+        except SQLAlchemyError:
+            raise AuthenticationException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                          detail="An error occurred when accessing the database!")
+
 
     async def user_logout(self, user_id: UUID):
         try:
@@ -118,7 +147,6 @@ class AuthService:
                 if user_model and user_model.is_active:
                     user_model.is_active = False
                     await self.db.commit()
-
         except SQLAlchemyError:
             raise AuthenticationException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                           detail="An error occurred when accessing the database!")

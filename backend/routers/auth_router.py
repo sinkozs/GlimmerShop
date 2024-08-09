@@ -28,12 +28,15 @@ def verify_password(password1, password2,
 
 
 @router.post("/login")
-async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(),
+async def login(is_seller: bool, response: Response, form_data: OAuth2PasswordRequestForm = Depends(),
                 session: AsyncSession = Depends(get_session), redis: aioredis.Redis = Depends(get_redis)):
     service = AuthService(session)
     auth_controller = AuthController(service)
     try:
-        return await auth_controller.login_for_access_token(response, redis, form_data)
+        print("auth....")
+        r = await auth_controller.login_for_access_token(is_seller, response, redis, form_data)
+        print(r)
+        return r
     except HTTPException as e:
         raise e
 
