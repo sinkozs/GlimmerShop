@@ -37,7 +37,7 @@ function LoginAndSignup() {
     formData.append("grant_type", "password");
     formData.append("username", email);
     formData.append("password", password);
-
+    // only handle sellers now
     axios
       .post("http://127.0.0.1:8000/auth/login?is_seller=true", formData, {
         headers: {

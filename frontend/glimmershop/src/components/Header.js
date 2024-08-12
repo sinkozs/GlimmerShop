@@ -25,7 +25,6 @@ function Header() {
   const { isAuthenticated, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-
   const toggleCartDropdown = () => {
     if (cart.length > 0) {
       setIsCartOpen(!isCartOpen);
@@ -50,7 +49,7 @@ function Header() {
   return (
     <Container fluid className="main-header">
       <Container fluid className="left">
-        <FaBars className="hamburger" onClick={() => setIsOpen(!isOpen)} />
+        <FaBars className="hamburger" onClick={toggleHeaderSidebar} />
         <NavLink to="/" className="logo">
           GLIMMER
         </NavLink>
@@ -105,45 +104,39 @@ function Header() {
         </NavLink>
 
         {isAuthenticated && (
-          <>
-            <NavLink
-              to="/products/new"
-              className="sidebar-item"
-              onClick={toggleHeaderSidebar}
-            >
-              ADD NEW PRODUCT
-            </NavLink>
-          </>
+          <NavLink
+            to="/products/new"
+            className="sidebar-item"
+            onClick={toggleHeaderSidebar}
+          >
+            ADD NEW PRODUCT
+          </NavLink>
         )}
       </nav>
 
       <Container className="menu-icons">
-        {!isAuthenticated ? (
-          <NavLink className="nav-link" to="/sign-in">
-            <FaUser className="fa-icon" />
-          </NavLink>
-        ) : (
-          <Button className="nav-link logout-btn" onClick={handleLogout}>
-            Logout
-          </Button>
+        {!isAuthenticated && (
+          <>
+            <NavLink className="nav-link" to="/sign-in">
+              <FaUser className="fa-icon" />
+            </NavLink>
+            <Container className="nav-link cart-container">
+              <FaShoppingCart className="fa-icon" onClick={toggleCartDropdown} />
+              {cart.length > 0 && (
+                <span className="item-count">{calculateTotalCartItemCount()}</span>
+              )}
+            </Container>
+          </>
         )}
 
-        {isAuthenticated ? (
-          <NavLink className="nav-link" to="/sign-in">
-            <FaUser className="fa-icon" />
-          </NavLink>
-        ) : (
+        {isAuthenticated && (
           <Button className="nav-link logout-btn" onClick={handleLogout}>
             Logout
           </Button>
         )}
-        
-        <Container className="nav-link">
-          <FaShoppingCart className="fa-icon" onClick={toggleCartDropdown} />
-          {cart.length > 0 && (
-            <span className="item-count">{calculateTotalCartItemCount()}</span>
-          )}
-        </Container>
+      </Container>
+
+      {!isAuthenticated && (
         <Container className={`show-cart-sidebar ${isCartOpen ? "show" : ""}`}>
           {cart.length > 0 ? (
             <Container fluid className="cart-sidebar">
@@ -211,7 +204,7 @@ function Header() {
             <p>Your cart is empty.</p>
           )}
         </Container>
-      </Container>
+      )}
     </Container>
   );
 }
