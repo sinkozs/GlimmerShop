@@ -11,19 +11,21 @@ class UserCreate(BaseModel):
     password: Annotated[str, Field(strip_whitespace=True, max_length=64, min_length=8)]
     email: EmailStr
     is_seller: bool
+    password_length: Optional[int] = None
 
 
 class UserUpdate(BaseModel):
     first_name: Optional[Annotated[
-        str, Field(strip_whitespace=True, max_length=25, min_length=2, pattern=r'^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+$')]] = None
+        str, Field(strip_whitespace=True, max_length=25, min_length=2, pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+(?: [a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+)*$")]] = None
     last_name: Optional[Annotated[
-        str, Field(strip_whitespace=True, max_length=25, min_length=2, pattern=r'^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+$')]] = None
+        str, Field(strip_whitespace=True, max_length=25, min_length=2, pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+(?: [a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+)*$")]] = None
     email: Optional[EmailStr] = None
     password: Optional[Annotated[str, Field(
         strip_whitespace=True,
         max_length=64,
         min_length=8,
     )]] = None
+    password_length: Optional[int] = None
 
 
 class ProductCreate(BaseModel):
@@ -60,7 +62,6 @@ class ProductData(BaseModel):
     image_path2: Optional[str] = None
 
     class Config:
-        orm_mode = True
         from_attributes = True
 
 

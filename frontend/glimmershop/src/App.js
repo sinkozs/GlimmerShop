@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./routes/Home";
 import LoginAndSignup from "./components/LoginAndSignup";
+import EditUser from "./components/EditUser";
 import SellerHome from "./routes/SellerHome";
 import AddNewProduct from "./components/AddNewProduct";
 import { CartProvider } from "./context/CartContext";
@@ -32,7 +33,9 @@ function App() {
                       {({ isAuthenticated }) =>
                         isAuthenticated ? (
                           <Suspense
-                            fallback={<div>Loading Add new product page...</div>}
+                            fallback={
+                              <div>Loading Add new product page...</div>
+                            }
                           >
                             <AddNewProduct />
                           </Suspense>
@@ -44,9 +47,29 @@ function App() {
                   }
                 />
                 <Route
+                  path="/profile/edit"
+                  element={
+                    <AuthContext.Consumer>
+                      {({ isAuthenticated }) =>
+                        isAuthenticated ? (
+                          <Suspense
+                            fallback={<div>Loading your profile...</div>}
+                          >
+                            <EditUser />
+                          </Suspense>
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    </AuthContext.Consumer>
+                  }
+                />
+                <Route
                   path="/seller/:seller_id"
                   element={
-                    <Suspense fallback={<div>Loading Seller Admin page...</div>}>
+                    <Suspense
+                      fallback={<div>Loading Seller Admin page...</div>}
+                    >
                       <SellerHome />
                     </Suspense>
                   }

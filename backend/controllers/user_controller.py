@@ -53,6 +53,7 @@ class UserController:
         user_model.hashed_password = hash_password(user.password)
         user_model.registration_date = datetime.now(timezone.utc).date()
         user_model.is_seller = user.is_seller
+        user_model.password_length = len(user.password)
 
         if not user.is_seller:
             user_model.cart = Cart(user=user_model)

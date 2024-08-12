@@ -12,12 +12,15 @@ function LoginAndSignup() {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [passwordLength, setPasswordLength] = useState("");
   const [isSeller, setIsSeller] = useState(false);
   const [error, setError] = useState(null);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const { login } = useContext(AuthContext); 
+  const [showSuccessfulSignupModal, setShowSuccessfulSignupModal] =
+    useState(false);
+  const { login } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
@@ -38,7 +41,7 @@ function LoginAndSignup() {
     formData.append("username", email);
     formData.append("password", password);
     // only handle sellers now
-    axios
+    await axios
       .post("http://127.0.0.1:8000/auth/login?is_seller=true", formData, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -50,6 +53,7 @@ function LoginAndSignup() {
         localStorage.setItem("token", token);
         setEmail("");
         setPassword("");
+        setPasswordLength("");
 
         const sellerId = response.data.seller_id;
         navigate(`/seller/${sellerId}`, { state: { sellerId } });
@@ -69,17 +73,13 @@ function LoginAndSignup() {
       });
   };
 
-  const closeModal = () => {
-    setShowModal(false);
-  };
-
-  const handleForgotPasswordSubmit = (event) => {
+  const handleForgotPasswordSubmit = async (event) => {
     event.preventDefault();
 
     const formData = new FormData();
     formData.append("user_email", email);
 
-    axios
+    await axios
       .post("http://127.0.0.1:8000/auth/forgotten-password", formData)
       .then((response) => {
         setEmail("");
@@ -92,32 +92,47 @@ function LoginAndSignup() {
       });
   };
 
-  const handleSignUpSubmit = (event) => {
+  const handleSignUpSubmit = async (event) => {
     event.preventDefault();
-
+  
     const formData = {
       first_name: firstName,
       last_name: lastName,
       password: password,
       email: email,
       is_seller: isSeller,
+      password_length: password.length,
     };
-
-    axios
-      .post("http://127.0.0.1:8000/users/new", formData)
-      .then((response) => {
+  
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/users/new", formData);
+      
+      if (response.status === 200) {
         setFirstName("");
         setLastName("");
         setEmail("");
         setPassword("");
+        setPasswordLength("");
         setIsSeller(false);
         setError(null);
         setIsSignup(false);
-      })
-      .catch((error) => {
-        console.error("Signup failed:", error);
-        setError(error.response.data.detail);
-      });
+  
+        setShowSuccessfulSignupModal(true);
+      }
+    } catch (error) {
+      console.error("Signup failed:", error);
+      setError(error.response?.data?.detail || "An error occurred");
+      setShowModal(true);
+    }
+  };
+  
+
+  const closeModal = () => {
+    setShowModal(false);
+  };
+
+  const closeSuccessfulSignupModal = () => {
+    setShowSuccessfulSignupModal(false);
   };
 
   return (
@@ -207,6 +222,16 @@ function LoginAndSignup() {
                   SIGN UP
                 </Button>
               </Form>
+              <Modal
+                show={showSuccessfulSignupModal}
+                onClose={closeSuccessfulSignupModal}
+                title="Yay!"
+              >
+                <p>
+                  You successfully signed up to Glimmershop. Please check your
+                  inbox and verify your account.
+                </p>
+              </Modal>
               <Button onClick={handleBackToLogin} className="back-to-login-btn">
                 Back to Login
               </Button>

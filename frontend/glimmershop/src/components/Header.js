@@ -121,18 +121,28 @@ function Header() {
               <FaUser className="fa-icon" />
             </NavLink>
             <Container className="nav-link cart-container">
-              <FaShoppingCart className="fa-icon" onClick={toggleCartDropdown} />
+              <FaShoppingCart
+                className="fa-icon"
+                onClick={toggleCartDropdown}
+              />
               {cart.length > 0 && (
-                <span className="item-count">{calculateTotalCartItemCount()}</span>
+                <span className="item-count">
+                  {calculateTotalCartItemCount()}
+                </span>
               )}
             </Container>
           </>
         )}
 
         {isAuthenticated && (
-          <Button className="nav-link logout-btn" onClick={handleLogout}>
-            Logout
-          </Button>
+          <>
+            <NavLink className="nav-link" to="/profile/edit">
+              <FaUser className="fa-icon" />
+            </NavLink>
+            <Button className="nav-link logout-btn" onClick={handleLogout}>
+              Logout
+            </Button>
+          </>
         )}
       </Container>
 

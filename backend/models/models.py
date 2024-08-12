@@ -55,6 +55,7 @@ class User(Base):
     last_name = Column(String(50))
     email = Column(String(100), nullable=False, unique=True, index=True)
     hashed_password = Column(String(64), nullable=False)
+    password_length = Column(Integer)
     is_seller = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
     is_active = Column(Boolean, default=False)
