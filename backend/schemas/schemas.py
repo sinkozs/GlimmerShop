@@ -90,3 +90,7 @@ class PriceFilter(BaseModel):
 
 class MaterialsFilter(BaseModel):
     materials: List[str]
+
+
+class MonthRequestForSellerStatistics(BaseModel):
+    month: str

@@ -9,6 +9,7 @@ from models.models import Product
 from exceptions.product_exceptions import ProductException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
+from services.product_service import ProductService
 import stripe
 
 
@@ -16,6 +17,7 @@ class CheckoutService:
 
     def __init__(self, session: AsyncSession):
         self.db = session
+        self.product_service = ProductService(session)
 
     async def update_stock_quantity(self, cart_items: List[CartItemForCheckout]):
         try:
@@ -46,27 +48,47 @@ class CheckoutService:
             raise HTTPException(status_code=400, detail=str(e))
 
     async def create_checkout_session(self, cart_items: List[CartItemForCheckout]):
-        try:
-            print(cart_items)
-            stripe.api_key = load_config().auth_config.stripe_secret_key
+        stripe.api_key = load_config().auth_config.stripe_secret_key
 
-            checkout_session = stripe.checkout.Session.create(
-                line_items=[
-                    {
-                        'price_data': {
-                            'currency': 'usd',
-                            'product_data': {
-                                'name': f"{item.name}",
-                            },
-                            'unit_amount': item.price * 100,
+        metadata_dict = {
+            "metadata_item_names": "",
+            "seller_id": ""
+        }
+
+        item_names = []
+        seller_ids = []
+
+        for item in cart_items:
+            product = await self.product_service.get_product_by_id(item.id)
+            seller_ids.append(str(product.get("seller_id")))
+
+            if item.name not in item_names:
+                item_names.append(item.name)
+
+        # Join lists into comma-separated strings
+        metadata_dict["metadata_item_names"] = ", ".join(item_names)
+        metadata_dict["seller_id"] = ", ".join(seller_ids)
+
+        print(metadata_dict)
+
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': f"{item.name}",
                         },
-                        'quantity': item.quantity,
-                    } for item in cart_items
-                ],
-                mode='payment',
-                success_url=load_config().server_config.frontend_domain + '?success=true',
-                cancel_url=load_config().server_config.frontend_domain + '?canceled=true',
-            )
-            return {"session_id": checkout_session["id"]}
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=str(e))
+                        'unit_amount': item.price * 100,
+                    },
+                    'quantity': item.quantity,
+                } for item in cart_items
+            ],
+            payment_intent_data={
+                'metadata': metadata_dict,
+            },
+            mode='payment',
+            success_url=load_config().server_config.frontend_domain + '?success=true',
+            cancel_url=load_config().server_config.frontend_domain + '?canceled=true',
+        )
+        return {"session_id": checkout_session["id"]}

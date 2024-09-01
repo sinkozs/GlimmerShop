@@ -43,6 +43,15 @@ def dict_to_db_model(model_class, data: dict):
     return instance
 
 
+def get_first_and_last_day_of_month(month: str):
+    # format: "YYYY-MM"
+    year, month = map(int, month.split("-"))
+    first_day = datetime(year, month, 1)
+    last_day = first_day + timedelta(days=32)
+    last_day = last_day.replace(day=1) - timedelta(days=1)
+    return first_day, last_day
+
+
 def convert_str_to_int_if_numeric(value: str):
     try:
         return int(value)
