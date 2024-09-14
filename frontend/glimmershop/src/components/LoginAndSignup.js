@@ -75,12 +75,11 @@ function LoginAndSignup() {
 
   const handleForgotPasswordSubmit = async (event) => {
     event.preventDefault();
-
-    const formData = new FormData();
-    formData.append("user_email", email);
-
+  
+    const encodedEmail = encodeURIComponent(email);
+  
     await axios
-      .post("http://127.0.0.1:8000/auth/forgotten-password", formData)
+      .post(`http://127.0.0.1:8000/auth/forgotten-password?email=${encodedEmail}`)
       .then((response) => {
         setEmail("");
         setError(null);
@@ -91,6 +90,7 @@ function LoginAndSignup() {
         setError(error.response.data.detail);
       });
   };
+  
 
   const handleSignUpSubmit = async (event) => {
     event.preventDefault();
@@ -149,7 +149,7 @@ function LoginAndSignup() {
               <Form onSubmit={handleForgotPasswordSubmit} className="form">
                 <Form.Group controlId="formEmail" className="form-group">
                   <Form.Control
-                    type="email"
+                    type="text"
                     placeholder="Email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
