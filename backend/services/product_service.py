@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status, UploadFile, File
 from sqlalchemy import func, and_, exists, or_
-from models.models import Product, Category, ProductCategory
+from models.models import Product, Category, ProductCategory, User
 from schemas.schemas import ProductUpdate, PriceFilter, MaterialsFilter, ProductData
 from .user_service import UserService
 from exceptions.product_exceptions import ProductException
@@ -177,7 +177,7 @@ class ProductService:
             products = result.scalars().all()
             return [ProductData.model_validate(product) for product in products]
 
-    async def add_new_product(self, seller_id: UUID, product: Product):
+    async def add_new_product(self, seller_id: UUID, product: Product) -> int:
         try:
             user_service = UserService(self.db)
             if not await user_service.check_seller_exists(seller_id):
@@ -187,6 +187,9 @@ class ProductService:
                 )
             self.db.add(product)
             await self.db.commit()
+            await self.db.refresh(instance=product,
+                                  attribute_names=["id"])
+            return product.id
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -225,15 +228,13 @@ class ProductService:
             original_image.close()
             output_buffer.close()
 
-            # Update the product with the image path
             edited_product = ProductUpdate()
-            print(f"Image filename: {filename}")
             if image_number == 1:
                 edited_product.image_path = f"images/{filename}"
             elif image_number == 2:
                 edited_product.image_path2 = f"images/{filename}"
-            if await self.edit_product(product_id, edited_product):
-                return {"message": "Image uploaded and resized successfully"}
+            await self.edit_product(product_id, edited_product)
+            return {"message": "Image uploaded and resized successfully"}
         except Exception as e:
             return {"error": str(e)}
 

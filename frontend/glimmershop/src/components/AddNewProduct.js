@@ -58,34 +58,32 @@ function AddNewProduct() {
 
       if (image1) {
         const image1FileName = generateUniqueFileName(image1);
-
+  
         const formData1 = new FormData();
-
         formData1.append("image", image1, image1FileName);
-
+  
         await axios.post(
           `http://127.0.0.1:8000/products/upload-image?product_id=${productId}&image_number=1`,
           formData1,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
               "Content-Type": "multipart/form-data",
             },
           }
         );
       }
-
+  
       if (image2) {
         const image2FileName = generateUniqueFileName(image2);
+  
         const formData2 = new FormData();
         formData2.append("image", image2, image2FileName);
-
+  
         await axios.post(
           `http://127.0.0.1:8000/products/upload-image?product_id=${productId}&image_number=2`,
           formData2,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
               "Content-Type": "multipart/form-data",
             },
           }

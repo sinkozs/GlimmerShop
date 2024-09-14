@@ -102,7 +102,9 @@ async def add_new_product(product: ProductCreate, current_user: dict = Depends(g
         seller_id: UUID = current_user.get("id")
         if not seller_id:
             raise HTTPException(status_code=400, detail="Missing seller ID")
-        return await product_controller.add_new_product(seller_id, product)
+        product_id = await product_controller.add_new_product(seller_id, product)
+        print(f"New prod id: {product_id}")
+        return product_id
     except HTTPException as e:
         raise e
 
