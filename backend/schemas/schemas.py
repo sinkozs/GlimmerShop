@@ -1,4 +1,7 @@
+from datetime import datetime, date
 from typing import Optional, List
+from uuid import UUID
+
 from pydantic import BaseModel, EmailStr, Field
 from typing_extensions import Annotated
 
@@ -16,9 +19,11 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     first_name: Optional[Annotated[
-        str, Field(strip_whitespace=True, max_length=25, min_length=2, pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+(?: [a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+)*$")]] = None
+        str, Field(strip_whitespace=True, max_length=25, min_length=2,
+                   pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+(?: [a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+)*$")]] = None
     last_name: Optional[Annotated[
-        str, Field(strip_whitespace=True, max_length=25, min_length=2, pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+(?: [a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+)*$")]] = None
+        str, Field(strip_whitespace=True, max_length=25, min_length=2,
+                   pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+(?: [a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+)*$")]] = None
     email: Optional[EmailStr] = None
     password: Optional[Annotated[str, Field(
         strip_whitespace=True,
@@ -65,6 +70,22 @@ class ProductData(BaseModel):
         from_attributes = True
 
 
+class UserQuery(BaseModel):
+    id: UUID
+    first_name: str = Field(max_length=50)
+    last_name: str = Field(max_length=50)
+    email: str = Field(max_length=100)
+    is_seller: bool
+    is_verified: bool
+    is_active: bool
+    last_login: Optional[datetime]
+    registration_date: datetime.date
+
+    class Config:
+        from_attributes = True
+        arbitrary_types_allowed = True
+
+
 class CartItemUpdate(BaseModel):
     product_id: int
     quantity: Annotated[int, Field(ge=0)]
@@ -93,4 +114,5 @@ class MaterialsFilter(BaseModel):
 
 
 class MonthRequestForSellerStatistics(BaseModel):
+    # format: "YYYY-MM"
     month: str

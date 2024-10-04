@@ -243,6 +243,7 @@ class ProductService:
             stmt = select(Product).where(Product.id == product_id)
             result = await self.db.execute(stmt)
             product: Product = result.scalars().first()
+            print(f"Edited product: {edited_product}")
 
             if product is None:
                 raise ProductException(

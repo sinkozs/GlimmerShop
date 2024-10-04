@@ -18,11 +18,6 @@ const Modal = ({ show, onClose, title, children }) => {
         <div className="modal-body">
           {children}
         </div>
-        <div className="modal-footer">
-          <button className="modal-button" onClick={onClose}>
-            Close
-          </button>
-        </div>
       </div>
     </div>
   );

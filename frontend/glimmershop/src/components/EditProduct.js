@@ -1,49 +1,64 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../App.css";
-import "../styles/AddNewProduct.css";
 import "../styles/LoginAndSignup.css";
 import Modal from "./Modal";
-import { useNavigate } from "react-router-dom";
 import { Container, Form, Button } from "react-bootstrap";
-import { v4 as uuidv4 } from "uuid";
+import { useParams } from "react-router-dom";
 
-function AddNewProduct() {
+function EditProduct() {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
-  const [stockQuantity, setStockQuantity] = useState("");
+  const [stockQuantiy, setStockQuantiy] = useState("");
   const [material, setMaterial] = useState("");
   const [color, setColor] = useState("");
   const [image1, setImage1] = useState(null);
   const [image2, setImage2] = useState(null);
-  const [productId, setProductId] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
   const seller_id = localStorage.getItem("sellerId");
   const token = localStorage.getItem("token");
+  const { product_id } = useParams();
 
-  function generateUniqueFileName(file) {
-    const fileExtension = file.name.split(".").pop();
-    const uniqueFileName = `${uuidv4()}.${fileExtension}`;
-    return uniqueFileName;
-  }
+  useEffect(() => {
+    const fetchProductData = async () => {
+      console.log({ product_id });
+      try {
+        const product = await axios.get(
+          `http://localhost:8000/products/${product_id}`
+        );
+        setName(product.data.name);
+        setPrice(product.data.price);
+        setDescription(product.data.description);
+        setStockQuantiy(product.data.setStockQuantiy);
+        setColor(product.data.color);
+        setMaterial(product.data.material);
+        setStockQuantiy(product.data.stock_quantity);
+      } catch (error) {
+        console.error("Error fetching product information:", error);
+        setError("Failed to fetch product details. Please try again later.");
+      }
+    };
+
+    fetchProductData();
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
-    const productData = {
-      name: name,
-      description: description,
-      price: price,
-      stock_quantity: stockQuantity,
-      material: material,
-      color: color,
-    };
-  
+
+    const productData = {};
+
+    if (name !== "") productData.name = name;
+    if (description !== "") productData.description = description;
+    if (price !== "") productData.price = price;
+    if (stockQuantiy !== "") productData.stock_quantity = stockQuantiy;
+    if (material !== "") productData.material = material;
+    if (color !== "") productData.color = color;
+
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/products/new",
+      const response = await axios.put(
+        `http://127.0.0.1:8000/products/edit?product_id=${product_id}`,
         productData,
         {
           headers: {
@@ -52,61 +67,22 @@ function AddNewProduct() {
           },
         }
       );
-  
-      const productId = response.data;
-      setProductId(productId);
-  
-      if (image1) {
-        const image1FileName = generateUniqueFileName(image1);
-  
-        const formData1 = new FormData();
-        formData1.append("image", image1, image1FileName);
-  
-        await axios.post(
-          `http://127.0.0.1:8000/products/upload-image?product_id=${productId}&image_number=1`,
-          formData1,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-      }
-  
-      if (image2) {
-        const image2FileName = generateUniqueFileName(image2);
-  
-        const formData2 = new FormData();
-        formData2.append("image", image2, image2FileName);
-  
-        await axios.post(
-          `http://127.0.0.1:8000/products/upload-image?product_id=${productId}&image_number=2`,
-          formData2,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-      }
-  
+
+      setShowModal(true);
+
       setName("");
       setDescription("");
       setPrice("");
-      setStockQuantity("");
+      setStockQuantiy("");
       setMaterial("");
       setColor("");
       setImage1(null);
       setImage2(null);
-  
-      setShowModal(true);
-      
     } catch (error) {
-      console.error("There was an error adding the product!", error);
+      console.error("There was an error editing the product!", error);
       setError(error.response?.data?.detail || "An unexpected error occurred");
     }
   };
-  
 
   const closeModal = () => {
     setShowModal(false);
@@ -125,7 +101,7 @@ function AddNewProduct() {
       <Container fluid className="login-form-container">
         <Container fluid className="login-form-content">
           <>
-            <h1 className="login-form-h1">ADD NEW PRODUCT</h1>
+            <h1 className="login-form-h1">EDIT PRODUCT</h1>
             <Form onSubmit={handleSubmit} className="form">
               <Form.Group controlId="productName" className="form-group">
                 <Form.Control
@@ -133,7 +109,6 @@ function AddNewProduct() {
                   placeholder="Product name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  required
                   className="form-control"
                 />
               </Form.Group>
@@ -143,7 +118,6 @@ function AddNewProduct() {
                   placeholder="Description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  required
                   className="form-control"
                 />
               </Form.Group>
@@ -153,7 +127,7 @@ function AddNewProduct() {
                   placeholder="Price"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  required
+
                   className="form-control"
                 />
               </Form.Group>
@@ -164,9 +138,9 @@ function AddNewProduct() {
                 <Form.Control
                   type="number"
                   placeholder="Stock Quantity"
-                  value={stockQuantity}
-                  onChange={(e) => setStockQuantity(e.target.value)}
-                  required
+                  value={stockQuantiy}
+                  onChange={(e) => setStockQuantiy(e.target.value)}
+
                   className="form-control"
                 />
               </Form.Group>
@@ -176,7 +150,6 @@ function AddNewProduct() {
                   placeholder="Material"
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
-                  required
                   className="form-control"
                 />
               </Form.Group>
@@ -187,7 +160,6 @@ function AddNewProduct() {
                   placeholder="Color"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
-                  required
                   className="form-control"
                 />
               </Form.Group>
@@ -196,7 +168,6 @@ function AddNewProduct() {
                 <Form.Control
                   type="file"
                   onChange={handleImage1Change}
-                  required
                 />
               </Form.Group>
 
@@ -204,7 +175,6 @@ function AddNewProduct() {
                 <Form.Control
                   type="file"
                   onChange={handleImage2Change}
-                  required
                 />
               </Form.Group>
 
@@ -213,7 +183,7 @@ function AddNewProduct() {
               </Button>
             </Form>
             <Modal show={showModal} onClose={closeModal} title="Yay!">
-              <p>You successfully uploaded this product.</p>
+              <p>You successfully edited this product.</p>
             </Modal>
           </>
         </Container>
@@ -222,4 +192,4 @@ function AddNewProduct() {
   );
 }
 
-export default AddNewProduct;
+export default EditProduct;

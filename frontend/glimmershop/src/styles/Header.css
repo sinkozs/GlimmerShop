@@ -46,8 +46,8 @@ nav a {
   font-family: "Poppins", sans-serif;
   font-weight: 400;
   font-size: 14px;
-  padding: 10px 15px 10px 15px;
-  margin-left: 80px;
+  padding: 0.5rem;
+  margin-left: 1rem;
   outline: none;
   border: none;
   background-color: #ededed;
@@ -72,7 +72,7 @@ nav a {
 }
 
 .fa-icon:hover {
-  color: #e0ba34;
+  color: lightgray;
 }
 
 .hamburger {

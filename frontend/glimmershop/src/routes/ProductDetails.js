@@ -125,6 +125,7 @@ function ProductDetails() {
             <Container fluid className="details-section" ref={detailsRef}>
               <h1 className="product-name">{productData.name}</h1>
               <p className="product-price">${productData.price}</p>
+              <p className="seller">Seller: {sellerData.first_name} {sellerData.last_name}</p>
               <p className="product-material">{productData.material}</p>
               <p className="size-guide">Size Guide</p>
               <Container fluid className="stock-quantity-container">

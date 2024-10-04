@@ -1,10 +1,11 @@
+from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from dependencies import get_session, get_current_user
 from controllers.user_controller import UserController
 from services.user_service import UserService
-from schemas.schemas import UserCreate, UserUpdate
+from schemas.schemas import UserCreate, UserUpdate, UserQuery
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,6 +36,16 @@ async def get_users_by_role(is_seller: bool, session: AsyncSession = Depends(get
         raise e
 
 
+@router.get("/search/", response_model=List[UserQuery])
+async def search_products(query: str = Query(...), session: AsyncSession = Depends(get_session)):
+    service = UserService(session)
+    user_controller = UserController(service)
+    try:
+        return await user_controller.search_sellers(query)
+    except HTTPException as e:
+        raise e
+
+
 @router.get("/{user_id}")
 async def get_user_by_id(user_id,
                          session: AsyncSession = Depends(get_session)):
@@ -49,7 +60,7 @@ async def get_user_by_id(user_id,
 
 @router.get("/public/{user_id}")
 async def get_public_user_info_by_id(user_id,
-                         session: AsyncSession = Depends(get_session)):
+                                     session: AsyncSession = Depends(get_session)):
     service = UserService(session)
     user_controller = UserController(service)
 
@@ -81,7 +92,8 @@ async def verify_account(email, code, session: AsyncSession = Depends(get_sessio
 
 
 @router.put("/edit")
-async def edit_user(user_update: UserUpdate, current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+async def edit_user(user_update: UserUpdate, current_user: dict = Depends(get_current_user),
+                    session: AsyncSession = Depends(get_session)):
     service = UserService(session)
     user_controller = UserController(service)
     try:

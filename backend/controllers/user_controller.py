@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import EmailStr
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -5,10 +7,10 @@ from dependencies import dict_to_db_model, db_model_to_dict, is_valid_update, ha
 from services.user_service import UserService
 from models.models import User, Cart
 from config.auth_config import bcrypt_context
-from schemas.schemas import UserCreate, UserUpdate
+from schemas.schemas import UserCreate, UserUpdate, UserQuery
 from datetime import datetime, timezone
 from exceptions.user_exceptions import UserException
-from fastapi import HTTPException
+from fastapi import HTTPException, Query
 
 
 class UserController:
@@ -42,6 +44,12 @@ class UserController:
     async def get_users_by_role(self, is_seller: bool):
         try:
             return await self._service.get_users_by_role(is_seller)
+        except UserException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def search_sellers(self, query: str = Query(...)) -> List[UserQuery]:
+        try:
+            return await self._service.search_sellers(query)
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
@@ -100,4 +108,3 @@ class UserController:
             await self._service.delete_user(user_id)
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
-

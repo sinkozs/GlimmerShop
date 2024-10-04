@@ -43,9 +43,7 @@ async def get_product_by_id(product_id: int,
     service = ProductService(session)
     product_controller = ProductController(service)
     try:
-        resp = await product_controller.get_product_by_id(product_id)
-        print(resp)
-        return resp
+        return await product_controller.get_product_by_id(product_id)
     except HTTPException as e:
         raise e
 
@@ -123,7 +121,7 @@ async def add_new_product(product_id: int, image_number: int, image: UploadFile 
         raise e
 
 
-@router.put("/edit/{product_id}")
+@router.put("/edit")
 async def edit_product(product_id: int, product: ProductUpdate, current_user: dict = Depends(get_current_user),
                        session: AsyncSession = Depends(get_session)):
     service = ProductService(session)

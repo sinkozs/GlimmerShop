@@ -35,7 +35,7 @@
     margin: 0;
   }
   
-  .close-button {
+  .close-btn {
     background: none;
     border: none;
     font-size: 1.5rem;
@@ -57,7 +57,7 @@
     margin-top: 10px;
   }
   
-  .modal-button {
+  .modal-btn {
     font-family: "Poppins", sans-serif;
     font-weight: 500;
     font-size: 12px;
@@ -68,8 +68,12 @@
     border-radius: 4px;
     cursor: pointer;
   }
+
+.confirm-btn{
+    margin-right: 0.5rem;
+  }
   
-  .modal-button:hover {
+  .modal-btn:hover {
     opacity: 0.8;
   }
   

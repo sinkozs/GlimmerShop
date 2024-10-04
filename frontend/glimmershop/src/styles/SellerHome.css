@@ -1,32 +1,55 @@
 .seller-home-header-section {
-    padding: 50px 80px 0 80px;
-    margin-bottom: 0;
-    align-self: flex-start;
-    text-align: left;
+  padding: 3.125rem 5rem 0 5rem;
+  margin-bottom: 0;
+  align-self: flex-start;
+  text-align: left;
+}
+
+.seller-home-wrapper h1 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 2.625rem;
+}
+
+.seller-home-searchbar {
+  width: 20%;
+}
+
+.submit-search-btn {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  padding: 0.625rem 1rem;
+  margin-top: 1.25rem;
+  outline: none;
+  border: none;
+  background-color: #ededed;
+}
+
+.submit-search-btn:hover {
+  background-color: lightgray;
+  box-shadow: none;
+}
+
+/* Media query for mobile phones */
+@media (max-width: 768px) {
+  .seller-home-wrapper {
+    width: 90%;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 0;
   }
-  
-  .seller-home-wrapper h1 {
-    font-family: "Poppins", sans-serif;
-    font-weight: 700;
-    font-size: 42px;
+
+  .seller-home-header-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
   }
-  
-  .seller-home-searchbar{
-      width: 20%;
-  }
-  
-  .submit-search-btn {
-    font-family: "Poppins", sans-serif;
-    font-weight: 400;
-    font-size: 14px;
-    padding: 10px 15px 10px 15px;
-    margin-top: 20px;
-    outline: none;
-    border: none;
-    background-color: #ededed;
-  }
-  
-  .submit-search-btn:hover {
-    background-color: lightgray;
-    box-shadow: none;
-  }
+}
+
+/* Media query for larger screens */
+@media (min-width: 769px) and (max-width: 1900px) {
+}

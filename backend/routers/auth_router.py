@@ -33,10 +33,7 @@ async def login(is_seller: bool, response: Response, form_data: OAuth2PasswordRe
     service = AuthService(session)
     auth_controller = AuthController(service)
     try:
-        print("auth....")
-        r = await auth_controller.login_for_access_token(is_seller, response, redis, form_data)
-        print(r)
-        return r
+        return await auth_controller.login_for_access_token(is_seller, response, redis, form_data)
     except HTTPException as e:
         raise e
 
@@ -55,10 +52,11 @@ async def user_logout(current_user: dict = Depends(get_current_user), session: A
 
 
 @router.post("/forgotten-password")
-async def regenerate_forgotten_password(user_email: EmailStr, session: AsyncSession = Depends(get_session)):
+async def regenerate_forgotten_password(email: EmailStr, session: AsyncSession = Depends(get_session)):
     service = AuthService(session)
     auth_controller = AuthController(service)
+    print(f"email: {email}, type: {type(email)}")
     try:
-        return await auth_controller.regenerate_forgotten_password(user_email)
+        return await auth_controller.regenerate_forgotten_password(email)
     except HTTPException as e:
         raise e

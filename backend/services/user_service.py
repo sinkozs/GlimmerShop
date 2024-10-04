@@ -1,14 +1,15 @@
 from uuid import UUID
 from typing import List
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status
-from models.models import User, Cart
+from models.models import User
 from exceptions.user_exceptions import UserException
 from dependencies import db_model_to_dict
 from dependencies import send_verification_email, verify_code
+from schemas.schemas import UserQuery
 
 
 class UserService:
@@ -119,6 +120,27 @@ class UserService:
             print(f"Database access error: {e}")
             raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                 detail="An error occurred when accessing the database!")
+
+    async def search_sellers(self, query: str) -> List[UserQuery]:
+        async with self.db.begin():
+            try:
+                seller_uuid = UUID(query)
+            except ValueError:
+                seller_uuid = None
+
+            stmt = select(User).where(
+                or_(
+                    User.first_name.ilike(f"%{query}%"),
+                    User.last_name.ilike(f"%{query}%"),
+                    User.id == seller_uuid
+                )
+            )
+
+            result = await self.db.execute(stmt)
+            sellers = result.scalars().all()
+            print(sellers)
+
+            return [UserQuery.model_validate(seller) for seller in sellers]
 
     async def update_is_verified_column(self, email):
         try:

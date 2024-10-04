@@ -68,13 +68,6 @@ function Header() {
           </Container>
         )}
         <NavLink
-          to="/new"
-          className="sidebar-item"
-          onClick={toggleHeaderSidebar}
-        >
-          NEW
-        </NavLink>
-        <NavLink
           to="/categories/earrings"
           className="sidebar-item"
           onClick={toggleHeaderSidebar}
@@ -104,18 +97,32 @@ function Header() {
         </NavLink>
 
         {isAuthenticated && (
-          <NavLink
-            to="/products/new"
-            className="sidebar-item"
-            onClick={toggleHeaderSidebar}
-          >
-            ADD NEW PRODUCT
-          </NavLink>
+          <>
+            <NavLink
+              to="/products/new"
+              className="sidebar-item"
+              onClick={toggleHeaderSidebar}
+            >
+              ADD NEW PRODUCT
+            </NavLink>
+            {(() => {
+              const id = localStorage.getItem("sellerId");
+              return (
+                <NavLink
+                  to={`/seller/${id}`}
+                  className="sidebar-item"
+                  onClick={toggleHeaderSidebar}
+                >
+                  MY PRODUCTS
+                </NavLink>
+              );
+            })()}
+          </>
         )}
       </nav>
 
       <Container className="menu-icons">
-        {!isAuthenticated && (
+        {!isAuthenticated ? (
           <>
             <NavLink className="nav-link" to="/sign-in">
               <FaUser className="fa-icon" />
@@ -132,9 +139,7 @@ function Header() {
               )}
             </Container>
           </>
-        )}
-
-        {isAuthenticated && (
+        ) : (
           <>
             <NavLink className="nav-link" to="/profile/edit">
               <FaUser className="fa-icon" />

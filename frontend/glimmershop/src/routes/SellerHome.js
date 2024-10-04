@@ -1,45 +1,45 @@
 import React, { useEffect, useState } from "react";
+import { Container, Form, Button } from "react-bootstrap";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import ProductsGrid from "../components/ProductsGrid";
 import "../App.css";
 import "../styles/Home.css";
 import "../styles/SellerHome.css";
-import Modal from "../components/Modal";
-import { Container, Form, Button } from "react-bootstrap";
-import { useLocation } from "react-router-dom";
-import axios from "axios";
-import ProductsGrid from "../components/ProductsGrid";
 
 function SellerHome() {
   const [products, setProducts] = useState(null);
   const [sellerData, setSellerData] = useState(null);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const location = useLocation();
-  const { sellerId } = location.state || {};
+  
+  const { seller_id } = useParams();
 
   useEffect(() => {
     const fetchSellerDataAndProducts = async () => {
       try {
         const seller = await axios.get(
-          `http://localhost:8000/users/public/${sellerId}`
+          `http://localhost:8000/users/public/${seller_id}`
         );
         setSellerData(seller.data);
 
         const sellerProducts = await axios.get(
           `http://127.0.0.1:8000/products/products-by-seller`,
           {
-            params: { seller_id: sellerId },
+            params: { seller_id: seller_id },
           }
         );
         setProducts(sellerProducts.data);
       } catch (error) {
-        console.error("Error fetching event details:", error);
+        console.error("Error fetching products:", error);
         setError("Failed to fetch product details. Please try again later.");
       }
     };
-    if (sellerId) {
+
+    if (seller_id) {
       fetchSellerDataAndProducts();
     }
-  }, [sellerId]);
+  }, [seller_id]);
 
   const handleSearch = async (event) => {
     event.preventDefault();
@@ -47,7 +47,7 @@ function SellerHome() {
       const response = await axios.get(
         `http://127.0.0.1:8000/products/search/`,
         {
-          params: { query: searchQuery, seller_id: sellerId },
+          params: { query: searchQuery, seller_id: seller_id },
         }
       );
       setProducts(response.data);
@@ -76,7 +76,8 @@ function SellerHome() {
         </Form>
       </Container>
 
-      <ProductsGrid products={products} />
+      <ProductsGrid products={products} isAuthenticated={true} />
+
     </Container>
   );
 }

@@ -9,6 +9,8 @@ import LoginAndSignup from "./components/LoginAndSignup";
 import EditUser from "./components/EditUser";
 import SellerHome from "./routes/SellerHome";
 import AddNewProduct from "./components/AddNewProduct";
+import EditProduct from "./components/EditProduct";
+import DeleteProduct from "./components/DeleteProduct";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 
@@ -82,6 +84,25 @@ function App() {
                     </Suspense>
                   }
                 />
+                <Route
+                  path="/products/edit/:product_id"
+                  element={
+                    <AuthContext.Consumer>
+                      {({ isAuthenticated }) =>
+                        isAuthenticated ? (
+                          <Suspense
+                            fallback={<div>Loading product details...</div>}
+                          >
+                            <EditProduct />
+                          </Suspense>
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    </AuthContext.Consumer>
+                  }
+                />
+
                 <Route
                   path="categories/:category_name"
                   element={

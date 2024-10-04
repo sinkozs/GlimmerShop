@@ -119,10 +119,10 @@ class AuthService:
             raise AuthenticationException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                           detail="An error occurred when accessing the database!")
 
-    async def regenerate_forgotten_password(self, user_email: EmailStr):
+    async def regenerate_forgotten_password(self, email: EmailStr):
         try:
             async with self.db.begin():
-                stmt = select(User).filter(User.email == user_email)
+                stmt = select(User).filter(User.email == email)
                 result = await self.db.execute(stmt)
                 user_model = result.scalars().first()
                 if user_model:
@@ -130,7 +130,7 @@ class AuthService:
                     user_model.hashed_password = hash_password(new_password)
                     self.db.add(user_model)
                     await self.db.commit()
-                    await send_password_reset_email(user_email, new_password)
+                    await send_password_reset_email(email, new_password)
                 if not user_model:
                     raise AuthenticationException()
         except SQLAlchemyError:

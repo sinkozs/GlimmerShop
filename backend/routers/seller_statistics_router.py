@@ -1,6 +1,8 @@
 from typing import List
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException
-from dependencies import get_session
+from dependencies import get_session, get_current_user
 from sqlalchemy.future import select
 from schemas.schemas import MonthRequestForSellerStatistics
 from config.parser import load_config
@@ -20,10 +22,13 @@ router = APIRouter(
 
 
 @router.post("/get-monthly-transactions")
-async def get_monthly_transactions(month_request: MonthRequestForSellerStatistics, session: AsyncSession = Depends(get_session)):
+async def get_monthly_transactions(month_request: MonthRequestForSellerStatistics, current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
     service = SellerStatisticsService(session)
     controller = SellerStatisticsController(service)
     try:
-        return await controller.get_monthly_transactions(month_request)
+        seller_id: UUID = current_user.get("id")
+        if not seller_id:
+            raise HTTPException(status_code=400, detail="Missing seller ID")
+        return await controller.get_monthly_transactions(seller_id, month_request)
     except HTTPException as e:
         raise e

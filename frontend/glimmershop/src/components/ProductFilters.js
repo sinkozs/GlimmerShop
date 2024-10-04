@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import FilterByPrice from "./FilterByPrice";
 import FilterByMaterial from "./FilterByMaterial";
+import FilterBySeller from "./FilterBySeller";
 import { Button, Container } from "react-bootstrap";
 import "../styles/ProductFilters.css";
 
 function ProductFilters({ category_id, onProductsFetched }) {
   const [selectedMaterials, setSelectedMaterials] = useState([]);
+  const [selectedSeller, setSelectedSeller] = useState([]);
   const [selectedPriceRange, setSelectedPriceRange] = useState({
     min: 0,
     max: 1000000,
@@ -120,6 +122,13 @@ function ProductFilters({ category_id, onProductsFetched }) {
                 selectedMaterials={selectedMaterials}
                 resetFilter={resetFilter}
                 onMaterialsSelected={setSelectedMaterials}
+              />
+            </Container>
+            <Container fluid className="filter-category">
+              <FilterBySeller
+                selectedSeller={selectedSeller}
+                resetFilter={resetFilter}
+                onSellerSelected={setSelectedSeller}
               />
             </Container>
             <Button onClick={applyFilters} className="apply-filter-btn">

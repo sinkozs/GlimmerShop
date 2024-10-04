@@ -53,6 +53,22 @@
   opacity: 1;
 }
 
+.card-footer .footer-text-price{
+  display: flex;
+  justify-content: space-between;
+}
+
+.admin-btn Button {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  text-decoration: underline;
+  outline: none;
+  border: none;
+  background-color: transparent;
+}
+
+
 /* Media query for mobile phones */
 @media (max-width: 768px) {
   .category-products-wrapper {

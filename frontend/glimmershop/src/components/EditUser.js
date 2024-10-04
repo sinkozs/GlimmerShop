@@ -110,7 +110,7 @@ function EditUser() {
             <Form.Group controlId="formPassword" className="form-group">
               <Form.Control
                 type="password"
-                placeholder={"●".repeat(passwordLength)}
+                placeholder="Password"
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);

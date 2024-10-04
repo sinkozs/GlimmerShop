@@ -36,7 +36,6 @@ class AuthController:
 
     async def get_redis_session(self, response: Response, redis: aioredis.Redis, user_id: Optional[UUID] = None):
         session_id = await self._service.create_redis_session(response, redis, user_id)
-        print(f"controller: get_redis_session session_id {session_id}")
         return session_id
 
     async def user_logout(self, user: dict):
@@ -51,8 +50,8 @@ class AuthController:
         except AuthenticationException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def regenerate_forgotten_password(self, user_email: EmailStr):
+    async def regenerate_forgotten_password(self, email: EmailStr):
         try:
-            return await self._service.regenerate_forgotten_password(user_email)
+            return await self._service.regenerate_forgotten_password(email)
         except AuthenticationException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e

@@ -56,8 +56,16 @@
   font-weight: 400;
   font-size: 13px;
   color: black;
-  margin-top: 0;
-  padding-top: 15px;
+
+}
+
+.product-grid .details-section .seller{
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  color: black;
+  padding: 0;
+  margin: 0;
 }
 
 .product-grid .details-section .size-guide {
