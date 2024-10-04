@@ -3,7 +3,7 @@ import { Container, Form, Button, ListGroup } from "react-bootstrap";
 import axios from "axios";
 import "../styles/FilterBySeller.css";
 
-function FilterBySeller({ selectedSeller, resetFilter, onSellerSelected }) {
+function FilterBySeller({ resetFilter, onSellerSelected }) {
   const [isSellerFilterExpanded, setIsSellerFilterExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sellers, setSellers] = useState([]);
@@ -13,7 +13,7 @@ function FilterBySeller({ selectedSeller, resetFilter, onSellerSelected }) {
 
   useEffect(() => {
     if (resetFilter) {
-      onSellerSelected([]);
+      onSellerSelected(null);
     }
   }, [resetFilter, onSellerSelected]);
 
@@ -34,22 +34,6 @@ function FilterBySeller({ selectedSeller, resetFilter, onSellerSelected }) {
     }
   };
 
-  const fetchSellerProducts = async (sellerId) => {
-    try {
-        console.log(sellerId)
-      const sellerProducts = await axios.get(
-        `http://127.0.0.1:8000/products/products-by-seller`,
-        {
-          params: { seller_id: sellerId },
-        }
-      );
-      console.log(sellerProducts.data)
-      setProducts(sellerProducts.data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      setError("Failed to fetch product details. Please try again later.");
-    }
-  };
 
   const handleInputChange = (e) => {
     const query = e.target.value;
@@ -65,9 +49,8 @@ function FilterBySeller({ selectedSeller, resetFilter, onSellerSelected }) {
   const handleSellerSelect = (seller) => {
     setSearchQuery(`${seller.first_name} ${seller.last_name}`);
     setShowDropdown(false);
-    fetchSellerProducts(seller.id);
+    onSellerSelected(seller.id);
   };
-
   const toggleFilterBtn = () =>
     setIsSellerFilterExpanded(!isSellerFilterExpanded);
 

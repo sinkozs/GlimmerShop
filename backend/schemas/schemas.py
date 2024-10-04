@@ -113,6 +113,10 @@ class MaterialsFilter(BaseModel):
     materials: List[str]
 
 
+class SellerFilter(BaseModel):
+    seller_id: Optional[UUID] = None
+
+
 class MonthRequestForSellerStatistics(BaseModel):
     # format: "YYYY-MM"
     month: str

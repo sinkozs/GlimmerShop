@@ -1,11 +1,11 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from dependencies import get_session
 from controllers.product_controller import ProductController
 from services.product_service import ProductService
-from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter, MaterialsFilter, ProductData
+from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter, MaterialsFilter, ProductData, SellerFilter
 from dependencies import get_current_user
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -49,7 +49,8 @@ async def get_product_by_id(product_id: int,
 
 
 @router.get("/search/", response_model=List[ProductData])
-async def search_products(query: str = Query(...), seller_id: UUID = Query(...), session: AsyncSession = Depends(get_session)):
+async def search_products(query: str = Query(...), seller_id: UUID = Query(...),
+                          session: AsyncSession = Depends(get_session)):
     service = ProductService(session)
     product_controller = ProductController(service)
     try:
@@ -80,13 +81,15 @@ async def get_products_by_material(category_id: int, materials: MaterialsFilter,
         raise e
 
 
-@router.post("/filter_by_material_and_price")
-async def filter_products_by_material_and_price(category_id: int, materials: MaterialsFilter, price_range: PriceFilter,
-                                   session: AsyncSession = Depends(get_session)):
+@router.post("/filter_by_material_price_and_seller")
+async def filter_products_by_material_and_price(category_id: int, materials: MaterialsFilter,
+                                                price_range: PriceFilter, seller: SellerFilter,
+                                                session: AsyncSession = Depends(get_session)):
     try:
         service = ProductService(session)
         product_controller = ProductController(service)
-        return await product_controller.filter_products_by_material_and_price(category_id, materials, price_range)
+        return await product_controller.filter_products_by_material_price_and_seller(category_id, seller, materials,
+                                                                                     price_range)
     except HTTPException as e:
         raise e
 

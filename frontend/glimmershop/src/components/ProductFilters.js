@@ -8,7 +8,7 @@ import "../styles/ProductFilters.css";
 
 function ProductFilters({ category_id, onProductsFetched }) {
   const [selectedMaterials, setSelectedMaterials] = useState([]);
-  const [selectedSeller, setSelectedSeller] = useState([]);
+  const [selectedSellerId, setSelectedSellerId] = useState([]);
   const [selectedPriceRange, setSelectedPriceRange] = useState({
     min: 0,
     max: 1000000,
@@ -21,6 +21,8 @@ function ProductFilters({ category_id, onProductsFetched }) {
     if (shouldFetch) {
       const fetchFilteredProducts = async () => {
         try {
+          const sellerId = selectedSellerId ? String(selectedSellerId) : null;
+
           const postData = {
             materials: {
               materials: selectedMaterials,
@@ -29,10 +31,13 @@ function ProductFilters({ category_id, onProductsFetched }) {
               min_price: selectedPriceRange.min,
               max_price: selectedPriceRange.max,
             },
+            seller: {
+              seller_id: sellerId,
+            },
           };
 
           const response = await axios.post(
-            `http://127.0.0.1:8000/products/filter_by_material_and_price?category_id=${category_id}`,
+            `http://127.0.0.1:8000/products/filter_by_material_price_and_seller?category_id=${category_id}`,
             postData
           );
 
@@ -49,10 +54,16 @@ function ProductFilters({ category_id, onProductsFetched }) {
   }, [
     selectedMaterials,
     selectedPriceRange,
+    selectedSellerId,
     shouldFetch,
     category_id,
     onProductsFetched,
   ]);
+
+  const handleSellerSelection = (sellerId) => {
+    console.log("Selected seller ID:", sellerId);
+    setSelectedSellerId(sellerId);
+  };
 
   const fetchAllProducts = async () => {
     try {
@@ -125,11 +136,7 @@ function ProductFilters({ category_id, onProductsFetched }) {
               />
             </Container>
             <Container fluid className="filter-category">
-              <FilterBySeller
-                selectedSeller={selectedSeller}
-                resetFilter={resetFilter}
-                onSellerSelected={setSelectedSeller}
-              />
+              <FilterBySeller onSellerSelected={handleSellerSelection} />
             </Container>
             <Button onClick={applyFilters} className="apply-filter-btn">
               Apply Filters

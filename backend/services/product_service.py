@@ -54,8 +54,7 @@ class ProductService:
             result = await self.db.execute(stmt)
             products = result.scalars().all()
             if products:
-                product_data = [db_model_to_dict(q) for q in products]
-                return product_data
+                return [db_model_to_dict(product) for product in products]
             else:
                 raise ProductException(status_code=status.HTTP_404_NOT_FOUND,
                                        detail=f"Product with seller id {seller_id} not found!")
@@ -127,7 +126,12 @@ class ProductService:
     async def get_products_by_material(self, category_id: int, materials: MaterialsFilter) -> list:
         try:
             async with self.db.begin():
-                material_conditions = [Product.material.ilike(f"%{material}%") for material in materials.materials]
+                extended_materials = set()
+                for material in materials.materials:
+                    words = material.lower().split()
+                    extended_materials.update(words)
+                material_conditions = [Product.material.ilike(f"%{word}%") for word in extended_materials]
+
                 stmt = (
                     select(Product)
                     .join(Product.product_category)

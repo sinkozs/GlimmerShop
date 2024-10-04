@@ -138,7 +138,6 @@ class UserService:
 
             result = await self.db.execute(stmt)
             sellers = result.scalars().all()
-            print(sellers)
 
             return [UserQuery.model_validate(seller) for seller in sellers]
 
