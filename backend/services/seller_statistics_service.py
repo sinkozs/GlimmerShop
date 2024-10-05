@@ -1,3 +1,4 @@
+import json
 from typing import List, Dict
 from uuid import UUID
 
@@ -50,14 +51,19 @@ class SellerStatisticsService:
         for charge in charges['data']:
 
             metadata = self.convert_metadata_to_dict(charge.get("metadata", {}))
-            item_names = metadata.get("metadata_item_names", [])
-            seller_id_metadata = metadata.get("seller_id", [])
-            if seller_id_metadata == seller_id:
+            seller_id_metadata = metadata.get("seller_id", [])[0]
+
+            if str(seller_id_metadata) == seller_id:
                 total_revenue += charge['amount']
                 total_transactions += 1
+                metadata_items_list = metadata["metadata_sold_items"]
 
-                for item_name in item_names:
-                    items[item_name] = items.get(item_name, 0) + 1
+                for item in metadata_items_list:
+                    for item_name, quantity in json.loads(item).items():
+                        if item_name in items:
+                            items[item_name] += quantity
+                        else:
+                            items[item_name] = quantity
 
         return {
             "total_transactions": total_transactions,

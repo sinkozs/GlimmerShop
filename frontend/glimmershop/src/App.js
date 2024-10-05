@@ -10,7 +10,7 @@ import EditUser from "./components/EditUser";
 import SellerHome from "./routes/SellerHome";
 import AddNewProduct from "./components/AddNewProduct";
 import EditProduct from "./components/EditProduct";
-import DeleteProduct from "./components/DeleteProduct";
+import ProductStatistics from "./components/ProductStatistics";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 
@@ -40,6 +40,26 @@ function App() {
                             }
                           >
                             <AddNewProduct />
+                          </Suspense>
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    </AuthContext.Consumer>
+                  }
+                />
+                <Route
+                  path="/statistics"
+                  element={
+                    <AuthContext.Consumer>
+                      {({ isAuthenticated }) =>
+                        isAuthenticated ? (
+                          <Suspense
+                            fallback={
+                              <div>Loading statistics...</div>
+                            }
+                          >
+                            <ProductStatistics />
                           </Suspense>
                         ) : (
                           <Navigate to="/" />

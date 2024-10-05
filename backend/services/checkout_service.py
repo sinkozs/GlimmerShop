@@ -1,6 +1,6 @@
+import json
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
-from dependencies import get_session
+from fastapi import HTTPException
 from sqlalchemy.future import select
 from sqlalchemy import update
 from schemas.schemas import CartItemForCheckout
@@ -38,7 +38,6 @@ class CheckoutService:
                     update_stmt = update(Product).where(Product.id == item.id).values(stock_quantity=new_quantity)
                     update_statements.append(update_stmt)
 
-                # execute all update statements in one batch to improve performance
                 for update_stmt in update_statements:
                     await self.db.execute(update_stmt)
 
@@ -51,26 +50,23 @@ class CheckoutService:
         stripe.api_key = load_config().auth_config.stripe_secret_key
 
         metadata_dict = {
-            "metadata_item_names": "",
+            "metadata_sold_items": {},
             "seller_id": ""
         }
 
-        item_names = []
-        seller_ids = []
+        item_names = dict()
+        seller_ids = list()
 
         for item in cart_items:
             product = await self.product_service.get_product_by_id(item.id)
             seller_ids.append(str(product.get("seller_id")))
-
             if item.name not in item_names:
-                item_names.append(item.name)
+                item_names[item.name] = item.quantity
 
-        # Join lists into comma-separated strings
-        metadata_dict["metadata_item_names"] = ", ".join(item_names)
+        metadata_dict["metadata_sold_items"] = json.dumps(item_names)
         metadata_dict["seller_id"] = ", ".join(seller_ids)
 
         print(metadata_dict)
-
         checkout_session = stripe.checkout.Session.create(
             line_items=[
                 {
@@ -91,4 +87,5 @@ class CheckoutService:
             success_url=load_config().server_config.frontend_domain + '?success=true',
             cancel_url=load_config().server_config.frontend_domain + '?canceled=true',
         )
+
         return {"session_id": checkout_session["id"]}

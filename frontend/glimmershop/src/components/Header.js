@@ -105,6 +105,13 @@ function Header() {
             >
               ADD NEW PRODUCT
             </NavLink>
+            <NavLink
+              to="/statistics"
+              className="sidebar-item"
+              onClick={toggleHeaderSidebar}
+            >
+              STATISTICS
+            </NavLink>
             {(() => {
               const id = localStorage.getItem("sellerId");
               return (
