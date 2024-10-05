@@ -47,6 +47,7 @@ class SellerStatisticsService:
         total_revenue = 0
         total_transactions = 0
         items = dict()
+        item_unit_prices = dict()
 
         for charge in charges['data']:
 
@@ -56,7 +57,7 @@ class SellerStatisticsService:
             if str(seller_id_metadata) == seller_id:
                 total_revenue += charge['amount']
                 total_transactions += 1
-                metadata_items_list = metadata["metadata_sold_items"]
+                metadata_items_list = metadata["metadata_item_names"]
 
                 for item in metadata_items_list:
                     for item_name, quantity in json.loads(item).items():
@@ -64,9 +65,11 @@ class SellerStatisticsService:
                             items[item_name] += quantity
                         else:
                             items[item_name] = quantity
+                            item_unit_prices[item_name] = charge['amount'] / quantity / 100
 
         return {
             "total_transactions": total_transactions,
             "total_revenue": total_revenue / 100,
-            "items": items
+            "items": items,
+            "item_unit_prices": item_unit_prices
         }

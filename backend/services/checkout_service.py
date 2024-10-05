@@ -50,7 +50,7 @@ class CheckoutService:
         stripe.api_key = load_config().auth_config.stripe_secret_key
 
         metadata_dict = {
-            "metadata_sold_items": {},
+            "metadata_item_names": {},
             "seller_id": ""
         }
 
@@ -63,7 +63,7 @@ class CheckoutService:
             if item.name not in item_names:
                 item_names[item.name] = item.quantity
 
-        metadata_dict["metadata_sold_items"] = json.dumps(item_names)
+        metadata_dict["metadata_item_names"] = json.dumps(item_names)
         metadata_dict["seller_id"] = ", ".join(seller_ids)
 
         print(metadata_dict)

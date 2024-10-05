@@ -10,7 +10,7 @@ import EditUser from "./components/EditUser";
 import SellerHome from "./routes/SellerHome";
 import AddNewProduct from "./components/AddNewProduct";
 import EditProduct from "./components/EditProduct";
-import ProductStatistics from "./components/ProductStatistics";
+import SellerStatistics from "./components/SellerStatistics";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 
@@ -59,7 +59,7 @@ function App() {
                               <div>Loading statistics...</div>
                             }
                           >
-                            <ProductStatistics />
+                            <SellerStatistics />
                           </Suspense>
                         ) : (
                           <Navigate to="/" />
