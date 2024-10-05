@@ -22,7 +22,10 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid black;
-  padding-bottom: 10px;
+  padding: 10px 0;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
 }
 
 .all-filters-btn {
@@ -53,17 +56,6 @@
   margin: 0;
 }
 
-.filters-header h3 {
-  font-family: "Poppins", sans-serif;
-  font-weight: 500;
-  font-size: 18px;
-  padding: 8px;
-  padding-left: 0;
-  margin-top: 0;
-  margin-bottom: 0;
-  outline: none;
-}
-
 .filter-options {
   display: flex;
   flex-direction: column;
@@ -83,6 +75,7 @@
 .filter-expand-btn {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
   font-family: "Poppins", sans-serif;
   font-weight: 500;
@@ -91,7 +84,6 @@
   text-align: left;
   padding: 10px;
   border-radius: 0;
-  margin-bottom: 5px;
   background-color: transparent;
 }
 

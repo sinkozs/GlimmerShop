@@ -112,7 +112,7 @@ function ProductFilters({ category_id, onProductsFetched }) {
         {showAllFilters && (
           <>
             <Container fluid className="filters-header">
-              <h3>Filters</h3>
+              Filters
               <Button
                 className="close-filters-section-btn"
                 onClick={toggleAllFilters}
