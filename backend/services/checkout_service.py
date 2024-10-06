@@ -51,6 +51,7 @@ class CheckoutService:
 
         metadata_dict = {
             "metadata_item_names": {},
+            "product_category": "",
             "seller_id": ""
         }
 
@@ -64,9 +65,9 @@ class CheckoutService:
                 item_names[item.name] = item.quantity
 
         metadata_dict["metadata_item_names"] = json.dumps(item_names)
+        metadata_dict["product_category"] = item.category
         metadata_dict["seller_id"] = ", ".join(seller_ids)
 
-        print(metadata_dict)
         checkout_session = stripe.checkout.Session.create(
             line_items=[
                 {

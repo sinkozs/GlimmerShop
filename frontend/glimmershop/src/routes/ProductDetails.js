@@ -16,6 +16,7 @@ function ProductDetails() {
   const { product_id } = useParams();
   const { cart, addToCart, increaseQuantity } = useCart();
   const [productData, setProductData] = useState(null);
+  const [productCategory, setProductCategory] = useState(null);
   const [sellerData, setSellerData] = useState(null);
   const [currentImage, setCurrentImage] = useState(1);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -32,6 +33,11 @@ function ProductDetails() {
           `http://localhost:8000/products/${product_id}`
         );
         setProductData(product.data);
+
+        const category = await axios.get(
+          `http://localhost:8000/categories/product-categories?product_id=${product_id}`
+        );
+        setProductCategory(category.data[0]);
 
         const seller = await axios.get(
           `http://127.0.0.1:8000/users/public/${product.data.seller_id}`
@@ -52,10 +58,12 @@ function ProductDetails() {
       if (existingItem) {
         increaseQuantity(productData.id);
       } else {
+        console.log(`add product to cart with category: ${productCategory}`);
         addToCart({
           id: productData.id,
           name: productData.name,
           price: productData.price,
+          category: productCategory,
           quantity: 1,
         });
       }
@@ -125,7 +133,9 @@ function ProductDetails() {
             <Container fluid className="details-section" ref={detailsRef}>
               <h1 className="product-name">{productData.name}</h1>
               <p className="product-price">${productData.price}</p>
-              <p className="seller">Seller: {sellerData.first_name} {sellerData.last_name}</p>
+              <p className="seller">
+                Seller: {sellerData.first_name} {sellerData.last_name}
+              </p>
               <p className="product-material">{productData.material}</p>
               <p className="size-guide">Size Guide</p>
               <Container fluid className="stock-quantity-container">

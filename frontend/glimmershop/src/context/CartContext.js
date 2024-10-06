@@ -27,6 +27,7 @@ export const CartProvider = ({ children }) => {
       const product = await axios.get(
         `http://localhost:8000/products/${item.id}`
       );
+
       const newItem = {
         ...item,
         image_path: product.data.image_path,

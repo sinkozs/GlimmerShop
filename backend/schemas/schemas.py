@@ -95,6 +95,7 @@ class CartItemForCheckout(BaseModel):
     id: int
     name: str
     price: int
+    category: str
     quantity: int
     image_path: str
 

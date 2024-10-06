@@ -55,7 +55,6 @@ const Checkout = ({ userCart, deleteCart }) => {
       const stripe = await stripePromise;
 
       await stripe.redirectToCheckout({ sessionId: session_id });
-      // Redirect to homepage with success query parameter
       window.location.href = `${DOMAIN}?success=true`;
     } catch (error) {
       console.error("Failed to start checkout:", error);
