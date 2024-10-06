@@ -50,22 +50,26 @@ class CheckoutService:
         stripe.api_key = load_config().auth_config.stripe_secret_key
 
         metadata_dict = {
-            "metadata_item_names": {},
-            "product_category": "",
+            "product_quantities": {},
+            "product_categories": {},
             "seller_id": ""
         }
 
-        item_names = dict()
+        product_quantities = dict()
+        product_categories = dict()
         seller_ids = list()
 
         for item in cart_items:
             product = await self.product_service.get_product_by_id(item.id)
             seller_ids.append(str(product.get("seller_id")))
-            if item.name not in item_names:
-                item_names[item.name] = item.quantity
+            if item.name not in product_quantities:
+                product_quantities[item.name] = item.quantity
+            if item.name not in product_categories:
+                product_categories[item.name] = item.category
 
-        metadata_dict["metadata_item_names"] = json.dumps(item_names)
-        metadata_dict["product_category"] = item.category
+        print(f'product_quantities: {product_quantities}')
+        metadata_dict["product_quantities"] = json.dumps(product_quantities)
+        metadata_dict["product_categories"] = json.dumps(product_categories)
         metadata_dict["seller_id"] = ", ".join(seller_ids)
 
         checkout_session = stripe.checkout.Session.create(

@@ -70,12 +70,16 @@ function SellerStatistics() {
             },
           }
         );
-
-        const products = response.data.items;
+          
+        const quantities = response.data.product_quantities;
+        const categories = response.data.product_categories;
         const unitPrices = response.data.item_unit_prices;
-        const productNames = Object.keys(products);
-        const productQuantities = Object.values(products);
+        const productNames = Object.keys(quantities);
+        const productQuantities = Object.values(quantities);
+        const productCategories = Object.values(categories)
         const productPrice = Object.values(unitPrices);
+
+        console.log(productCategories)
 
         const productRevenues = productQuantities.map((quantity, index) => {
           return quantity * productPrice[index];

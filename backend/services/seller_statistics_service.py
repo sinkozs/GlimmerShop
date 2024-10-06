@@ -31,6 +31,13 @@ class SellerStatisticsService:
 
         return converted_dict
 
+    def get_product_category_by_name(self, product_categories_list: list, product_name: str) -> str:
+        for item in product_categories_list:
+            print(json.loads(item))
+            for name, category in json.loads(item).items():
+                if name == product_name:
+                    return category
+
     async def get_monthly_transactions(self, seller_id: UUID, data: MonthRequestForSellerStatistics) -> Dict[str, any]:
         stripe.api_key = self.stripe_api_key
         first_day, last_day = get_first_and_last_day_of_month(data.month)
@@ -46,30 +53,42 @@ class SellerStatisticsService:
 
         total_revenue = 0
         total_transactions = 0
-        items = dict()
+        product_quantities = dict()
+        product_categories = dict()
         item_unit_prices = dict()
 
         for charge in charges['data']:
 
             metadata = self.convert_metadata_to_dict(charge.get("metadata", {}))
+            print(metadata)
             seller_id_metadata = metadata.get("seller_id", [])[0]
 
             if str(seller_id_metadata) == seller_id:
                 total_revenue += charge['amount']
                 total_transactions += 1
-                metadata_items_list = metadata["metadata_item_names"]
+                product_quantities_list = metadata.get("product_quantities", [])
+                product_categories_list = metadata.get("product_categories", [])
 
-                for item in metadata_items_list:
+                print(
+                    f"quantities: {metadata.get('product_quantities')} category: {metadata.get('product_categories')}")
+
+                for item in product_quantities_list:
                     for item_name, quantity in json.loads(item).items():
-                        if item_name in items:
-                            items[item_name] += quantity
+                        if item_name in product_quantities:
+                            product_quantities[item_name] += quantity
                         else:
-                            items[item_name] = quantity
+                            product_quantities[item_name] = quantity
                             item_unit_prices[item_name] = charge['amount'] / quantity / 100
+
+                for item in product_categories_list:
+                    for item_name, category in json.loads(item).items():
+                        if item_name not in product_categories:
+                            product_categories[item_name] = category
 
         return {
             "total_transactions": total_transactions,
             "total_revenue": total_revenue / 100,
-            "items": items,
+            "product_quantities": product_quantities,
+            "product_categories": product_categories,
             "item_unit_prices": item_unit_prices
         }
