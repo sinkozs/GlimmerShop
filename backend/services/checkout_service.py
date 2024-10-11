@@ -67,7 +67,6 @@ class CheckoutService:
             if item.name not in product_categories:
                 product_categories[item.name] = item.category
 
-        print(f'product_quantities: {product_quantities}')
         metadata_dict["product_quantities"] = json.dumps(product_quantities)
         metadata_dict["product_categories"] = json.dumps(product_categories)
         metadata_dict["seller_id"] = ", ".join(seller_ids)

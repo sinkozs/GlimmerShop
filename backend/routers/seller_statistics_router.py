@@ -22,13 +22,17 @@ router = APIRouter(
 
 
 @router.post("/get-monthly-transactions")
-async def get_monthly_transactions(month_request: MonthRequestForSellerStatistics, current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+async def get_monthly_transactions(month_request: MonthRequestForSellerStatistics,
+                                   current_user: dict = Depends(get_current_user),
+                                   session: AsyncSession = Depends(get_session)):
     service = SellerStatisticsService(session)
     controller = SellerStatisticsController(service)
     try:
         seller_id: UUID = current_user.get("id")
         if not seller_id:
             raise HTTPException(status_code=400, detail="Missing seller ID")
-        return await controller.get_monthly_transactions(seller_id, month_request)
+        data = await controller.get_monthly_transactions(seller_id, month_request)
+        print(data)
+        return data
     except HTTPException as e:
         raise e

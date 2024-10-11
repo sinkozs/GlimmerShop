@@ -74,6 +74,7 @@ async def get_public_user_info_by_id(user_id,
 async def create_new_user(user: UserCreate, session: AsyncSession = Depends(get_session)):
     service = UserService(session)
     user_controller = UserController(service)
+    print(user)
     try:
         return await user_controller.create_new_user(user)
     except HTTPException as e:

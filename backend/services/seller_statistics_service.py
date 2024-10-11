@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 import stripe
 from datetime import datetime, timedelta
+import ast
 
 
 class SellerStatisticsService:
@@ -31,12 +32,10 @@ class SellerStatisticsService:
 
         return converted_dict
 
-    def get_product_category_by_name(self, product_categories_list: list, product_name: str) -> str:
-        for item in product_categories_list:
-            print(json.loads(item))
-            for name, category in json.loads(item).items():
-                if name == product_name:
-                    return category
+    def get_dict_from_json_object(self, item: str) -> dict:
+        fixed_item = item.translate(str.maketrans('', '', '{}'))
+        item_dict = ast.literal_eval('{' + fixed_item + '}')
+        return item_dict
 
     async def get_monthly_transactions(self, seller_id: UUID, data: MonthRequestForSellerStatistics) -> Dict[str, any]:
         stripe.api_key = self.stripe_api_key
@@ -60,7 +59,6 @@ class SellerStatisticsService:
         for charge in charges['data']:
 
             metadata = self.convert_metadata_to_dict(charge.get("metadata", {}))
-            print(metadata)
             seller_id_metadata = metadata.get("seller_id", [])[0]
 
             if str(seller_id_metadata) == seller_id:
@@ -69,11 +67,8 @@ class SellerStatisticsService:
                 product_quantities_list = metadata.get("product_quantities", [])
                 product_categories_list = metadata.get("product_categories", [])
 
-                print(
-                    f"quantities: {metadata.get('product_quantities')} category: {metadata.get('product_categories')}")
-
                 for item in product_quantities_list:
-                    for item_name, quantity in json.loads(item).items():
+                    for item_name, quantity in self.get_dict_from_json_object(item).items():
                         if item_name in product_quantities:
                             product_quantities[item_name] += quantity
                         else:
@@ -81,7 +76,7 @@ class SellerStatisticsService:
                             item_unit_prices[item_name] = charge['amount'] / quantity / 100
 
                 for item in product_categories_list:
-                    for item_name, category in json.loads(item).items():
+                    for item_name, category in self.get_dict_from_json_object(item).items():
                         if item_name not in product_categories:
                             product_categories[item_name] = category
 
