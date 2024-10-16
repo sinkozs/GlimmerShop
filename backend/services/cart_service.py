@@ -5,8 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status, Response
 import redis.asyncio as aioredis
-from models.models import Product, User, Category, ProductCategory, Cart, CartItem
-from services.auth_service import AuthService
+from models.models import User, Cart, CartItem
 from schemas.schemas import CartItemUpdate
 from sqlalchemy.orm import selectinload, joinedload
 

@@ -6,7 +6,7 @@ from schemas.schemas import CartItemUpdate
 from exceptions.cart_exceptions import CartException
 import redis.asyncio as aioredis
 from typing import Optional, List
-from fastapi import HTTPException, Depends, Response
+from fastapi import HTTPException, Response
 
 
 class CartController:

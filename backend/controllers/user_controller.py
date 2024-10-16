@@ -3,7 +3,7 @@ from typing import List
 from pydantic import EmailStr
 from sqlalchemy.dialects.postgresql import UUID
 
-from dependencies import dict_to_db_model, db_model_to_dict, is_valid_update, hash_password
+from dependencies import dict_to_db_model, is_valid_update, hash_password
 from services.user_service import UserService
 from models.models import User, Cart
 from config.auth_config import bcrypt_context

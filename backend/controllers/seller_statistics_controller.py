@@ -1,9 +1,7 @@
 from uuid import UUID
 
 from services.seller_statistics_service import SellerStatisticsService
-from schemas.schemas import CartItemForCheckout
-from typing import List
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException
 from schemas.schemas import MonthRequestForSellerStatistics
 
 

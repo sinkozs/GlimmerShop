@@ -1,5 +1,4 @@
 import json
-import os
 
 import redis.asyncio as aioredis
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,11 +11,10 @@ from jose import jwt
 import secrets
 import string
 from datetime import datetime, timedelta
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from models.models import User
 from config.auth_config import ALGORITHM, bcrypt_context
-from services.user_service import UserService
 from exceptions.auth_exceptions import AuthenticationException
 from dependencies import db_model_to_dict, send_password_reset_email, hash_password
 from config.parser import load_config

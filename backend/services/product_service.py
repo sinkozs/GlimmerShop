@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status, UploadFile, File
 from sqlalchemy import func, and_, exists, or_
-from models.models import Product, Category, ProductCategory, User
+from models.models import Product, Category, ProductCategory
 from schemas.schemas import ProductUpdate, PriceFilter, MaterialsFilter, ProductData
 from .user_service import UserService
 from exceptions.product_exceptions import ProductException

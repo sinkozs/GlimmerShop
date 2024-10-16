@@ -1,16 +1,6 @@
-
-from sqlalchemy.dialects.postgresql import UUID
-
-from dependencies import dict_to_db_model, db_model_to_dict
-from services.user_service import UserService
-from services.product_service import ProductService
-from services.user_service import UserService
 from services.category_service import CategoryService
-from models.models import User, Product, Category
-from config.auth_config import bcrypt_context
-from schemas.schemas import ProductCreate, CategoryUpdate
-from datetime import datetime, timezone
-from exceptions.user_exceptions import UserException
+from models.models import Category
+from schemas.schemas import CategoryUpdate
 from exceptions.product_exceptions import ProductException
 from fastapi import HTTPException
 

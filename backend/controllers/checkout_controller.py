@@ -1,7 +1,7 @@
 from services.checkout_service import CheckoutService
 from schemas.schemas import CartItemForCheckout
 from typing import List
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException
 
 
 class CheckoutController:

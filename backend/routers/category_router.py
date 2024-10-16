@@ -1,11 +1,7 @@
-from uuid import UUID
-
 from fastapi import APIRouter, Depends, HTTPException
-from controllers.product_controller import ProductController
 from controllers.category_controller import CategoryController
-from services.product_service import ProductService
 from services.category_service import CategoryService
-from dependencies import get_current_user, get_session
+from dependencies import get_session
 from schemas.schemas import CategoryUpdate
 
 

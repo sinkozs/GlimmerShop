@@ -6,7 +6,6 @@ from fastapi import Depends, HTTPException, Response
 from exceptions.auth_exceptions import AuthenticationException
 from pydantic import EmailStr
 from services.auth_service import AuthService
-from services.user_service import UserService
 from fastapi.security import OAuth2PasswordRequestForm
 
 

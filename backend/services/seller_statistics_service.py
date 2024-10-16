@@ -1,19 +1,11 @@
-import json
-from typing import List, Dict
+from typing import Dict
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
-from dependencies import get_session, get_first_and_last_day_of_month
-from sqlalchemy.future import select
-from sqlalchemy import update
+from dependencies import get_first_and_last_day_of_month
 from schemas.schemas import MonthRequestForSellerStatistics
 from config.parser import load_config
-from models.models import Product
-from exceptions.product_exceptions import ProductException
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
 import stripe
-from datetime import datetime, timedelta
 import ast
 
 

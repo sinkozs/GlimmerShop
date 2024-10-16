@@ -1,18 +1,16 @@
-from uuid import UUID
 from typing import List
 
 from sqlalchemy.exc import SQLAlchemyError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status
-from sqlalchemy import func, and_
-from models.models import Product, User, Category, ProductCategory
-from sqlalchemy.orm import joinedload, selectinload
+from models.models import Product, Category, ProductCategory
+from sqlalchemy.orm import selectinload
 
 from exceptions.category_exceptions import CategoryException
 from exceptions.product_exceptions import ProductException
 from exceptions.user_exceptions import UserException
-from dependencies import db_model_to_dict, dict_to_db_model, convert_str_to_int_if_numeric, is_valid_update
+from dependencies import db_model_to_dict, convert_str_to_int_if_numeric, is_valid_update
 from schemas.schemas import CategoryUpdate
 
 
