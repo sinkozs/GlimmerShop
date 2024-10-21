@@ -1,0 +1,26 @@
+.seller-stats-wrapper{
+    width: 80%;
+    margin: auto;
+}
+
+.wrapper h1{
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    margin-top: 4rem;
+}
+
+.seller-stats-wrapper h3,
+.select-date-form {
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+}
+
+.select-date-form select {
+    font-family: "Poppins", sans-serif;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}

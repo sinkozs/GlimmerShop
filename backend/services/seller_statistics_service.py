@@ -1,12 +1,19 @@
 from typing import Dict
 from uuid import UUID
 
-from dependencies import get_first_and_last_day_of_month
-from schemas.schemas import MonthRequestForSellerStatistics
+from fastapi import HTTPException
+
+from dependencies import get_first_and_last_day_of_month, db_model_to_dict
+from schemas.schemas import SelectedMonthForSellerStatistics
+from models.models import Product
 from config.parser import load_config
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.exc import SQLAlchemyError
+from fastapi import status
 import stripe
 import ast
+from exceptions.product_exceptions import ProductException
 
 
 class SellerStatisticsService:
@@ -29,9 +36,19 @@ class SellerStatisticsService:
         item_dict = ast.literal_eval('{' + fixed_item + '}')
         return item_dict
 
-    async def get_monthly_transactions(self, seller_id: UUID, data: MonthRequestForSellerStatistics) -> Dict[str, any]:
+    def is_seller_had_transactions(self, seller_id: UUID, charges) -> bool:
+        if charges['data']:
+            for charge in charges['data']:
+                metadata = self.convert_metadata_to_dict(charge.get("metadata", {}))
+                seller_id_metadata = metadata.get("seller_id", [])
+                if str(seller_id) in seller_id_metadata:
+                    return True
+            return False
+
+    async def get_monthly_transactions(self, seller_id: UUID, selected_date: SelectedMonthForSellerStatistics) -> Dict[
+        str, any]:
         stripe.api_key = self.stripe_api_key
-        first_day, last_day = get_first_and_last_day_of_month(data.month)
+        first_day, last_day = get_first_and_last_day_of_month(selected_date)
 
         charges = stripe.Charge.list(
             created={
@@ -47,35 +64,41 @@ class SellerStatisticsService:
         product_quantities = dict()
         product_categories = dict()
         item_unit_prices = dict()
+        is_seller_had_transactions = self.is_seller_had_transactions(seller_id, charges)
 
-        for charge in charges['data']:
+        if charges['data'] and is_seller_had_transactions:
+            for charge in charges['data']:
+                metadata = self.convert_metadata_to_dict(charge.get("metadata", {}))
+                seller_id_metadata = metadata.get("seller_id", [])[0]
 
-            metadata = self.convert_metadata_to_dict(charge.get("metadata", {}))
-            seller_id_metadata = metadata.get("seller_id", [])[0]
+                if str(seller_id_metadata) == seller_id:
+                    total_revenue += charge['amount']
+                    total_transactions += 1
+                    product_quantities_list = metadata.get("product_quantities", [])
+                    product_categories_list = metadata.get("product_categories", [])
 
-            if str(seller_id_metadata) == seller_id:
-                total_revenue += charge['amount']
-                total_transactions += 1
-                product_quantities_list = metadata.get("product_quantities", [])
-                product_categories_list = metadata.get("product_categories", [])
+                    for item in product_quantities_list:
+                        for item_name, quantity in self.get_dict_from_json_object(item).items():
+                            if item_name in product_quantities:
+                                product_quantities[item_name] += quantity
+                            else:
+                                product_quantities[item_name] = quantity
+                                item_unit_prices[item_name] = charge['amount'] / quantity / 100
 
-                for item in product_quantities_list:
-                    for item_name, quantity in self.get_dict_from_json_object(item).items():
-                        if item_name in product_quantities:
-                            product_quantities[item_name] += quantity
-                        else:
-                            product_quantities[item_name] = quantity
-                            item_unit_prices[item_name] = charge['amount'] / quantity / 100
+                    for item in product_categories_list:
+                        for item_name, category in self.get_dict_from_json_object(item).items():
+                            if item_name not in product_categories:
+                                product_categories[item_name] = category
 
-                for item in product_categories_list:
-                    for item_name, category in self.get_dict_from_json_object(item).items():
-                        if item_name not in product_categories:
-                            product_categories[item_name] = category
+            return {
+                "total_transactions": total_transactions,
+                "total_revenue": total_revenue / 100,
+                "product_quantities": product_quantities,
+                "product_categories": product_categories,
+                "item_unit_prices": item_unit_prices
+            }
 
-        return {
-            "total_transactions": total_transactions,
-            "total_revenue": total_revenue / 100,
-            "product_quantities": product_quantities,
-            "product_categories": product_categories,
-            "item_unit_prices": item_unit_prices
-        }
+        else:
+            print(
+                f"There were no transactions in {selected_date.month}")
+            raise HTTPException(status_code=204, detail=f"There were no transactions in {selected_date.month}")

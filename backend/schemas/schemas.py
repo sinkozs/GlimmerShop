@@ -118,6 +118,6 @@ class SellerFilter(BaseModel):
     seller_id: Optional[UUID] = None
 
 
-class MonthRequestForSellerStatistics(BaseModel):
-    # format: "YYYY-MM"
+class SelectedMonthForSellerStatistics(BaseModel):
+    year: str
     month: str

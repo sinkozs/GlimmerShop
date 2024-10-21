@@ -10,6 +10,7 @@ from jose import jwt
 
 from config.auth_config import ALGORITHM, oauth2_bearer, bcrypt_context
 from config.parser import load_config
+from schemas.schemas import SelectedMonthForSellerStatistics
 import random
 import smtplib
 import uuid
@@ -43,9 +44,8 @@ def dict_to_db_model(model_class, data: dict):
     return instance
 
 
-def get_first_and_last_day_of_month(month: str):
-    # format: "YYYY-MM"
-    year, month = map(int, month.split("-"))
+def get_first_and_last_day_of_month(selected_date: SelectedMonthForSellerStatistics):
+    year, month = int(selected_date.year), int(selected_date.month)
     first_day = datetime(year, month, 1)
     last_day = first_day + timedelta(days=32)
     last_day = last_day.replace(day=1) - timedelta(days=1)

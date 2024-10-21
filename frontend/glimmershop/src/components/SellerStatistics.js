@@ -2,7 +2,10 @@ import React, { useState, useEffect, useMemo } from "react";
 import Chart from "react-apexcharts";
 import axios from "axios";
 import { Container, Col } from "react-bootstrap";
+import "./SelectMonthForStatistics.js";
 import "../styles/SellerStatistics.css";
+import SelectMonthForStatistics from "./SelectMonthForStatistics.js";
+import Modal from "./Modal";
 
 function formatNumber(num) {
   return num ? num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") : "0";
@@ -60,29 +63,47 @@ function getProductRevenues(productQuantities, unitPrices) {
 }
 
 function SellerStatistics() {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear().toString();
+  const currentMonth = (currentDate.getMonth() + 1).toString().padStart(2, "0");
+
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [productNames, setProductNames] = useState([]);
   const [categories, setCategories] = useState([]);
   const [bestSeller, setBestSeller] = useState({});
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [error, setError] = useState(null);
+  const [noTransactionsFoundModal, setNoTransactionsFoundModal] =
+    useState(false);
 
   const token = useMemo(() => localStorage.getItem("token"), []);
 
   const [pieChartData, setPieChartData] = useState({
     series: [],
     options: {
-      chart: { type: "pie", height: 350 },
+      chart: {
+        type: "pie",
+        height: 350,
+      },
       labels: [],
       dataLabels: {
         enabled: true,
-        formatter: (val, opts) =>
-          `${opts.w.globals.series[opts.seriesIndex]} units`,
+      },
+      legend: {
+        position: "bottom",
+        onItemHover: {
+          highlightDataSeries: false,
+        },
       },
       tooltip: {
-        y: { formatter: (val) => `${val} units` },
+        y: {
+          formatter: (val) => `${val} items`,
+        },
       },
-      legend: { position: "bottom" },
     },
   });
 
@@ -102,79 +123,114 @@ function SellerStatistics() {
   });
 
   useEffect(() => {
-    const fetchStatistics = async () => {
-      try {
-        const monthRequest = { month: "2024-10" };
-        const response = await axios.post(
-          `http://localhost:8000/seller-statistics/get-monthly-transactions`,
-          monthRequest,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+    if (selectedMonth && selectedYear) {
+      const fetchStatistics = async () => {
+        try {
+          const monthRequest = {
+            year: `${selectedYear}`,
+            month: `${selectedMonth.padStart(2, "0")}`,
+          };
+
+          const response = await axios.post(
+            `http://localhost:8000/seller-statistics/get-monthly-transactions`,
+            monthRequest,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (response.status === 204) {
+            setError(`No transactions were found in ${monthRequest.month}/${monthRequest.year}`);
+            setNoTransactionsFoundModal(true);
+          } else {
+            const {
+              item_unit_prices = {},
+              product_categories = {},
+              product_quantities = {},
+              total_revenue = 0,
+              total_transactions = 0,
+            } = response.data;
+
+            const productNames = Object.keys(product_quantities);
+            const categoryQuantities = getCategoryQuantities(
+              product_categories,
+              product_quantities
+            );
+
+            const productRevenues = getProductRevenues(
+              product_quantities,
+              item_unit_prices
+            );
+
+            const categoryKeys = Object.keys(categoryQuantities);
+            const categoryValues = Object.values(categoryQuantities);
+
+            if (categoryKeys.length && categoryValues.length) {
+              setPieChartData({
+                series: categoryValues,
+                options: {
+                  labels: categoryKeys,
+                },
+              });
+            }
+
+            setChartData({
+              series: [
+                { name: "Revenue (USD)", data: Object.values(productRevenues) },
+              ],
+            });
+
+            setProductNames(productNames);
+            setTotalRevenue(total_revenue);
+            setTotalTransactions(total_transactions);
+            setBestSeller(getBestSellerProduct(product_quantities));
+            setCategories(Object.values(product_categories));
+
+            setDataLoaded(true);
           }
-        );
+        } catch (error) {
+          console.error("Error fetching statistics:", error);
+        }
+      };
 
-        const {
-          item_unit_prices = {},
-          product_categories = {},
-          product_quantities = {},
-          total_revenue = 0,
-          total_transactions = 0,
-        } = response.data;
+      fetchStatistics();
+    }
+  }, [selectedMonth, selectedYear, token]);
 
-        const categories = Object.values(product_categories);
-        const productNames = Object.keys(product_quantities);
-        const categoryQuantities = getCategoryQuantities(
-          product_categories,
-          product_quantities
-        );
-
-        const productRevenues = getProductRevenues(
-          product_quantities,
-          item_unit_prices
-        );
-        setPieChartData({
-          ...pieChartData,
-          series: Object.values(categoryQuantities),
-          options: {
-            ...pieChartData.options,
-            labels: Object.keys(categoryQuantities),
-          },
-        });
-
-        setChartData({
-          series: [
-            { name: "Revenue (USD)", data: Object.values(productRevenues) },
-          ],
-        });
-
-        setProductNames(productNames);
-        setCategories(categories);
-        setTotalRevenue(total_revenue);
-        setTotalTransactions(total_transactions);
-        setBestSeller(getBestSellerProduct(product_quantities));
-
-        setDataLoaded(true);
-      } catch (error) {
-        console.error("Error fetching statistics:", error);
-      }
-    };
-
-    fetchStatistics();
-  }, [token]);
+  const closeModal = () => {
+    setNoTransactionsFoundModal(false);
+  };
 
   return (
     <Container fluid className="seller-stats-wrapper">
-      <Container>
-        <h3>Total monthly revenue: ${formatNumber(totalRevenue)}</h3>
-        <h3>Total number of transactions: {totalTransactions}</h3>
+      <Container className="wrapper">
+        <h1>Monthly statistics</h1>
+        <SelectMonthForStatistics
+          setSelectedMonth={setSelectedMonth}
+          setSelectedYear={setSelectedYear}
+          defaultMonth={currentMonth}
+          defaultYear={currentYear}
+        />
+
+        <Modal
+          show={noTransactionsFoundModal}
+          onClose={closeModal}
+          title="No transactions were found!"
+        >
+          <p>{error}</p>
+        </Modal>
         {dataLoaded && (
-          <h3>
-            Bestseller product this month: {Object.keys(bestSeller)} (
-            {Object.values(bestSeller)} pieces sold)
-          </h3>
+          <>
+            <h3>Total monthly revenue: ${formatNumber(totalRevenue)}</h3>
+            <h3>Total number of transactions: {totalTransactions}</h3>
+            <h3>
+              Bestseller product this month: {Object.keys(bestSeller)} (
+              {Object.values(bestSeller)} pieces sold)
+            </h3>
+          </>
         )}
 
         {dataLoaded && (
@@ -183,18 +239,17 @@ function SellerStatistics() {
               type="pie"
               width="100%"
               height={350}
-              series={pieChartData.series.length ? pieChartData.series : [0]}
+              series={pieChartData.series}
               options={{
                 title: {
                   text: "Products sold by category ",
                 },
-                noData: { text: "Empty Data" },
                 labels: categories,
+                noData: { text: "Empty Data" },
               }}
             />
           </Col>
         )}
-
         {dataLoaded && (
           <Col md={6} className="chart-container">
             <Chart

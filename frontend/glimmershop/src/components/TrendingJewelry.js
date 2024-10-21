@@ -55,10 +55,11 @@ function TrendingJewelry() {
       {error && (
         <p style={{ color: "red" }}>Error fetching products: {error.message}</p>
       )}
-      <div className="arrow left-arrow" onClick={scrollLeft}>
-        {"<"}
-      </div>
+
       <Container fluid className="trending-section-grid" ref={scrollRef}>
+        <Container className="arrow left-arrow" onClick={scrollLeft}>
+          {"<"}
+        </Container>
         {products.length > 0 ? (
           products.map((product, idx) => (
             <Card
@@ -92,9 +93,9 @@ function TrendingJewelry() {
           <p>No products available.</p>
         )}
       </Container>
-      <div className="arrow right-arrow" onClick={scrollRight}>
+      <Container className="arrow right-arrow" onClick={scrollRight}>
         {">"}
-      </div>
+      </Container>
     </Container>
   );
 }
