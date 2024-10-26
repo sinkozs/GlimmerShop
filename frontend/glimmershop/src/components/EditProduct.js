@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../App.css";
 import "../styles/LoginAndSignup.css";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
+import config from "../config";
 
 function EditProduct() {
   const [name, setName] = useState("");
@@ -17,15 +18,13 @@ function EditProduct() {
   const [image2, setImage2] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
-  const token = useMemo(() => localStorage.getItem("token"), []);
   const { product_id } = useParams();
 
   useEffect(() => {
     const fetchProductData = async () => {
-      console.log({ product_id });
       try {
         const product = await axios.get(
-          `http://localhost:8000/products/${product_id}`
+          `${config.BACKEND_BASE_URL}/products/${product_id}`
         );
         setName(product.data.name);
         setPrice(product.data.price);
@@ -57,26 +56,29 @@ function EditProduct() {
 
     try {
       const response = await axios.put(
-        `http://127.0.0.1:8000/products/edit?product_id=${product_id}`,
+        `${config.BACKEND_BASE_URL}/products/edit?product_id=${product_id}`,
         productData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          withCredentials: true,
         }
       );
 
-      setShowModal(true);
+      if (response.status === 200){
+        setShowModal(true);
 
-      setName("");
-      setDescription("");
-      setPrice("");
-      setStockQuantiy("");
-      setMaterial("");
-      setColor("");
-      setImage1(null);
-      setImage2(null);
+        setName("");
+        setDescription("");
+        setPrice("");
+        setStockQuantiy("");
+        setMaterial("");
+        setColor("");
+        setImage1(null);
+        setImage2(null);
+
+      }
     } catch (error) {
       console.error("There was an error editing the product!", error);
       setError(error.response?.data?.detail || "An unexpected error occurred");

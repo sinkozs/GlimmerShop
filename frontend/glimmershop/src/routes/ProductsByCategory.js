@@ -9,6 +9,7 @@ import "../styles/ProductsByCategory.css";
 import "../styles/TrendingJewelry.css";
 import ProductFilters from "../components/ProductFilters";
 import ProductsGrid from "../components/ProductsGrid";
+import config from "../config";
 
 function ProductsByCategory() {
   const [products, setProducts] = useState([]);
@@ -20,12 +21,12 @@ function ProductsByCategory() {
     const fetchCategoryAndProducts = async () => {
       try {
         const categoryResponse = await axios.get(
-          `http://localhost:8000/categories/category-by-identifier?category_identifier=${category_name}`
+          `${config.BACKEND_BASE_URL}/categories/category-by-identifier?category_identifier=${category_name}`
         );
         setCategoryData(categoryResponse.data);
 
         const productsResponse = await axios.get(
-          `http://localhost:8000/categories/products-by-category/?category_id=${categoryResponse.data.category_record.id}`
+          `${config.BACKEND_BASE_URL}/categories/products-by-category/?category_id=${categoryResponse.data.category_record.id}`
         );
         setProducts(productsResponse.data);
       } catch (error) {

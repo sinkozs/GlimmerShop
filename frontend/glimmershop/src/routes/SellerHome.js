@@ -6,6 +6,7 @@ import ProductsGrid from "../components/ProductsGrid";
 import "../App.css";
 import "../styles/Home.css";
 import "../styles/SellerHome.css";
+import config from "../config";
 
 function SellerHome() {
   const [products, setProducts] = useState(null);
@@ -19,12 +20,12 @@ function SellerHome() {
     const fetchSellerDataAndProducts = async () => {
       try {
         const seller = await axios.get(
-          `http://localhost:8000/users/public/${seller_id}`
+          `${config.BACKEND_BASE_URL}/users/public/${seller_id}`
         );
         setSellerData(seller.data);
 
         const sellerProducts = await axios.get(
-          `http://127.0.0.1:8000/products/products-by-seller`,
+          `${config.BACKEND_BASE_URL}/products/products-by-seller`,
           {
             params: { seller_id: seller_id },
           }
@@ -45,7 +46,7 @@ function SellerHome() {
     event.preventDefault();
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/products/search/`,
+        `${config.BACKEND_BASE_URL}/products/search/`,
         {
           params: { query: searchQuery, seller_id: seller_id },
         }

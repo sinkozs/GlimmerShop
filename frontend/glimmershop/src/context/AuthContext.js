@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
+import config from "../config";
 
 export const AuthContext = createContext();
 
@@ -7,16 +8,13 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    console.log("isAuthenticated changed:", isAuthenticated);
   }, [isAuthenticated]);
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/auth/test", {
+      const response = await axios.get(`${config.BACKEND_BASE_URL}/auth/test`, {
         withCredentials: true,
       });
-      console.log("checkAuth...");
-      console.log(response);
       setIsAuthenticated(true);
     } catch (error) {
       setIsAuthenticated(false);
@@ -24,23 +22,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = () => {
-    console.log("calling login");
     setIsAuthenticated(true);
-    console.log("login isAuth");
-    console.log(isAuthenticated);
   };
 
   const logout = async () => {
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/auth/logout",
+        `${config.BACKEND_BASE_URL}/auth/logout`,
         {},
         {
           withCredentials: true,
         }
       );
-      setIsAuthenticated(false); // Only set to false if the logout is successful
-      console.log(response.data); // Optional: Log the response for debugging
+      setIsAuthenticated(false);
     } catch (error) {
       console.error(
         "Logout failed:",

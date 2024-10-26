@@ -6,6 +6,7 @@ import "../styles/LoginAndSignup.css";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
 import { v4 as uuidv4 } from "uuid";
+import config from "../config";
 
 function AddNewProduct() {
   const [name, setName] = useState("");
@@ -40,11 +41,9 @@ function AddNewProduct() {
       material: material,
       color: color,
     };
-    console.log("seller id")
-    console.log(seller_id)
   
     try {
-      const response = await axios.post("http://127.0.0.1:8000/products/new", productData, {
+      const response = await axios.post(`${config.BACKEND_BASE_URL}/products/new`, productData, {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
       });
@@ -59,7 +58,7 @@ function AddNewProduct() {
         formData1.append("image", image1, image1FileName);
   
         await axios.post(
-          `http://127.0.0.1:8000/products/upload-image?product_id=${productId}&image_number=1`,
+          `${config.BACKEND_BASE_URL}/products/upload-image?product_id=${productId}&image_number=1`,
           formData1,
           {
             headers: {
@@ -77,7 +76,7 @@ function AddNewProduct() {
         formData2.append("image", image2, image2FileName);
   
         await axios.post(
-          `http://127.0.0.1:8000/products/upload-image?product_id=${productId}&image_number=2`,
+          `${config.BACKEND_BASE_URL}/products/upload-image?product_id=${productId}&image_number=2`,
           formData2,
           {
             headers: {

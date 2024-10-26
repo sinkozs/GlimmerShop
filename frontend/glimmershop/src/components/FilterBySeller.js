@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Container, Form, Button, ListGroup } from "react-bootstrap";
 import axios from "axios";
 import "../styles/FilterBySeller.css";
+import config from "../config";
 
 function FilterBySeller({ resetFilter, onSellerSelected }) {
   const [isSellerFilterExpanded, setIsSellerFilterExpanded] = useState(false);
@@ -19,7 +20,7 @@ function FilterBySeller({ resetFilter, onSellerSelected }) {
   const fetchSellers = async (query) => {
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/users/search/`,
+        `${config.BACKEND_BASE_URL}/users/search/`,
         {
           params: { query },
         }

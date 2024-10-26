@@ -4,13 +4,14 @@ import "../App.css";
 import "../styles/LoginAndSignup.css";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
+import config from "../config";
 
 function EditUser() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordLength, setPasswordLength] = useState(0)
+  const [passwordLength, setPasswordLength] = useState(0);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -19,13 +20,13 @@ function EditUser() {
       const sellerId = localStorage.getItem("sellerId");
       try {
         const seller = await axios.get(
-          `http://localhost:8000/users/${sellerId}`
+          `${config.BACKEND_BASE_URL}/users/${sellerId}`,
+          { withCredentials: true }
         );
         setFirstName(seller.data.first_name);
         setLastName(seller.data.last_name);
         setEmail(seller.data.email);
         setPasswordLength(seller.data.password_length || 0);
-        
       } catch (error) {
         console.error("Error fetching seller data:", error);
         setError("Failed to fetch profile details. Please try again later.");
@@ -45,14 +46,12 @@ function EditUser() {
     if (email) formData.email = email;
     if (password) formData.password = password;
 
-    const token = localStorage.getItem("token");
-
     await axios
-      .put("http://127.0.0.1:8000/users/edit", formData, {
+      .put(`${config.BACKEND_BASE_URL}/users/edit`, formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        withCredentials: true,
       })
       .then((response) => {
         setFirstName("");

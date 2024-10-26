@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Chart from "react-apexcharts";
 import axios from "axios";
 import { Container, Col } from "react-bootstrap";
@@ -6,6 +6,7 @@ import "./SelectMonthForStatistics.js";
 import "../styles/SellerStatistics.css";
 import SelectMonthForStatistics from "./SelectMonthForStatistics.js";
 import Modal from "./Modal";
+import config from "../config.js";
 
 function formatNumber(num) {
   return num ? num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") : "0";
@@ -80,8 +81,6 @@ function SellerStatistics() {
   const [noTransactionsFoundModal, setNoTransactionsFoundModal] =
     useState(false);
 
-  const token = useMemo(() => localStorage.getItem("token"), []);
-
   const [pieChartData, setPieChartData] = useState({
     series: [],
     options: {
@@ -132,13 +131,13 @@ function SellerStatistics() {
           };
 
           const response = await axios.post(
-            `http://localhost:8000/seller-statistics/get-monthly-transactions`,
+            `${config.BACKEND_BASE_URL}/seller-statistics/get-monthly-transactions`,
             monthRequest,
             {
               headers: {
-                Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               },
+              withCredentials: true,
             }
           );
 
@@ -198,7 +197,7 @@ function SellerStatistics() {
 
       fetchStatistics();
     }
-  }, [selectedMonth, selectedYear, token]);
+  }, [selectedMonth, selectedYear]);
 
   const closeModal = () => {
     setNoTransactionsFoundModal(false);

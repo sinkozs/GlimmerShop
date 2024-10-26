@@ -6,6 +6,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Container, Form, Button } from "react-bootstrap";
 import Modal from "./Modal";
+import config from "../config";
 
 function LoginAndSignup() {
   const { login } = useContext(AuthContext);
@@ -43,7 +44,7 @@ function LoginAndSignup() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/auth/login?is_seller=true",
+        `${config.BACKEND_BASE_URL}/auth/login?is_seller=true`,
         formData,
         {
           headers: {
@@ -59,8 +60,6 @@ function LoginAndSignup() {
       setEmail("");
       setPassword("");
       if (response.status === 200) {
-        console.log("Login OK")
-        console.log(response.data)
         login();
         navigate(`/seller/${sellerId}`, { state: { sellerId } });
       }
@@ -85,7 +84,7 @@ function LoginAndSignup() {
 
     await axios
       .post(
-        `http://127.0.0.1:8000/auth/forgotten-password?email=${encodedEmail}`
+        `${config.BACKEND_BASE_URL}/auth/forgotten-password?email=${encodedEmail}`
       )
       .then((response) => {
         setEmail("");
@@ -112,7 +111,7 @@ function LoginAndSignup() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/users/new",
+        `http://${config.BACKEND_BASE_URL}/users/new`,
         formData
       );
 

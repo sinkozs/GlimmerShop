@@ -3,37 +3,36 @@ import { Button } from "react-bootstrap";
 import axios from "axios";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import config from "../config";
 
 const Checkout = ({ userCart, deleteCart }) => {
-  const STRIPE_PUBLIC_KEY =
-    "pk_test_51PUqvPIeh1QUOUnUzvMbKUAG4GiIQFHQLpEgV0DaYRzIZt6sxNwQdsxwXMh5O7DkVLqRTtJ551JhqfFeuVRAko4i00JDT5DFCV";
-  const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
-  const DOMAIN = "http://localhost:3000/";
+  const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
   const effectRan = useRef(false);
 
   useEffect(() => {
-    if (effectRan.current) return; 
+    if (effectRan.current) return;
 
     const query = new URLSearchParams(window.location.search);
-    if (query.get('success') === 'true') {
+    if (query.get("success") === "true") {
       handleSuccessfulPayment();
     }
 
     effectRan.current = true;
   }, []);
 
-
   const handleSuccessfulPayment = async () => {
     try {
       await axios.put(
-        "http://localhost:8000/checkout/update-stock/",
+        `${config.BACKEND_BASE_URL}/checkout/update-stock/`,
         JSON.stringify(userCart),
         {
           headers: {
             "Content-Type": "application/json",
           },
+          withCredentials: true,
         }
       );
+
       deleteCart();
     } catch (error) {
       console.error("Failed to update stock and delete cart:", error);
@@ -43,19 +42,20 @@ const Checkout = ({ userCart, deleteCart }) => {
   const handleCheckout = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/checkout/create-checkout-session/",
+        `${config.BACKEND_BASE_URL}/checkout/create-checkout-session/`,
         JSON.stringify(userCart),
         {
           headers: {
             "Content-Type": "application/json",
-          }
+          },
+          withCredentials: true,
         }
       );
       const session_id = response.data.session_id;
       const stripe = await stripePromise;
 
       await stripe.redirectToCheckout({ sessionId: session_id });
-      window.location.href = `${DOMAIN}?success=true`;
+      window.location.href = `${config.FRONTEND_BASE_URL}/?success=true`;
     } catch (error) {
       console.error("Failed to start checkout:", error);
     }

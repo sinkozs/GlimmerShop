@@ -5,6 +5,7 @@ import FilterByMaterial from "./FilterByMaterial";
 import FilterBySeller from "./FilterBySeller";
 import { Button, Container } from "react-bootstrap";
 import "../styles/ProductFilters.css";
+import config from "../config";
 
 function ProductFilters({ category_id, onProductsFetched }) {
   const [selectedMaterials, setSelectedMaterials] = useState([]);
@@ -37,7 +38,7 @@ function ProductFilters({ category_id, onProductsFetched }) {
           };
 
           const response = await axios.post(
-            `http://127.0.0.1:8000/products/filter_by_material_price_and_seller?category_id=${category_id}`,
+            `http://${config.BACKEND_BASE_URL}/products/filter_by_material_price_and_seller?category_id=${category_id}`,
             postData
           );
 
@@ -61,14 +62,13 @@ function ProductFilters({ category_id, onProductsFetched }) {
   ]);
 
   const handleSellerSelection = (sellerId) => {
-    console.log("Selected seller ID:", sellerId);
     setSelectedSellerId(sellerId);
   };
 
   const fetchAllProducts = async () => {
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/categories/products-by-category?category_id=${category_id}`
+        `${config.BACKEND_BASE_URL}/categories/products-by-category?category_id=${category_id}`
       );
 
       onProductsFetched(response.data);

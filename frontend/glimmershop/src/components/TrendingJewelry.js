@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import "../App.css";
 import "../styles/Home.css";
 import "../styles/TrendingJewelry.css";
+import config from "../config";
 
 function TrendingJewelry() {
   const [products, setProducts] = useState([]);
@@ -19,7 +20,7 @@ function TrendingJewelry() {
 
   const getTopProducts = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/products");
+      const response = await axios.get(`${config.BACKEND_BASE_URL}/products`);
 
       setProducts(response.data);
     } catch (error) {
@@ -72,12 +73,12 @@ function TrendingJewelry() {
                   <Card.Img
                     variant="top"
                     className="trending-card-image"
-                    src={`http://localhost:8000/${product.image_path}`}
+                    src={`${config.BACKEND_BASE_URL}/${product.image_path}`}
                   />
                   <Card.Img
                     variant="top"
                     className="trending-card-hover"
-                    src={`http://localhost:8000/${product.image_path2}`}
+                    src={`${config.BACKEND_BASE_URL}/${product.image_path2}`}
                   />
                 </Container>
               </Card.Body>

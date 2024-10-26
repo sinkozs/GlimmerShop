@@ -9,6 +9,7 @@ import "../styles/Cart.css";
 import "../styles/ProductFilters.css";
 import "../styles/ProductDetails.css";
 import Checkout from "./Checkout";
+import config from "../config";
 
 function Header() {
   const {
@@ -42,7 +43,6 @@ function Header() {
   }, [cart.length]);
 
   const handleLogout = () => {
-    console.log("logout")
     logout();
     navigate("/");
   };
@@ -114,7 +114,7 @@ function Header() {
               STATISTICS
             </NavLink>
             {(() => {
-              const id = localStorage.getItem("sellerId");
+              const id = localStorage.getItem("seller_id");
               return (
                 <NavLink
                   to={`/seller/${id}`}
@@ -183,7 +183,7 @@ function Header() {
                       <Container fluid className="cart-item-details">
                         <img
                           className="cart-item-image"
-                          src={`http://localhost:8000/${item.image_path}`}
+                          src={`${config.BACKEND_BASE_URL}/${item.image_path}`}
                           alt={item.image_path}
                         />
                         <Container className="cart-item-info">

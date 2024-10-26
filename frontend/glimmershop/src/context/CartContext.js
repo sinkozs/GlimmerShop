@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import Modal from "../components/Modal";
 import { Container } from "react-bootstrap";
+import config from "../config";
 
 const CartContext = createContext();
 
@@ -26,7 +27,7 @@ export const CartProvider = ({ children }) => {
   const addToCart = async (item) => {
     try {
       const product = await axios.get(
-        `http://localhost:8000/products/${item.id}`
+        `${config.BACKEND_BASE_URL}/products/${item.id}`
       );
 
       const newItem = {

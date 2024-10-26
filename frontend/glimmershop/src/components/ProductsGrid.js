@@ -8,6 +8,7 @@ import "../App.css";
 import "../styles/Home.css";
 import "../styles/TrendingJewelry.css";
 import "../styles/Modal.css";
+import config from "../config";
 
 function ProductsGrid({ products, isAuthenticated }) {
   const navigate = useNavigate();
@@ -32,19 +33,20 @@ function ProductsGrid({ products, isAuthenticated }) {
   const closeModal = () => {
     setShowDeleteModal(false);
     setShowSuccessModal(false);
+    setTimeout(() => {
+      window.location.reload();
+    }, 100); 
   };
 
   const confirmDelete = async () => {
-    const token = localStorage.getItem("token");
-    console.log(productToDelete);
     try {
       await axios.delete(
-        `http://localhost:8000/products/delete/${productToDelete}`,
+        `${config.BACKEND_BASE_URL}/products/delete/${productToDelete}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          withCredentials: true,
         }
       );
 
@@ -74,12 +76,12 @@ function ProductsGrid({ products, isAuthenticated }) {
                 <Card.Img
                   variant="top"
                   className="trending-card-image"
-                  src={`http://localhost:8000/${product.image_path}`}
+                  src={`${config.BACKEND_BASE_URL}/${product.image_path}`}
                 />
                 <Card.Img
                   variant="top"
                   className="trending-card-hover"
-                  src={`http://localhost:8000/${product.image_path2}`}
+                  src={`${config.BACKEND_BASE_URL}/${product.image_path2}`}
                 />
               </Container>
             </Card.Body>

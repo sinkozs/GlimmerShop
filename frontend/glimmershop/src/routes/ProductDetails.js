@@ -11,6 +11,7 @@ import { Container, Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { FaTruck, FaRecycle, FaHandshake } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
+import config from "../config";
 
 function ProductDetails() {
   const { product_id } = useParams();
@@ -30,17 +31,17 @@ function ProductDetails() {
     const fetchProductData = async () => {
       try {
         const product = await axios.get(
-          `http://localhost:8000/products/${product_id}`
+          `${config.BACKEND_BASE_URL}/products/${product_id}`
         );
         setProductData(product.data);
 
         const category = await axios.get(
-          `http://localhost:8000/categories/product-categories?product_id=${product_id}`
+          `${config.BACKEND_BASE_URL}/categories/product-categories?product_id=${product_id}`
         );
         setProductCategory(category.data[0]);
 
         const seller = await axios.get(
-          `http://127.0.0.1:8000/users/public/${product.data.seller_id}`
+          `${config.BACKEND_BASE_URL}/users/public/${product.data.seller_id}`
         );
         setSellerData(seller.data);
         setAvailability(product.data.stock_quantity > 0);
@@ -58,7 +59,6 @@ function ProductDetails() {
       if (existingItem) {
         increaseQuantity(productData.id);
       } else {
-        console.log(`add product to cart with category: ${productCategory}`);
         addToCart({
           id: productData.id,
           name: productData.name,
@@ -105,14 +105,14 @@ function ProductDetails() {
           <Container fluid className="product-grid">
             <Container className="image-section" onClick={handleImageClick}>
               <img
-                src={`http://localhost:8000/${productData.image_path}`}
+                src={`${config.BACKEND_BASE_URL}/${productData.image_path}`}
                 alt={productData.name}
                 className={`image-col-1 product-image ${
                   currentImage === 1 ? "" : "hide-on-mobile"
                 }`}
               />
               <img
-                src={`http://localhost:8000/${productData.image_path2}`}
+                src={`${config.BACKEND_BASE_URL}/${productData.image_path2}`}
                 alt={productData.name}
                 className={`image-col-2 product-image ${
                   currentImage === 2 ? "" : "hide-on-mobile"

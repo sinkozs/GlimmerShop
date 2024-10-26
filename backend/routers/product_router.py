@@ -99,7 +99,6 @@ async def add_new_product(product: ProductCreate, current_user: dict = Depends(g
                           session: AsyncSession = Depends(get_session)):
     service = ProductService(session)
     product_controller = ProductController(service)
-    print(current_user)
     try:
         seller_id: UUID = current_user.get("id")
         print(seller_id)
