@@ -27,11 +27,11 @@ function Footer() {
         </Row>
       </Container>
       <Container fluid>
-        <div className="footer-content">
-          <p className="text-center">
+        <Container className="footer-content">
+          <section className="text-center">
             <a href="https://github.com/sinkozs">© Zsofia Sinko</a>
-          </p>
-        </div>
+          </section>
+        </Container>
       </Container>
     </footer>
   );

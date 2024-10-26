@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import Modal from "../components/Modal";
+import { Container } from "react-bootstrap";
 
 const CartContext = createContext();
 
@@ -106,11 +107,11 @@ export const CartProvider = ({ children }) => {
     >
       {children}
       <Modal show={showModal} onClose={closeModal} title="Sorry!">
-        <p>
+        <Container>
           We currently have only {stockQuantity}{" "}
           {stockQuantity === 1 ? "unit" : "units"} of this product in stock.
           Please adjust the quantity in your cart accordingly.
-        </p>
+        </Container>
       </Modal>
     </CartContext.Provider>
   );

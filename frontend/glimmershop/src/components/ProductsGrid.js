@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Container, Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Modal from "./Modal";  
+import Modal from "./Modal";
 import "../styles/ProductsByCategory.css";
 import "../App.css";
 import "../styles/Home.css";
@@ -12,7 +12,6 @@ import "../styles/Modal.css";
 function ProductsGrid({ products, isAuthenticated }) {
   const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [error, setError] = useState(null);
@@ -37,7 +36,7 @@ function ProductsGrid({ products, isAuthenticated }) {
 
   const confirmDelete = async () => {
     const token = localStorage.getItem("token");
-    console.log(productToDelete)
+    console.log(productToDelete);
     try {
       await axios.delete(
         `http://localhost:8000/products/delete/${productToDelete}`,
@@ -49,7 +48,6 @@ function ProductsGrid({ products, isAuthenticated }) {
         }
       );
 
-
       setShowDeleteModal(false);
       setShowSuccessModal(true);
     } catch (error) {
@@ -59,7 +57,7 @@ function ProductsGrid({ products, isAuthenticated }) {
   };
 
   if (!products || products.length === 0) {
-    return <div>No products available.</div>;
+    return <Container> No products available </Container>;
   }
 
   return (
@@ -118,24 +116,24 @@ function ProductsGrid({ products, isAuthenticated }) {
       </Container>
 
       <Modal show={showDeleteModal} onClose={closeModal} title="Warning!">
-        <p>Are you sure you want to delete this product?</p>
-        <div className="modal-footer">
+        <section>Are you sure you want to delete this product?</section>
+        <Container className="modal-footer">
           <button className="modal-btn confirm-btn" onClick={confirmDelete}>
             Confirm
           </button>
           <button className="modal-btn" onClick={closeModal}>
             Cancel
           </button>
-        </div>
+        </Container>
       </Modal>
 
       <Modal show={showSuccessModal} onClose={closeModal} title="Success">
-        <p>You successfully deleted the product.</p>
-        <div className="modal-footer">
+        <section>You successfully deleted the product.</section>
+        <Container className="modal-footer">
           <button className="modal-btn" onClick={closeModal}>
             OK
           </button>
-        </div>
+        </Container>
       </Modal>
     </Container>
   );

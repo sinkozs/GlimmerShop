@@ -77,11 +77,11 @@ function ProductDetails() {
   };
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <Container>Error: {error}</Container>;
   }
 
   if (!productData || !sellerData) {
-    return <div>Loading...</div>;
+    return <Container>Loading...</Container>;
   }
 
   const handleImageClick = () => {
@@ -132,35 +132,35 @@ function ProductDetails() {
 
             <Container fluid className="details-section" ref={detailsRef}>
               <h1 className="product-name">{productData.name}</h1>
-              <p className="product-price">${productData.price}</p>
-              <p className="seller">
+              <section className="product-price">${productData.price}</section>
+              <section className="seller">
                 Seller: {sellerData.first_name} {sellerData.last_name}
-              </p>
-              <p className="product-material">{productData.material}</p>
-              <p className="size-guide">Size Guide</p>
+              </section>
+              <section className="product-material">{productData.material}</section>
+              <section className="size-guide">Size Guide</section>
               <Container fluid className="stock-quantity-container">
-                <p className="stock-quantity">
+                <section className="stock-quantity">
                   {availability ? "✓ In Stock" : "✗ Out of Stock"}
-                </p>
+                </section>
               </Container>
               <Button onClick={handleAddToCart} className="add-to-bag-btn">
                 ADD TO BAG
               </Button>
               <Modal show={showModal} onClose={closeModal} title="Sorry!">
-                <p>This product is currently out of stock.</p>
+                <section>This product is currently out of stock.</section>
               </Modal>
               <Container fluid className="additional-info">
                 <Container fluid className="icon-container">
                   <FaTruck className="product-detail-fa-icon" />
-                  <p>Free Shipping on orders over $150</p>
+                  <section>Free Shipping on orders over $150</section>
                 </Container>
                 <Container fluid className="icon-container">
                   <FaRecycle className="product-detail-fa-icon" />
-                  <p>Free 30 Day Returns</p>
+                  <section>Free 30 Day Returns</section>
                 </Container>
                 <Container fluid className="icon-container">
                   <FaHandshake className="product-detail-fa-icon" />
-                  <p>2 Year Warranty</p>
+                  <section>2 Year Warranty</section>
                 </Container>
               </Container>
               <Container fluid className="expandable-section">
@@ -172,7 +172,7 @@ function ProductDetails() {
                 </Button>
                 {isDescriptionExpanded && (
                   <Container className="product-description">
-                    <p>{productData.description}</p>
+                    <section>{productData.description}</section>
                   </Container>
                 )}
 
@@ -184,7 +184,7 @@ function ProductDetails() {
                 </Button>
                 {isDetailsExpanded && (
                   <Container className="product-description">
-                    <p>{productData.description}</p>
+                    <section>{productData.description}</section>
                   </Container>
                 )}
               </Container>

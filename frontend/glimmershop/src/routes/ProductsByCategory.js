@@ -42,11 +42,11 @@ function ProductsByCategory() {
   };
 
   if (!categoryData || !products) {
-    return <div>Loading...</div>;
+    return <Container>Loading...</Container>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <Container>Error: {error}</Container>;
   }
 
   return (
@@ -62,9 +62,9 @@ function ProductsByCategory() {
           onProductsFetched={handleProductsFetched}
         />
         {error && (
-          <p style={{ color: "red" }}>
+          <section style={{ color: "red" }}>
             Error fetching products: {error.message}
-          </p>
+          </section>
         )}
       </Container>
 

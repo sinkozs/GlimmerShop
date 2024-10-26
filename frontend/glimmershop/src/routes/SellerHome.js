@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Container, Form, Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -61,7 +61,7 @@ function SellerHome() {
     <Container fluid className="seller-home-wrapper">
       <Container fluid className="seller-home-header-section">
         {sellerData && <h1>Hello {sellerData.first_name}!</h1>}
-        {error && <p>{error}</p>}
+        {error && <section>{error}</section>}
 
         <Form onSubmit={handleSearch} className="seller-home-searchbar">
           <Form.Control

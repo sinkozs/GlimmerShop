@@ -7,7 +7,6 @@ function FilterBySeller({ resetFilter, onSellerSelected }) {
   const [isSellerFilterExpanded, setIsSellerFilterExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sellers, setSellers] = useState([]);
-  const [products, setProducts] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [error, setError] = useState(null);
 
@@ -93,7 +92,7 @@ function FilterBySeller({ resetFilter, onSellerSelected }) {
               )}
             </ListGroup>
           )}
-          {error && <p className="error-message">{error}</p>}
+          {error && <section className="error-message">{error}</section>}
         </Container>
       )}
     </Container>

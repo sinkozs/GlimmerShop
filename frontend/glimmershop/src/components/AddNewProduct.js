@@ -4,7 +4,6 @@ import "../App.css";
 import "../styles/AddNewProduct.css";
 import "../styles/LoginAndSignup.css";
 import Modal from "./Modal";
-import { useNavigate } from "react-router-dom";
 import { Container, Form, Button } from "react-bootstrap";
 import { v4 as uuidv4 } from "uuid";
 
@@ -20,8 +19,9 @@ function AddNewProduct() {
   const [productId, setProductId] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
-  const seller_id = localStorage.getItem("sellerId");
-  const token = localStorage.getItem("token");
+  const seller_id = localStorage.getItem("seller_id");
+  
+
 
   function generateUniqueFileName(file) {
     const fileExtension = file.name.split(".").pop();
@@ -40,18 +40,14 @@ function AddNewProduct() {
       material: material,
       color: color,
     };
+    console.log("seller id")
+    console.log(seller_id)
   
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/products/new",
-        productData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.post("http://127.0.0.1:8000/products/new", productData, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
   
       const productId = response.data;
       setProductId(productId);
@@ -69,6 +65,7 @@ function AddNewProduct() {
             headers: {
               "Content-Type": "multipart/form-data",
             },
+            withCredentials: true,
           }
         );
       }
@@ -86,6 +83,7 @@ function AddNewProduct() {
             headers: {
               "Content-Type": "multipart/form-data",
             },
+            withCredentials: true,
           }
         );
       }
@@ -213,7 +211,7 @@ function AddNewProduct() {
               </Button>
             </Form>
             <Modal show={showModal} onClose={closeModal} title="Yay!">
-              <p>You successfully uploaded this product.</p>
+              <section>You successfully uploaded this product.</section>
             </Modal>
           </>
         </Container>

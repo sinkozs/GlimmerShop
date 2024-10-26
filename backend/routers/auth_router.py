@@ -1,7 +1,9 @@
 from uuid import UUID
 
 import redis.asyncio as aioredis
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, Request
+
+from config.parser import load_config
 from controllers.auth_controller import AuthController
 from pydantic import EmailStr
 from services.auth_service import AuthService
@@ -9,7 +11,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from dependencies import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from dependencies import get_current_user
-
+from jose import jwt, JWTError
 from models.database import get_redis
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -17,7 +19,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/verify-pw")
 def verify_password(password1, password2,
-                session: AsyncSession = Depends(get_session)):
+                    session: AsyncSession = Depends(get_session)):
     service = AuthService(session)
     auth_controller = AuthController(service)
     try:
@@ -28,24 +30,57 @@ def verify_password(password1, password2,
 
 @router.post("/login")
 async def login(is_seller: bool, response: Response, form_data: OAuth2PasswordRequestForm = Depends(),
-                session: AsyncSession = Depends(get_session), redis: aioredis.Redis = Depends(get_redis)):
+                session: AsyncSession = Depends(get_session)):
     service = AuthService(session)
     auth_controller = AuthController(service)
     try:
-        return await auth_controller.login_for_access_token(is_seller, response, redis, form_data)
+        return await auth_controller.login_for_access_token(is_seller, response, form_data)
     except HTTPException as e:
         raise e
 
 
+@router.get("/test")
+async def test_cookie_jwt(request: Request):
+    token = request.cookies.get("glimmershop_successful_login")
+
+    if not token:
+        raise HTTPException(status_code=403, detail="No token found")
+
+    try:
+        auth_config = load_config().auth_config
+        payload = jwt.decode(token, auth_config.secret_key, algorithms=["HS256"])
+        return {"token_payload": payload}
+    except JWTError:
+        raise HTTPException(status_code=403, detail="Invalid token")
+
+
+@router.get("/is-authenticated")
+async def check_if_user_authenticated(current_user: dict = Depends(get_current_user)):
+    return {"is_authenticated": True, "user_id": current_user["user_id"]}
+
+
 @router.post("/logout")
-async def user_logout(current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+async def user_logout(
+        response: Response,
+        current_user: dict = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session)
+):
     service = AuthService(session)
     auth_controller = AuthController(service)
+
+    if not current_user:
+        raise HTTPException(status_code=403, detail="Not authenticated")
+
     try:
+        response.delete_cookie(key="glimmershop_successful_login", httponly=True)
+
         user_id: UUID = current_user.get("id")
         if not user_id:
             raise HTTPException(status_code=400, detail="Missing user ID")
-        return await auth_controller.user_logout(user_id)
+
+        await auth_controller.user_logout(user_id)
+
+        return {"message": "Logout successful"}
     except HTTPException as e:
         raise e
 
@@ -54,7 +89,6 @@ async def user_logout(current_user: dict = Depends(get_current_user), session: A
 async def regenerate_forgotten_password(email: EmailStr, session: AsyncSession = Depends(get_session)):
     service = AuthService(session)
     auth_controller = AuthController(service)
-    print(f"email: {email}, type: {type(email)}")
     try:
         return await auth_controller.regenerate_forgotten_password(email)
     except HTTPException as e:

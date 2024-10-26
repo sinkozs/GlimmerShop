@@ -1,5 +1,6 @@
 import React from 'react';
 import '../styles/Modal.css';
+import { Container } from 'react-bootstrap';
 
 const Modal = ({ show, onClose, title, children }) => {
   if (!show) {
@@ -7,19 +8,19 @@ const Modal = ({ show, onClose, title, children }) => {
   }
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
+    <Container className="modal-overlay">
+      <Container className="modal-content">
+        <Container className="modal-header">
           <h4 className="modal-title">{title}</h4>
           <button className="close-button" onClick={onClose}>
             &times;
           </button>
-        </div>
-        <div className="modal-body">
+        </Container>
+        <Container className="modal-body">
           {children}
-        </div>
-      </div>
-    </div>
+        </Container>
+      </Container>
+    </Container>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import "../App.css";
 import "../styles/LoginAndSignup.css";
@@ -17,8 +17,7 @@ function EditProduct() {
   const [image2, setImage2] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
-  const seller_id = localStorage.getItem("sellerId");
-  const token = localStorage.getItem("token");
+  const token = useMemo(() => localStorage.getItem("token"), []);
   const { product_id } = useParams();
 
   useEffect(() => {
@@ -183,7 +182,7 @@ function EditProduct() {
               </Button>
             </Form>
             <Modal show={showModal} onClose={closeModal} title="Yay!">
-              <p>You successfully edited this product.</p>
+              <section>You successfully edited this product.</section>
             </Modal>
           </>
         </Container>

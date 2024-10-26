@@ -53,7 +53,7 @@ function TrendingJewelry() {
   return (
     <Container fluid className="trending-section-wrapper">
       {error && (
-        <p style={{ color: "red" }}>Error fetching products: {error.message}</p>
+        <section style={{ color: "red" }}>Error fetching products: {error.message}</section>
       )}
 
       <Container fluid className="trending-section-grid" ref={scrollRef}>
@@ -68,7 +68,7 @@ function TrendingJewelry() {
               onClick={() => handleCardClick(product.id)}
             >
               <Card.Body className="trending-card-body">
-                <div className="image-container">
+                <Container className="image-container">
                   <Card.Img
                     variant="top"
                     className="trending-card-image"
@@ -79,7 +79,7 @@ function TrendingJewelry() {
                     className="trending-card-hover"
                     src={`http://localhost:8000/${product.image_path2}`}
                   />
-                </div>
+                </Container>
               </Card.Body>
               <Card.Footer className="card-footer">
                 <Card.Text className="footer-text">{product.name}</Card.Text>
@@ -90,7 +90,7 @@ function TrendingJewelry() {
             </Card>
           ))
         ) : (
-          <p>No products available.</p>
+          <section>No products available.</section>
         )}
       </Container>
       <Container className="arrow right-arrow" onClick={scrollRight}>

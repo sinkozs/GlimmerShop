@@ -7,6 +7,7 @@ from sqlalchemy.future import select
 from typing import Optional
 from pydantic import EmailStr
 from fastapi import status, Response, Request
+from fastapi.responses import JSONResponse
 from jose import jwt
 import secrets
 import string
@@ -28,7 +29,6 @@ class AuthService:
         self.db = session
         self.auth_config = load_config().auth_config
 
-
     def verify_password(self, plain_password, hashed_password) -> bool:
         return bcrypt_context.verify(plain_password, hashed_password)
 
@@ -47,12 +47,9 @@ class AuthService:
 
         return password
 
-    def create_access_token(self, user_id: UUID, email: EmailStr, expires_delta: Optional[timedelta] = None) -> str:
+    def create_access_token(self, user_id: UUID, email: EmailStr) -> str:
         encode = {"id": str(user_id), "email": str(email)}
-        if expires_delta:
-            expire = datetime.now() + expires_delta
-        else:
-            expire = datetime.now() + timedelta(minutes=self.auth_config.token_expiry_minutes)
+        expire = datetime.now() + timedelta(minutes=self.auth_config.token_expiry_minutes)
         encode.update({"exp": expire})
         return jwt.encode(encode, self.auth_config.secret_key, algorithm=ALGORITHM)
 
@@ -63,17 +60,27 @@ class AuthService:
             response.set_cookie(key="session_id", value=session_id)
         return session_id
 
-    async def create_redis_session(self, response: Response, redis: aioredis.Redis, user_id: Optional[UUID] = None) -> str:
+    async def create_redis_session(self, response: Response, redis: aioredis.Redis,
+                                   user_id: Optional[UUID] = None) -> str:
         session_id = generate_session_id()
         session_data = {"user_id": str(user_id)} if user_id else {}
         await redis.set(session_id, json.dumps(session_data))
         response.set_cookie(key="session_id", value=session_id, httponly=True, secure=True, samesite='Lax')
         return session_id
-        
-    def create_user_token(self, user: dict):
-        cfg = load_config()
-        user_token_expires = timedelta(minutes=self.auth_config.token_expiry_minutes)
-        return self.create_access_token(user["id"], user["email"], expires_delta=user_token_expires)
+
+    async def set_response_cookie(self, user_id: UUID, email: EmailStr, response: Response):
+        access_token = self.create_access_token(user_id=user_id, email=email)
+        sign_in_response = JSONResponse(content={"message": "Login successful"})
+        response.set_cookie(
+            key="glimmershop_successful_login",
+            value=access_token,
+            httponly=True,
+            max_age=3600,
+            expires=3600,
+            samesite="lax",
+            secure=False
+        )
+        return sign_in_response
 
     async def authenticate_user(self, email: EmailStr, password: str) -> dict:
         async with self.db.begin():
@@ -134,7 +141,6 @@ class AuthService:
         except SQLAlchemyError:
             raise AuthenticationException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                           detail="An error occurred when accessing the database!")
-
 
     async def user_logout(self, user_id: UUID):
         try:

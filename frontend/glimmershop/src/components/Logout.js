@@ -43,7 +43,7 @@ function Logout() {
   return (
     <Container>
       <Button onClick={handleLogout}>Logout</Button>
-      {error && <p>{error}</p>}
+      {error && <section>{error}</section>}
     </Container>
   );
 }

@@ -35,7 +35,7 @@ function Home() {
       <TrendingJewelry />
 
       <Modal show={showModal} onClose={closeModal} title="Yay!">
-        <p>We received your order!</p>
+        <section>We received your order!</section>
       </Modal>
     </Container>
   );

@@ -42,6 +42,7 @@ function Header() {
   }, [cart.length]);
 
   const handleLogout = () => {
+    console.log("logout")
     logout();
     navigate("/");
   };
@@ -223,7 +224,7 @@ function Header() {
               <Checkout userCart={cart} deleteCart={deleteCart} />
             </Container>
           ) : (
-            <p>Your cart is empty.</p>
+            <section>Your cart is empty.</section>
           )}
         </Container>
       )}

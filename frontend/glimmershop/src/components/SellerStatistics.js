@@ -220,7 +220,7 @@ function SellerStatistics() {
           onClose={closeModal}
           title="No transactions were found!"
         >
-          <p>{error}</p>
+          <section>{error}</section>
         </Modal>
         {dataLoaded && (
           <>

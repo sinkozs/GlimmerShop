@@ -36,9 +36,9 @@ function CategoryGrid() {
         {categories.map((category, idx) => (
           <Card key={idx} className="category-card" onClick={() => handleCategoryClick(category.name.toLowerCase())}>
             <Card.Body className="card-body">
-              <div className="card-content" style={{ backgroundImage: `url(${category.img})` }}>
-                <div className="hover-overlay" style={{ backgroundImage: `url(${category.hoverImg})` }}></div>
-              </div>
+              <Container className="card-content" style={{ backgroundImage: `url(${category.img})` }}>
+                <Container className="hover-overlay" style={{ backgroundImage: `url(${category.hoverImg})` }}></Container>
+              </Container>
             </Card.Body>
             <Card.Footer className="card-footer">
               <Card.Text className="footer-text">{category.name}</Card.Text>

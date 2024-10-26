@@ -13,25 +13,25 @@ class AuthController:
     def __init__(self, service: AuthService):
         self._service = service
 
-    async def login_for_access_token(self, is_seller: bool, response: Response, redis: aioredis.Redis,
+    async def login_for_access_token(self, is_seller: bool, response: Response,
                                      form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
         email = form_data.username
         password = form_data.password
+
         if not is_seller:
             user = await self._service.authenticate_user(email, password)
-            token = self._service.create_user_token(user)
             if user:
-                user_id = user["id"]
-                session_id = await self.get_redis_session(response, redis, user_id)
-                return {"user_token": token, "user_id": user_id, "session_id": session_id}
+                response = await self._service.set_response_cookie(user["id"], user["email"], response)
+                return {"response": response, "user_id": user["id"]}
+
         elif is_seller:
             seller = await self._service.authenticate_seller(email, password)
-            token = self._service.create_user_token(seller)
-
             if seller:
-                seller_id = seller["id"]
-                session_id = await self.get_redis_session(response, redis, seller_id)
-                return {"seller_token": token, "seller_id": seller_id, "session_id": session_id}
+                response = await self._service.set_response_cookie(seller["id"], seller["email"], response)
+                print(f"response: {response},  seller_id: {seller['id']}")
+                return {"response": response, "seller_id": seller["id"]}
+
+        raise HTTPException(status_code=400, detail="Invalid credentials")
 
     async def get_redis_session(self, response: Response, redis: aioredis.Redis, user_id: Optional[UUID] = None):
         session_id = await self._service.create_redis_session(response, redis, user_id)

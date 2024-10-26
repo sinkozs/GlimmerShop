@@ -13,6 +13,7 @@ import EditProduct from "./components/EditProduct";
 import SellerStatistics from "./components/SellerStatistics";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
+import { Container } from "react-bootstrap";
 
 const ProductDetails = lazy(() => import("./routes/ProductDetails"));
 const ProductsByCategory = lazy(() => import("./routes/ProductsByCategory"));
@@ -22,9 +23,9 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <div className="app-container">
+          <Container className="app-container">
             <Header />
-            <div className="content-container">
+            <Container className="content-container">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/sign-in" element={<LoginAndSignup />} />
@@ -36,7 +37,7 @@ function App() {
                         isAuthenticated ? (
                           <Suspense
                             fallback={
-                              <div>Loading Add new product page...</div>
+                              <Container>Loading Add new product page...</Container>
                             }
                           >
                             <AddNewProduct />
@@ -56,7 +57,7 @@ function App() {
                         isAuthenticated ? (
                           <Suspense
                             fallback={
-                              <div>Loading statistics...</div>
+                              <Container>Loading statistics...</Container>
                             }
                           >
                             <SellerStatistics />
@@ -75,7 +76,7 @@ function App() {
                       {({ isAuthenticated }) =>
                         isAuthenticated ? (
                           <Suspense
-                            fallback={<div>Loading your profile...</div>}
+                            fallback={<Container>Loading your profile...</Container>}
                           >
                             <EditUser />
                           </Suspense>
@@ -90,7 +91,7 @@ function App() {
                   path="/seller/:seller_id"
                   element={
                     <Suspense
-                      fallback={<div>Loading Seller Admin page...</div>}
+                      fallback={<Container>Loading Seller Admin page...</Container>}
                     >
                       <SellerHome />
                     </Suspense>
@@ -99,7 +100,7 @@ function App() {
                 <Route
                   path="/products/:product_id"
                   element={
-                    <Suspense fallback={<div>Loading Product Details...</div>}>
+                    <Suspense fallback={<Container>Loading Product Details...</Container>}>
                       <ProductDetails />
                     </Suspense>
                   }
@@ -111,7 +112,7 @@ function App() {
                       {({ isAuthenticated }) =>
                         isAuthenticated ? (
                           <Suspense
-                            fallback={<div>Loading product details...</div>}
+                            fallback={<Container>Loading product details...</Container>}
                           >
                             <EditProduct />
                           </Suspense>
@@ -126,15 +127,15 @@ function App() {
                 <Route
                   path="categories/:category_name"
                   element={
-                    <Suspense fallback={<div>Loading Products...</div>}>
+                    <Suspense fallback={<Container>Loading Products...</Container>}>
                       <ProductsByCategory />
                     </Suspense>
                   }
                 />
               </Routes>
-            </div>
+            </Container>
             <Footer />
-          </div>
+          </Container>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

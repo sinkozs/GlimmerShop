@@ -125,7 +125,7 @@ function EditUser() {
             </Button>
           </Form>
           <Modal show={showModal} onClose={closeModal} title="Yay!">
-            <p>You successfully updated your profile.</p>
+            <section>You successfully updated your profile.</section>
           </Modal>
         </Container>
       </Container>

@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Request
 from dependencies import get_session
 from controllers.product_controller import ProductController
 from services.product_service import ProductService
@@ -99,12 +99,13 @@ async def add_new_product(product: ProductCreate, current_user: dict = Depends(g
                           session: AsyncSession = Depends(get_session)):
     service = ProductService(session)
     product_controller = ProductController(service)
+    print(current_user)
     try:
         seller_id: UUID = current_user.get("id")
+        print(seller_id)
         if not seller_id:
             raise HTTPException(status_code=400, detail="Missing seller ID")
         product_id = await product_controller.add_new_product(seller_id, product)
-        print(f"New prod id: {product_id}")
         return product_id
     except HTTPException as e:
         raise e

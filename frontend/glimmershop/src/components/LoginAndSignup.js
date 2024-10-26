@@ -8,6 +8,7 @@ import { Container, Form, Button } from "react-bootstrap";
 import Modal from "./Modal";
 
 function LoginAndSignup() {
+  const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -20,7 +21,6 @@ function LoginAndSignup() {
   const [showModal, setShowModal] = useState(false);
   const [showSuccessfulSignupModal, setShowSuccessfulSignupModal] =
     useState(false);
-  const { login } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
@@ -40,46 +40,53 @@ function LoginAndSignup() {
     formData.append("grant_type", "password");
     formData.append("username", email);
     formData.append("password", password);
-    // only handle sellers now
-    await axios
-      .post("http://127.0.0.1:8000/auth/login?is_seller=true", formData, {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      })
-      .then((response) => {
-        const token = response.data.seller_token;
-        login(token);
-        localStorage.setItem("token", token);
-        setEmail("");
-        setPassword("");
-        setPasswordLength("");
 
-        const sellerId = response.data.seller_id;
-        navigate(`/seller/${sellerId}`, { state: { sellerId } });
-        localStorage.setItem("sellerId", sellerId);
-      })
-      .catch((error) => {
-        if (error.response) {
-          setError(error.response.data.detail);
-          setShowModal(true);
-        } else if (error.request) {
-          setError("No response from server. Please try again.");
-          setShowModal(true);
-        } else {
-          setError("An unexpected error occurred. Please try again.");
-          setShowModal(true);
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/auth/login?is_seller=true",
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          withCredentials: true,
         }
-      });
+      );
+
+      const sellerId = response.data.seller_id;
+      localStorage.setItem("seller_id", sellerId);
+
+      setEmail("");
+      setPassword("");
+      if (response.status === 200) {
+        console.log("Login OK")
+        console.log(response.data)
+        login();
+        navigate(`/seller/${sellerId}`, { state: { sellerId } });
+      }
+    } catch (error) {
+      if (error.response) {
+        setError(error.response.data.detail);
+        setShowModal(true);
+      } else if (error.request) {
+        setError("No response from server. Please try again.");
+        setShowModal(true);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+        setShowModal(true);
+      }
+    }
   };
 
   const handleForgotPasswordSubmit = async (event) => {
     event.preventDefault();
-  
+
     const encodedEmail = encodeURIComponent(email);
-  
+
     await axios
-      .post(`http://127.0.0.1:8000/auth/forgotten-password?email=${encodedEmail}`)
+      .post(
+        `http://127.0.0.1:8000/auth/forgotten-password?email=${encodedEmail}`
+      )
       .then((response) => {
         setEmail("");
         setError(null);
@@ -90,11 +97,10 @@ function LoginAndSignup() {
         setError(error.response.data.detail);
       });
   };
-  
 
   const handleSignUpSubmit = async (event) => {
     event.preventDefault();
-  
+
     const formData = {
       first_name: firstName,
       last_name: lastName,
@@ -103,10 +109,13 @@ function LoginAndSignup() {
       is_seller: isSeller,
       password_length: password.length,
     };
-  
+
     try {
-      const response = await axios.post("http://127.0.0.1:8000/users/new", formData);
-      
+      const response = await axios.post(
+        "http://127.0.0.1:8000/users/new",
+        formData
+      );
+
       if (response.status === 200) {
         setFirstName("");
         setLastName("");
@@ -116,7 +125,7 @@ function LoginAndSignup() {
         setIsSeller(false);
         setError(null);
         setIsSignup(false);
-  
+
         setShowSuccessfulSignupModal(true);
       }
     } catch (error) {
@@ -125,7 +134,6 @@ function LoginAndSignup() {
       setShowModal(true);
     }
   };
-  
 
   const closeModal = () => {
     setShowModal(false);
@@ -142,10 +150,10 @@ function LoginAndSignup() {
           {isForgotPassword ? (
             <>
               <h1 className="login-form-h1">Forgot Your Password?</h1>
-              <p>
+              <section>
                 We’ll send instructions to reset your password to the email
                 below.
-              </p>
+              </section>
               <Form onSubmit={handleForgotPasswordSubmit} className="form">
                 <Form.Group controlId="formEmail" className="form-group">
                   <Form.Control
@@ -227,10 +235,10 @@ function LoginAndSignup() {
                 onClose={closeSuccessfulSignupModal}
                 title="Yay!"
               >
-                <p>
+                <section>
                   You successfully signed up to Glimmershop. Please check your
                   inbox and verify your account.
-                </p>
+                </section>
               </Modal>
               <Button onClick={handleBackToLogin} className="back-to-login-btn">
                 Back to Login
@@ -266,7 +274,7 @@ function LoginAndSignup() {
                 </Button>
               </Form>
               <Modal show={showModal} onClose={closeModal} title="Login Error">
-                <p>{error}</p>
+                <section>{error}</section>
               </Modal>
               <Container fluid className="login-form-footer">
                 <Button
