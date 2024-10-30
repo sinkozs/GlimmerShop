@@ -41,6 +41,7 @@ async def login(is_seller: bool, response: Response, form_data: OAuth2PasswordRe
 
 @router.get("/test")
 async def test_cookie_jwt(request: Request):
+    print("test")
     token = request.cookies.get("glimmershop_successful_login")
 
     if not token:

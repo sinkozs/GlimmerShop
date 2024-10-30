@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { FaUser, FaShoppingCart, FaBars } from "react-icons/fa";
 import { Container, Button } from "react-bootstrap";
 import { useCart } from "../context/CartContext";
@@ -24,7 +24,6 @@ function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { isAuthenticated, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
 
   const toggleCartDropdown = () => {
     if (cart.length > 0) {
@@ -44,7 +43,6 @@ function Header() {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
   };
 
   return (

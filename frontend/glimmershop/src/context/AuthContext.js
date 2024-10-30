@@ -1,24 +1,35 @@
 import React, { createContext, useState, useEffect } from "react";
-import axios from "axios";
-import config from "../config";
+import { useNavigate } from "react-router-dom";
+import apiClient from "../apiConfig";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
+  // Periodically check for authentication status to handle session expiration
   useEffect(() => {
-  }, [isAuthenticated]);
+    const interval = setInterval(checkAuth, 20 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get(`${config.BACKEND_BASE_URL}/auth/test`, {
-        withCredentials: true,
-      });
+      await apiClient.get("/auth/test");
       setIsAuthenticated(true);
     } catch (error) {
-      setIsAuthenticated(false);
+      if (error.response?.status === 403) {
+        setIsAuthenticated(false);
+        handleLogout();
+      }
     }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    navigate("/sign-in");
   };
 
   const login = () => {
@@ -27,19 +38,11 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      const response = await axios.post(
-        `${config.BACKEND_BASE_URL}/auth/logout`,
-        {},
-        {
-          withCredentials: true,
-        }
-      );
+      await apiClient.post("/auth/logout", {});
       setIsAuthenticated(false);
+      navigate("/sign-in");
     } catch (error) {
-      console.error(
-        "Logout failed:",
-        error.response ? error.response.data : error
-      );
+      console.error("Logout failed:", error.response?.data || error.message);
     }
   };
 
