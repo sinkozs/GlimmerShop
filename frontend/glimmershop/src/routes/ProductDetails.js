@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 
 import axios from "axios";
 import "../App.css";
@@ -11,6 +11,7 @@ import { Container, Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { FaTruck, FaRecycle, FaHandshake } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
+import { AuthContext } from "../context/AuthContext";
 import config from "../config";
 
 function ProductDetails() {
@@ -26,6 +27,7 @@ function ProductDetails() {
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
   const detailsRef = useRef(null);
+  const { isAuthenticated } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -136,16 +138,21 @@ function ProductDetails() {
               <section className="seller">
                 Seller: {sellerData.first_name} {sellerData.last_name}
               </section>
-              <section className="product-material">{productData.material}</section>
+              <section className="product-material">
+                {productData.material}
+              </section>
               <section className="size-guide">Size Guide</section>
               <Container fluid className="stock-quantity-container">
                 <section className="stock-quantity">
                   {availability ? "✓ In Stock" : "✗ Out of Stock"}
                 </section>
               </Container>
-              <Button onClick={handleAddToCart} className="add-to-bag-btn">
-                ADD TO BAG
-              </Button>
+              {!isAuthenticated && (
+                <Button onClick={handleAddToCart} className="add-to-bag-btn">
+                  ADD TO BAG
+                </Button>
+              )}
+
               <Modal show={showModal} onClose={closeModal} title="Sorry!">
                 <section>This product is currently out of stock.</section>
               </Modal>

@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./routes/Home";
 import LoginAndSignup from "./components/LoginAndSignup";
+import DeleteUser from "./components/DeleteUser";
 import EditUser from "./components/EditUser";
 import SellerHome from "./routes/SellerHome";
 import AddNewProduct from "./components/AddNewProduct";
@@ -79,6 +80,24 @@ function App() {
                             fallback={<Container>Loading your profile...</Container>}
                           >
                             <EditUser />
+                          </Suspense>
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    </AuthContext.Consumer>
+                  }
+                />
+                                <Route
+                  path="/profile/delete"
+                  element={
+                    <AuthContext.Consumer>
+                      {({ isAuthenticated }) =>
+                        isAuthenticated ? (
+                          <Suspense
+                            fallback={<Container>Loading your profile...</Container>}
+                          >
+                            <DeleteUser />
                           </Suspense>
                         ) : (
                           <Navigate to="/" />

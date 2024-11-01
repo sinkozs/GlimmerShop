@@ -4,6 +4,7 @@ import "../App.css";
 import "../styles/LoginAndSignup.css";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import config from "../config";
 
 function EditUser() {
@@ -14,6 +15,7 @@ function EditUser() {
   const [passwordLength, setPasswordLength] = useState(0);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -35,6 +37,10 @@ function EditUser() {
 
     fetchUserData();
   }, []);
+
+  const handleDeleteProfile = () => {
+    navigate(`/profile/delete`);
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -123,6 +129,9 @@ function EditUser() {
               SAVE
             </Button>
           </Form>
+          <Button className="sign-up-btn" onClick={handleDeleteProfile}>
+            Delete your profile
+          </Button>
           <Modal show={showModal} onClose={closeModal} title="Yay!">
             <section>You successfully updated your profile.</section>
           </Modal>
