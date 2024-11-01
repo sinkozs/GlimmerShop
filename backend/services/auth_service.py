@@ -1,12 +1,8 @@
-import json
-
-import redis.asyncio as aioredis
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
-from typing import Optional
 from pydantic import EmailStr
-from fastapi import status, Response, Request
+from fastapi import status, Response
 from fastapi.responses import JSONResponse
 from jose import jwt
 import secrets
@@ -15,12 +11,10 @@ from datetime import datetime, timedelta
 from uuid import UUID
 
 from models.models import User
-from config.auth_config import ALGORITHM, bcrypt_context
+from config.auth_config import bcrypt_context, encryption_algorithm, http_only_auth_cookie
 from exceptions.auth_exceptions import AuthenticationException
 from dependencies import db_model_to_dict, send_password_reset_email, hash_password
 from config.parser import load_config
-
-from dependencies import generate_session_id
 
 
 class AuthService:
@@ -51,28 +45,13 @@ class AuthService:
         encode = {"id": str(user_id), "email": str(email)}
         expire = datetime.now() + timedelta(minutes=self.auth_config.token_expiry_minutes)
         encode.update({"exp": expire})
-        return jwt.encode(encode, self.auth_config.secret_key, algorithm=ALGORITHM)
-
-    async def get_redis_session(self, request: Request, response: Response, redis: aioredis.Redis) -> str:
-        session_id = request.cookies.get('session_id')
-        if not session_id:
-            session_id = generate_session_id()
-            response.set_cookie(key="session_id", value=session_id)
-        return session_id
-
-    async def create_redis_session(self, response: Response, redis: aioredis.Redis,
-                                   user_id: Optional[UUID] = None) -> str:
-        session_id = generate_session_id()
-        session_data = {"user_id": str(user_id)} if user_id else {}
-        await redis.set(session_id, json.dumps(session_data))
-        response.set_cookie(key="session_id", value=session_id, httponly=True, secure=True, samesite='Lax')
-        return session_id
+        return jwt.encode(encode, self.auth_config.secret_key, algorithm=encryption_algorithm)
 
     async def set_response_cookie(self, user_id: UUID, email: EmailStr, response: Response):
         access_token = self.create_access_token(user_id=user_id, email=email)
         sign_in_response = JSONResponse(content={"message": "Login successful"})
         response.set_cookie(
-            key="glimmershop_successful_login",
+            key=http_only_auth_cookie,
             value=access_token,
             httponly=True,
             max_age=3600,

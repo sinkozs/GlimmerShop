@@ -1,9 +1,8 @@
 from uuid import UUID
-
-import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
 
 from config.parser import load_config
+from config.auth_config import http_only_auth_cookie
 from controllers.auth_controller import AuthController
 from pydantic import EmailStr
 from services.auth_service import AuthService
@@ -12,7 +11,7 @@ from dependencies import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from dependencies import get_current_user
 from jose import jwt, JWTError
-from models.database import get_redis
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -42,7 +41,7 @@ async def login(is_seller: bool, response: Response, form_data: OAuth2PasswordRe
 @router.get("/test")
 async def test_cookie_jwt(request: Request):
     print("test")
-    token = request.cookies.get("glimmershop_successful_login")
+    token = request.cookies.get(http_only_auth_cookie)
 
     if not token:
         raise HTTPException(status_code=403, detail="No token found")
@@ -73,7 +72,7 @@ async def user_logout(
         raise HTTPException(status_code=403, detail="Not authenticated")
 
     try:
-        response.delete_cookie(key="glimmershop_successful_login", httponly=True)
+        response.delete_cookie(key=http_only_auth_cookie, httponly=True)
 
         user_id: UUID = current_user.get("id")
         if not user_id:

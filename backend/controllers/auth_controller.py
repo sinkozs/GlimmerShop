@@ -1,7 +1,3 @@
-from typing import Optional
-from uuid import UUID
-
-import redis.asyncio as aioredis
 from fastapi import Depends, HTTPException, Response
 from exceptions.auth_exceptions import AuthenticationException
 from pydantic import EmailStr
@@ -32,10 +28,6 @@ class AuthController:
                 return {"response": response, "seller_id": seller["id"]}
 
         raise HTTPException(status_code=400, detail="Invalid credentials")
-
-    async def get_redis_session(self, response: Response, redis: aioredis.Redis, user_id: Optional[UUID] = None):
-        session_id = await self._service.create_redis_session(response, redis, user_id)
-        return session_id
 
     async def user_logout(self, user: dict):
         try:

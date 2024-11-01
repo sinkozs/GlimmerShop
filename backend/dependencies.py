@@ -2,13 +2,13 @@ from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, Request, HTTPException, status
+from fastapi import Request
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import EmailStr
 from jose import jwt
 
-from config.auth_config import ALGORITHM, oauth2_bearer, bcrypt_context
+from config.auth_config import encryption_algorithm, bcrypt_context, http_only_auth_cookie
 from config.parser import load_config
 from schemas.schemas import SelectedMonthForSellerStatistics
 import random
@@ -72,54 +72,13 @@ async def get_optional_token_from_cookie(request: Request):
     return request.cookies.get("user_token")
 
 
-# async def get_current_user(
-#         user_token: Optional[str] = Depends(get_optional_token),
-#         user_token_from_cookie: Optional[str] = Depends(get_optional_token_from_cookie)
-# ) -> Optional[dict]:
-#     user_token = user_token or user_token_from_cookie
-#
-#     if user_token is None:
-#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-#
-#     try:
-#         auth_config = load_config().auth_config
-#         payload = jwt.decode(user_token, auth_config.secret_key, algorithms=["HS256"])
-#
-#         email: EmailStr = payload.get("email")
-#         user_id: UUID = payload.get("id")
-#
-#         if email is None or user_id is None:
-#             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-#
-#         print(f"get_current_user: {email}, {user_id}")
-#         return {"email": email, "user_id": user_id}
-#
-#     except JWTError:
-#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is invalid or expired")
-
-# async def get_current_user(user_token: Optional[str] = Depends(get_optional_token)) -> Optional[dict]:
-#     if user_token is None:
-#         return None
-#     try:
-#         auth_config = load_config().auth_config
-#         payload = jwt.decode(user_token, auth_config.secret_key, algorithms=[ALGORITHM])
-#         email: EmailStr = payload.get("email")
-#         user_id: UUID = payload.get("id")
-#
-#         if email is None or user_id is None:
-#             return None
-#         return {"email": email, "id": user_id}
-#
-#     except JWTError:
-#         return None
-
 async def get_current_user(request: Request) -> dict:
-    token = request.cookies.get("glimmershop_successful_login")
+    token = request.cookies.get(http_only_auth_cookie)
     if not token:
         return {"error": "No token found"}
     try:
         auth_config = load_config().auth_config
-        payload = jwt.decode(token, auth_config.secret_key, algorithms=["HS256"])
+        payload = jwt.decode(token, auth_config.secret_key, algorithms=[encryption_algorithm])
         email: EmailStr = payload.get("email")
         user_id: UUID = payload.get("id")
         return {"email": email, "id": user_id}
