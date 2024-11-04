@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "../App.css";
 import "../styles/AddNewProduct.css";
@@ -20,8 +20,12 @@ function AddNewProduct() {
   const [image2, setImage2] = useState(null);
   const [productId, setProductId] = useState("");
   const [categoryList, setCategoryList] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
+
+  const image1Ref = useRef(null);
+  const image2Ref = useRef(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -48,6 +52,14 @@ function AddNewProduct() {
     return `${uuidv4()}.${fileExtension}`;
   };
 
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -58,6 +70,7 @@ function AddNewProduct() {
       stock_quantity: stockQuantity,
       material: material,
       color: color,
+      categories: selectedCategories,
     };
 
     try {
@@ -107,6 +120,9 @@ function AddNewProduct() {
       setColor("");
       setImage1(null);
       setImage2(null);
+      image1Ref.current.value = null;
+      image2Ref.current.value = null;
+      setSelectedCategories([]);
       setShowModal(true);
     } catch (error) {
       console.error("There was an error adding the product!", error);
@@ -184,6 +200,7 @@ function AddNewProduct() {
               <Form.Control
                 type="file"
                 onChange={handleImage1Change}
+                ref={image1Ref}
                 required
               />
             </Form.Group>
@@ -191,6 +208,7 @@ function AddNewProduct() {
               <Form.Control
                 type="file"
                 onChange={handleImage2Change}
+                ref={image2Ref}
                 required
               />
             </Form.Group>
@@ -202,10 +220,10 @@ function AddNewProduct() {
                 type="checkbox"
                 label={category.category_name}
                 id={`category-${category.id}`}
-                className="category-checkbox"
+                checked={selectedCategories.includes(category.id)}
+                onChange={() => handleCategoryChange(category.id)}
               />
             ))}
-
             <Button variant="primary" type="submit" className="login-btn">
               SAVE
             </Button>
