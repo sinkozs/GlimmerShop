@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { v4 as uuidv4, validate as isUuid } from "uuid";
 import axios from "axios";
 import FilterByPrice from "./FilterByPrice";
 import FilterByMaterial from "./FilterByMaterial";
@@ -22,9 +23,14 @@ function ProductFilters({ category_id, onProductsFetched }) {
     if (shouldFetch) {
       const fetchFilteredProducts = async () => {
         try {
-          const sellerId = selectedSellerId ? String(selectedSellerId) : null;
+          const sellerId =
+            selectedSellerId && isUuid(selectedSellerId)
+              ? selectedSellerId
+              : null;
+          console.log(category_id);
 
           const postData = {
+            category_id: category_id,
             materials: {
               materials: selectedMaterials,
             },
@@ -37,11 +43,16 @@ function ProductFilters({ category_id, onProductsFetched }) {
             },
           };
 
+          console.log(postData);
           const response = await axios.post(
-            `http://${config.BACKEND_BASE_URL}/products/filter_by_material_price_and_seller?category_id=${category_id}`,
-            postData
+            `${config.BACKEND_BASE_URL}/products/filter_by_material_price_and_seller`,
+            postData,
+            {
+              headers: { "Content-Type": "application/json" },
+            }
           );
 
+          console.log(response);
           onProductsFetched(response.data);
         } catch (error) {
           console.error("Error fetching filtered products:", error);

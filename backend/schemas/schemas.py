@@ -118,6 +118,13 @@ class SellerFilter(BaseModel):
     seller_id: Optional[UUID] = None
 
 
+class ProductFilterRequest(BaseModel):
+    category_id: int
+    materials: MaterialsFilter
+    price_range: PriceFilter
+    seller: SellerFilter
+
+
 class SelectedMonthForSellerStatistics(BaseModel):
     year: str
     month: str
