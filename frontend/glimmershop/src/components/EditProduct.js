@@ -3,9 +3,11 @@ import axios from "axios";
 import "../App.css";
 import "../styles/LoginAndSignup.css";
 import Modal from "./Modal";
+import AddNewCategoryToProduct from "./AddNewCategoryToProduct";
 import { Container, Form, Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import config from "../config";
+import { useNavigate } from "react-router-dom";
 
 function EditProduct() {
   const [name, setName] = useState("");
@@ -19,6 +21,13 @@ function EditProduct() {
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
   const { product_id } = useParams();
+  const navigate = useNavigate();
+
+  const handleAddCategoryClick = () => {
+    console.log("edit", product_id);
+    navigate(`/add-category-to-product/${product_id}`);
+  };
+  
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -66,7 +75,7 @@ function EditProduct() {
         }
       );
 
-      if (response.status === 200){
+      if (response.status === 200) {
         setShowModal(true);
 
         setName("");
@@ -77,7 +86,6 @@ function EditProduct() {
         setColor("");
         setImage1(null);
         setImage2(null);
-
       }
     } catch (error) {
       console.error("There was an error editing the product!", error);
@@ -128,7 +136,6 @@ function EditProduct() {
                   placeholder="Price"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-
                   className="form-control"
                 />
               </Form.Group>
@@ -141,7 +148,6 @@ function EditProduct() {
                   placeholder="Stock Quantity"
                   value={stockQuantiy}
                   onChange={(e) => setStockQuantiy(e.target.value)}
-
                   className="form-control"
                 />
               </Form.Group>
@@ -166,23 +172,23 @@ function EditProduct() {
               </Form.Group>
 
               <Form.Group controlId="image1" className="form-group">
-                <Form.Control
-                  type="file"
-                  onChange={handleImage1Change}
-                />
+                <Form.Control type="file" onChange={handleImage1Change} />
               </Form.Group>
 
               <Form.Group controlId="image2" className="form-group">
-                <Form.Control
-                  type="file"
-                  onChange={handleImage2Change}
-                />
+                <Form.Control type="file" onChange={handleImage2Change} />
               </Form.Group>
 
               <Button variant="primary" type="submit" className="login-btn">
                 SAVE
               </Button>
             </Form>
+            <Button
+              onClick={() => handleAddCategoryClick(true)}
+              className="sign-up-btn"
+            >
+              Add new category to the product
+            </Button>
             <Modal show={showModal} onClose={closeModal} title="Yay!">
               <section>You successfully edited this product.</section>
             </Modal>

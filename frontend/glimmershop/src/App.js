@@ -10,6 +10,7 @@ import DeleteUser from "./components/DeleteUser";
 import EditUser from "./components/EditUser";
 import SellerHome from "./routes/SellerHome";
 import AddNewProduct from "./components/AddNewProduct";
+import AddNewCategoryToProduct from "./components/AddNewCategoryToProduct";
 import EditProduct from "./components/EditProduct";
 import SellerStatistics from "./components/SellerStatistics";
 import { CartProvider } from "./context/CartContext";
@@ -134,6 +135,25 @@ function App() {
                             fallback={<Container>Loading product details...</Container>}
                           >
                             <EditProduct />
+                          </Suspense>
+                        ) : (
+                          <Navigate to="/" />
+                        )
+                      }
+                    </AuthContext.Consumer>
+                  }
+                />
+
+<Route
+                  path="/add-category-to-product/:product_id"
+                  element={
+                    <AuthContext.Consumer>
+                      {({ isAuthenticated }) =>
+                        isAuthenticated ? (
+                          <Suspense
+                            fallback={<Container>Loading product details...</Container>}
+                          >
+                            <AddNewCategoryToProduct />
                           </Suspense>
                         ) : (
                           <Navigate to="/" />

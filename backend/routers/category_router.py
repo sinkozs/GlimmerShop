@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from controllers.category_controller import CategoryController
 from services.category_service import CategoryService
 from dependencies import get_session
-from schemas.schemas import CategoryUpdate, CategoryQuery
+from schemas.schemas import CategoryUpdate, CategoryQuery, CategoryToProductRequest
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -75,11 +75,11 @@ async def add_new_category(category_name: str, session: AsyncSession = Depends(g
 
 
 @router.post("/add-category-to-product")
-async def add_category_to_product(product_id: int, category_id: int, session: AsyncSession = Depends(get_session)):
+async def add_category_to_product(request: CategoryToProductRequest, session: AsyncSession = Depends(get_session)):
     service = CategoryService(session)
     controller = CategoryController(service)
     try:
-        return await controller.add_category_to_product(product_id, category_id)
+        return await controller.add_category_to_product(request.product_id, request.category_id)
     except HTTPException as e:
         raise e
 

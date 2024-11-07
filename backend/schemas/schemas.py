@@ -100,6 +100,11 @@ class CartItemUpdate(BaseModel):
     quantity: Annotated[int, Field(ge=0)]
 
 
+class CategoryToProductRequest(BaseModel):
+    product_id: int
+    category_id: int
+
+
 class CartItemForCheckout(BaseModel):
     id: int
     name: str
