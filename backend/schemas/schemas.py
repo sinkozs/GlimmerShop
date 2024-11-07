@@ -86,6 +86,15 @@ class UserQuery(BaseModel):
         arbitrary_types_allowed = True
 
 
+class CategoryQuery(BaseModel):
+    id: int
+    category_name: str = Field(max_length=200)
+
+    class Config:
+        from_attributes = True
+        arbitrary_types_allowed = True
+
+
 class CartItemUpdate(BaseModel):
     product_id: int
     quantity: Annotated[int, Field(ge=0)]
@@ -102,7 +111,6 @@ class CartItemForCheckout(BaseModel):
 
 class CategoryUpdate(BaseModel):
     category_name: Optional[Annotated[str, Field(max_length=200)]] = None
-    category_description: Optional[Annotated[str, Field(max_length=200)]] = None
 
 
 class PriceFilter(BaseModel):

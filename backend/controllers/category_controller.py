@@ -1,8 +1,10 @@
+from typing import List
+
 from services.category_service import CategoryService
 from models.models import Category
-from schemas.schemas import CategoryUpdate
+from schemas.schemas import CategoryUpdate, CategoryQuery
 from exceptions.product_exceptions import ProductException
-from fastapi import HTTPException
+from fastapi import HTTPException, Query
 
 
 class CategoryController:
@@ -26,6 +28,12 @@ class CategoryController:
     async def get_product_categories(self, product_id: int):
         try:
             return await self._service.get_product_categories(product_id)
+        except ProductException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def search_categories(self, query: str = Query(...)) -> List[CategoryQuery]:
+        try:
+            return await self._service.search_categories(query)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 

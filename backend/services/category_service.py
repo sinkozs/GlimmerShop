@@ -6,12 +6,13 @@ from sqlalchemy.future import select
 from fastapi import status
 from models.models import Product, Category, ProductCategory
 from sqlalchemy.orm import selectinload
+from sqlalchemy import or_
 
 from exceptions.category_exceptions import CategoryException
 from exceptions.product_exceptions import ProductException
 from exceptions.user_exceptions import UserException
 from dependencies import db_model_to_dict, convert_str_to_int_if_numeric, is_valid_update
-from schemas.schemas import CategoryUpdate
+from schemas.schemas import CategoryUpdate, CategoryQuery
 
 
 class CategoryService:
@@ -53,6 +54,25 @@ class CategoryService:
             print(f"Database access error: {e}")
             raise CategoryException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                     detail="An error occurred when accessing the database!")
+
+    async def search_categories(self, query: str) -> List[CategoryQuery]:
+        async with self.db.begin():
+            try:
+                category_id = int(query)
+            except ValueError:
+                category_id = None
+
+            stmt = select(Category).where(
+                or_(
+                    Category.category_name.ilike(f"%{query}%"),
+                    Category.id == category_id
+                )
+            )
+
+            result = await self.db.execute(stmt)
+            categories = result.scalars().all()
+
+            return [CategoryQuery.model_validate(category) for category in categories]
 
     async def get_products_by_category(self, category_id: int) -> list:
         try:

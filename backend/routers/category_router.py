@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from controllers.category_controller import CategoryController
 from services.category_service import CategoryService
 from dependencies import get_session
-from schemas.schemas import CategoryUpdate
-
+from schemas.schemas import CategoryUpdate, CategoryQuery
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,6 +24,15 @@ async def get_all_categories(session: AsyncSession = Depends(get_session)):
     except HTTPException as e:
         raise e
 
+
+@router.get("/search/", response_model=List[CategoryQuery])
+async def search_products(query: str = Query(...), session: AsyncSession = Depends(get_session)):
+    service = CategoryService(session)
+    controller = CategoryController(service)
+    try:
+        return await controller.search_categories(query)
+    except HTTPException as e:
+        raise e
 
 @router.get("/category-by-identifier")
 async def get_category_by_identifier(category_identifier, session: AsyncSession = Depends(get_session)):
@@ -75,7 +85,8 @@ async def add_category_to_product(product_id: int, category_id: int, session: As
 
 
 @router.put("/edit")
-async def edit_category(category_id: int, category_update: CategoryUpdate, session: AsyncSession = Depends(get_session)):
+async def edit_category(category_id: int, category_update: CategoryUpdate,
+                        session: AsyncSession = Depends(get_session)):
     service = CategoryService(session)
     controller = CategoryController(service)
     try:
