@@ -11,7 +11,6 @@ class Category(Base):
     __table_args__ = {'schema': 'public'}
     id = Column(Integer, primary_key=True, index=True)
     category_name = Column(String(length=200))
-    category_description = Column(String(length=200))
 
     product_category = relationship("ProductCategory", back_populates="category")
 
