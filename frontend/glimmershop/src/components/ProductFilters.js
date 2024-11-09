@@ -27,7 +27,6 @@ function ProductFilters({ category_id, onProductsFetched }) {
             selectedSellerId && isUuid(selectedSellerId)
               ? selectedSellerId
               : null;
-          console.log(category_id);
 
           const postData = {
             category_id: category_id,

@@ -3,7 +3,6 @@ import axios from "axios";
 import "../App.css";
 import "../styles/LoginAndSignup.css";
 import Modal from "./Modal";
-import AddNewCategoryToProduct from "./AddNewCategoryToProduct";
 import { Container, Form, Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import config from "../config";

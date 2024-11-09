@@ -1,19 +1,87 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { Container, Form, Button, ListGroup } from "react-bootstrap";
+import { Container, Form, Button, ListGroup, Table } from "react-bootstrap";
 import Modal from "./Modal";
 import config from "../config";
+import "../styles/LoginAndSignup.css";
+import "../styles/Category.css";
 
 function AddNewCategoryToProduct() {
-  const [categoryName, setCategoryName] = useState("");
+  const [currentCategories, setCurrentCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [modalText, setModalText] = useState("");
   const [error, setError] = useState(null);
   const { product_id } = useParams();
+
+  const fetchProductCategories = async () => {
+    try {
+      const response = await axios.get(
+        `${config.BACKEND_BASE_URL}/categories/product-categories`,
+        {
+          params: { product_id },
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+      setCurrentCategories(response.data);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProductCategories();
+  }, [product_id]);
+
+  const handleCategoryDelete = async (categoryId) => {
+    try {
+      const requestData = {
+        product_id: product_id,
+        category_id: categoryId,
+      };
+
+      const response = await axios.delete(
+        `${config.BACKEND_BASE_URL}/categories/delete-category-from-product`,
+        {
+          data: requestData,
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      if (response.status === 200) {
+        fetchProductCategories();
+      }
+    } catch (error) {
+      console.error("Failed to delete product category:", error);
+    }
+  };
+
+  const addNewCategory = async (newCategoryName) => {
+    try {
+      console.log(newCategoryName);
+
+      const response = await axios.post(
+        `${config.BACKEND_BASE_URL}/categories/new/${newCategoryName}`,
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      const newCategoryId = response.data;
+      console.log(newCategoryId)
+
+      fetchProductCategories();
+    } catch (error) {
+      console.error("Failed to add new category:", error);
+    }
+  };
 
   const fetchCategories = async (query) => {
     try {
@@ -23,6 +91,11 @@ function AddNewCategoryToProduct() {
       );
       setCategories(response.data);
       setShowDropdown(true);
+
+      if (response.data.length == 0) {
+        console.log("empty");
+        addNewCategory(query);
+      }
     } catch (error) {
       console.error("Error searching categories:", error);
       setError("Failed to search categories. Please try again later.");
@@ -46,26 +119,26 @@ function AddNewCategoryToProduct() {
     setShowDropdown(false);
   };
 
-  const handleSubmit = async (e) => {
+  const addExistingCategoryToProduct = async (e) => {
     e.preventDefault();
     try {
-      console.log(product_id);
-      console.log(selectedCategoryId);
-
       const requestData = {
         product_id: product_id,
         category_id: selectedCategoryId,
       };
 
-      await axios.post(
+      const response = await axios.post(
         `${config.BACKEND_BASE_URL}/categories/add-category-to-product`,
         requestData,
         {
           headers: { "Content-Type": "application/json" },
         }
       );
-
-      setShowModal(true);
+      if (response.status === 200) {
+        setModalText(response.data.message);
+        setShowModal(true);
+        fetchProductCategories();
+      }
     } catch (error) {
       console.error("Error adding category to product:", error);
       setError("Failed to add category to product. Please try again later.");
@@ -77,12 +150,43 @@ function AddNewCategoryToProduct() {
   return (
     <Container fluid className="page-wrapper">
       <Container fluid className="login-form-container">
-        <h3>Search categories</h3>
+        <h1 className="login-form-h1">PRODUCT CATEGORIES</h1>
+        <h3 className="category-h3">Current Categories</h3>
+        {currentCategories.length > 0 ? (
+          <Table className="category-table">
+            <tbody>
+              {currentCategories.map((categoryMap, index) => {
+                const [categoryId, categoryName] =
+                  Object.entries(categoryMap)[0];
+                return (
+                  <tr key={index}>
+                    <td className="category-table-text">{categoryName}</td>
+                    <td>
+                      <Button
+                        className="admin-btn"
+                        variant="danger"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCategoryDelete(categoryId);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        ) : (
+          <p>No categories available.</p>
+        )}
+
+        <h3 className="category-h3">Add a new category to the product</h3>
         <Container fluid className="login-form-content">
           <Form>
             <Form.Control
               type="text"
-              className="filter-category-searchbar"
               placeholder="Search categories by name"
               value={searchQuery}
               onChange={handleInputChange}
@@ -97,13 +201,24 @@ function AddNewCategoryToProduct() {
                     key={category.id}
                     onClick={() => handleCategorySelect(category)}
                     style={{ cursor: "pointer" }}
-                    className="dropdown-item"
                   >
                     {category.category_name}
                   </ListGroup.Item>
                 ))
               ) : (
-                <ListGroup.Item>No categories found</ListGroup.Item>
+                <ListGroup.Item>
+                  {" "}
+                  <Button
+                    className="admin-btn"
+                    variant="danger"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addNewCategory(searchQuery);
+                    }}
+                  >
+                    Create new category
+                  </Button>{" "}
+                </ListGroup.Item>
               )}
             </ListGroup>
           )}
@@ -111,18 +226,16 @@ function AddNewCategoryToProduct() {
           {error && <section className="error-message">{error}</section>}
 
           <Button
-            onClick={handleSubmit}
+            onClick={addExistingCategoryToProduct}
             variant="primary"
             type="submit"
             className="login-btn"
           >
-            Add Category
+            SAVE
           </Button>
 
           <Modal show={showModal} onClose={closeModal} title="Success!">
-            <section>
-              You successfully added the category to the product.
-            </section>
+            <section>{modalText}</section>
           </Modal>
         </Container>
       </Container>

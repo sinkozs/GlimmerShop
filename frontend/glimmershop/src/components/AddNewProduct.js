@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "../App.css";
-import "../styles/AddNewProduct.css";
 import "../styles/LoginAndSignup.css";
-import "./AddNewCategory";
+import "././AddNewCategoryToProduct";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
 import { v4 as uuidv4 } from "uuid";
