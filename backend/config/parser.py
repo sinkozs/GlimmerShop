@@ -2,7 +2,7 @@ from configparser import ConfigParser
 import os
 
 from dotenv import load_dotenv
-from config.models import DatabaseConfig, ServerConfig, AuthConfig, SMTPConfig, RedisConfig, Config
+from config.models import DatabaseConfig, ServerConfig, AuthConfig, SMTPConfig, Config
 
 DEFAULT_ENV_PATH = ".env"  # for sensitive info + info for docker containers
 DEFAULT_CONFIG_PATH = "config/local.ini"  # for public application info
@@ -25,12 +25,6 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
         host=parser.get("server", "Host"),
         port=int(parser.get("server", "Port")),
         frontend_port=int(parser.get("server", "DefaultFrontendPort")),
-    )
-
-    redis_config = RedisConfig(
-        host=os.getenv("REDIS_HOST"),
-        port=int(os.getenv("REDIS_PORT")),
-        password=os.getenv("REDIS_PASSWORD")
     )
 
     smtp_config = SMTPConfig(
@@ -58,7 +52,6 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
     config = Config(
         db_config=db_config,
         server_config=server_config,
-        redis_config=redis_config,
         smtp_config=smtp_config,
         auth_config=auth_config
     )

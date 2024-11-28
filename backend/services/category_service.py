@@ -22,7 +22,7 @@ class CategoryService:
 
     async def get_all_categories(self) -> List[dict]:
         try:
-            
+
             async with self.db.begin():
                 result = await self.db.execute(select(Category))
                 categories = result.scalars().all()
