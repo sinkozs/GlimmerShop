@@ -24,7 +24,7 @@ def _resolve_dependencies(app: FastAPI, config: Config) -> FastAPI:
 
     # Add CORS middleware
     origins = [
-        "http://127.0.0.1:3000",
+        load_config().server_config.frontend_domain,
     ]
 
     app.add_middleware(

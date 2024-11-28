@@ -40,7 +40,6 @@ async def login(is_seller: bool, response: Response, form_data: OAuth2PasswordRe
 
 @router.get("/test")
 async def test_cookie_jwt(request: Request):
-    print("test")
     token = request.cookies.get(http_only_auth_cookie)
 
     if not token:
