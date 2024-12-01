@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class DatabaseConfig: 
+class DatabaseConfig:
     user: str
     password: str
     host: str
@@ -74,4 +74,3 @@ class Config:
     redis_config: RedisConfig
     smtp_config: SMTPConfig
     auth_config: AuthConfig
-
