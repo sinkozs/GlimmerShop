@@ -3,8 +3,9 @@ from typing import List
 from sqlalchemy.dialects.postgresql import UUID
 from PIL import Image
 from services.product_service import ProductService
+from services.category_service import CategoryService
 from models.models import Product
-from schemas.schemas import ProductCreate, ProductUpdate, PriceFilter, MaterialsFilter, ProductData, SellerFilter, \
+from schemas.schemas import ProductUpdate, PriceFilter, MaterialsFilter, ProductData, \
     ProductFilterRequest
 from exceptions.user_exceptions import UserException
 from exceptions.product_exceptions import ProductException
@@ -13,8 +14,9 @@ from fastapi import HTTPException, Query
 
 class ProductController:
 
-    def __init__(self, service: ProductService):
+    def __init__(self, service: ProductService, category_service: CategoryService):
         self._service = service
+        self._category_service = category_service
 
     async def get_product_by_id(self, product_id: int) -> dict:
         try:
@@ -45,7 +47,6 @@ class ProductController:
             return await self._service.get_products_by_material(category_id, materials)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
-
 
     def get_common_products(self, products_by_material, products_by_price_range, products_by_seller):
         material_ids = {product['id'] for product in products_by_material}
@@ -87,7 +88,7 @@ class ProductController:
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def add_new_product(self, seller_id: UUID, new_product: ProductCreate) -> int:
+    async def add_new_product(self, seller_id: UUID, new_product: ProductData) -> int:
         product = Product()
         product.name = new_product.name
         product.description = new_product.description
@@ -100,7 +101,12 @@ class ProductController:
         product.seller_id = seller_id
 
         try:
-            return await self._service.add_new_product(seller_id, product)
+            product_id = await self._service.add_new_product(seller_id, product)
+            if new_product.categories:
+                for category_id in new_product.categories:
+                    await self._category_service.add_category_to_product(product_id, category_id)
+
+            return product_id
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 

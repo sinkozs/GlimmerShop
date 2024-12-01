@@ -137,22 +137,21 @@ class CategoryService:
 
     async def add_category_to_product(self, product_id: int, category_id: int):
         try:
-            async with self.db.begin():
-                stmt = select(ProductCategory).where(
-                    ProductCategory.product_id == product_id,
-                    ProductCategory.category_id == category_id
-                )
-                result = await self.db.execute(stmt)
-                link = result.scalar_one_or_none()
+            stmt = select(ProductCategory).where(
+                ProductCategory.product_id == product_id,
+                ProductCategory.category_id == category_id
+            )
+            result = await self.db.execute(stmt)
+            link = result.scalar_one_or_none()
 
-                if link:
-                    return {"message": "This category is already linked to the product."}
+            if link:
+                return {"message": "This category is already linked to the product."}
 
-                new_association = ProductCategory(
-                    product_id=product_id,
-                    category_id=category_id
-                )
-                self.db.add(new_association)
+            new_association = ProductCategory(
+                product_id=product_id,
+                category_id=category_id
+            )
+            self.db.add(new_association)
 
             await self.db.commit()
             return {"message": "Category added to the product successfully."}
