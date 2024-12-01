@@ -31,6 +31,19 @@ class ServerConfig:
 
 
 @dataclass
+class RedisConfig:
+    host: str
+    port: int
+    password: str
+    connector: str = "redis"
+
+    @property
+    def url(self) -> str:
+        url = f"{self.connector}://:{self.password}@{self.host}:{self.port}"
+        return url
+
+
+@dataclass
 class SMTPConfig:
     smtp_server: str
     smtp_port: int
@@ -58,7 +71,7 @@ class AuthConfig:
 class Config:
     db_config: DatabaseConfig
     server_config: ServerConfig
+    redis_config: RedisConfig
     smtp_config: SMTPConfig
     auth_config: AuthConfig
-
 

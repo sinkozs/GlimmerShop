@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from typing import Optional, List
+from typing import Optional, List, Dict
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
@@ -109,7 +109,7 @@ class CartItemForCheckout(BaseModel):
     id: int
     name: str
     price: int
-    category: str
+    category: Dict[int, str]
     quantity: int
     image_path: str
 
