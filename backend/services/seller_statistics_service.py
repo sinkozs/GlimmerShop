@@ -3,17 +3,12 @@ from uuid import UUID
 
 from fastapi import HTTPException
 
-from dependencies import get_first_and_last_day_of_month, db_model_to_dict
+from dependencies import get_first_and_last_day_of_month
 from schemas.schemas import SelectedMonthForSellerStatistics
-from models.models import Product
 from config.parser import load_config
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from sqlalchemy.exc import SQLAlchemyError
-from fastapi import status
 import stripe
 import ast
-from exceptions.product_exceptions import ProductException
 
 
 class SellerStatisticsService:

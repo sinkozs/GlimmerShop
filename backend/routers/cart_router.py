@@ -47,7 +47,6 @@ async def get_detailed_user_cart(
 ):
     service = CartService(session)
     controller = CartController(service)
-    auth_service = AuthService(session)
     try:
         user_id: Optional[UUID] = current_user.get("id") if current_user else None
 

@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy.exc import SQLAlchemyError, NoResultFound
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status
@@ -35,7 +35,7 @@ class CategoryService:
                 else:
                     raise CategoryException(
                         status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"No categories found!",
+                        detail="No categories found!",
                     )
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
@@ -215,7 +215,7 @@ class CategoryService:
 
                 await self.db.delete(product_category)
                 await self.db.flush()
-                return {"message": f"Product Category link successfully deleted!"}
+                return {"message": "Product Category link successfully deleted!"}
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise UserException(

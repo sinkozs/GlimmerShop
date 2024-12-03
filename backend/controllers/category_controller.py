@@ -1,7 +1,6 @@
 from typing import List
 
 from services.category_service import CategoryService
-from models.models import Category
 from schemas.schemas import CategoryUpdate, CategoryQuery
 from exceptions.product_exceptions import ProductException
 from fastapi import HTTPException, Query

@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from dependencies import get_session
 from controllers.product_controller import ProductController
 from services.product_service import ProductService
@@ -11,7 +11,6 @@ from schemas.schemas import (
     PriceFilter,
     MaterialsFilter,
     ProductData,
-    SellerFilter,
     ProductFilterRequest,
 )
 from dependencies import get_current_user
@@ -133,7 +132,7 @@ async def add_new_product(
 
 
 @router.post("/upload-image")
-async def add_new_product(
+async def upload_image(
     product_id: int,
     image_number: int,
     image: UploadFile = File(...),

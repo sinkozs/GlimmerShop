@@ -90,7 +90,7 @@ async def verify_account(email, code, session: AsyncSession = Depends(get_sessio
     service = UserService(session)
     user_controller = UserController(service)
     try:
-        print(f"Calling service.verify_user")
+        print("Calling service.verify_user")
         return await user_controller.verify_user(email, code)
     except HTTPException as e:
         raise e

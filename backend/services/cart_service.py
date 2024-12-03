@@ -71,7 +71,7 @@ class CartService:
             if not cart_items:
                 raise CartException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"No cart items not found!",
+                    detail="No cart items not found!",
                 )
             return [db_model_to_dict(c) for c in cart_items]
         except SQLAlchemyError as e:
@@ -219,7 +219,7 @@ class CartService:
                     if existing_cart_item.quantity - cart_item.quantity < 0:
                         raise ProductException(
                             status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Negative quantity is not allowed!",
+                            detail="Negative quantity is not allowed!",
                         )
                     else:
                         existing_cart_item.quantity -= cart_item.quantity
@@ -238,7 +238,7 @@ class CartService:
                     else:
                         raise ProductException(
                             status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Negative quantity is not allowed!",
+                            detail="Negative quantity is not allowed!",
                         )
                     await redis.hset(cart_key, str(cart_item.product_id), new_quantity)
                 else:

@@ -75,9 +75,7 @@ class AuthService:
 
     async def authenticate_user(self, email: EmailStr, password: str) -> dict:
         async with self.db.begin():
-            stmt = select(User).filter(
-                (User.email == email) & (User.is_seller == False)
-            )
+            stmt = select(User).filter((User.email == email) & (not User.is_seller))
             result = await self.db.execute(stmt)
             user_model = result.scalars().first()
             if user_model:
@@ -97,9 +95,7 @@ class AuthService:
     async def authenticate_seller(self, email: EmailStr, password: str) -> dict:
         try:
             async with self.db.begin():
-                stmt = select(User).filter(
-                    (User.email == email) & (User.is_seller == True)
-                )
+                stmt = select(User).filter((User.email == email) & (User.is_seller))
                 result = await self.db.execute(stmt)
                 seller_model = result.scalars().first()
                 if seller_model:

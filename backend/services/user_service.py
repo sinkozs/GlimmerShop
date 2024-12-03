@@ -96,7 +96,7 @@ class UserService:
         try:
             async with self.db.begin():
                 stmt = select(func.count()).where(
-                    and_(User.id == seller_id, User.is_seller == True)
+                    and_(User.id == seller_id, User.is_seller)
                 )
                 result = await self.db.execute(stmt)
                 return result.scalar_one() > 0

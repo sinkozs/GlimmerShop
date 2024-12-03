@@ -60,7 +60,7 @@ def _register_routers(app: FastAPI):
 def main():
     config = load_config()
     app = FastAPI()
-    logging.info(f"Successfully initialized")
+    logging.info("Successfully initialized")
 
     app = _resolve_dependencies(app, config)
     _register_routers(app)
