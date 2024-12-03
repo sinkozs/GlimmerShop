@@ -23,8 +23,11 @@ jobs:
       - name: Install dependencies
         run: pip install flake8 black isort
 
-      - name: Run linters
-        run: |
-          black --check .
-          isort --check-only .
-          flake8 .
+      - name: Run black
+        run: black --check .
+
+      - name: Run flake8
+        run: flake8 .
+
+      - name: Run isort
+        run: isort --check-only .
