@@ -17,14 +17,15 @@ from starlette import status
 
 
 router = APIRouter(
-    prefix="/cart",
-    tags=["cart"],
-    responses={404: {"Cart": "Not found"}}
+    prefix="/cart", tags=["cart"], responses={404: {"Cart": "Not found"}}
 )
 
 
 @router.get("")
-async def get_all_cart_item_by_user_id(current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+async def get_all_cart_item_by_user_id(
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
     service = CartService(session)
     controller = CartController(service)
     try:
@@ -37,9 +38,13 @@ async def get_all_cart_item_by_user_id(current_user: dict = Depends(get_current_
 
 
 @router.get("/user-cart")
-async def get_detailed_user_cart(request: Request, response: Response,
-                               current_user: Optional[dict] = Depends(get_current_user),
-                               session: AsyncSession = Depends(get_session), redis: aioredis.Redis = Depends(get_redis)):
+async def get_detailed_user_cart(
+    request: Request,
+    response: Response,
+    current_user: Optional[dict] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+    redis: aioredis.Redis = Depends(get_redis),
+):
     service = CartService(session)
     controller = CartController(service)
     auth_service = AuthService(session)
@@ -49,7 +54,10 @@ async def get_detailed_user_cart(request: Request, response: Response,
         # Get the session ID for guest users
         session_id = request.cookies.get("session_id")
         if not user_id and not session_id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No user or session ID found.")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No user or session ID found.",
+            )
 
         return await controller.get_detailed_user_cart(redis, user_id, session_id)
     except HTTPException as e:
@@ -57,48 +65,74 @@ async def get_detailed_user_cart(request: Request, response: Response,
 
 
 @router.post("/add")
-async def add_new_item_to_cart(cart_item: CartItemUpdate, request: Request, response: Response,
-                               current_user: Optional[dict] = Depends(get_current_user),
-                               session: AsyncSession = Depends(get_session), redis: aioredis.Redis = Depends(get_redis)):
+async def add_new_item_to_cart(
+    cart_item: CartItemUpdate,
+    request: Request,
+    response: Response,
+    current_user: Optional[dict] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+    redis: aioredis.Redis = Depends(get_redis),
+):
     service = CartService(session)
     controller = CartController(service)
     auth_service = AuthService(session)
     product_service = ProductService(session)
     try:
         if not await product_service.product_exists(cart_item.product_id):
-            raise ProductException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Product with id {cart_item.product_id} not fund!")
+            raise ProductException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Product with id {cart_item.product_id} not fund!",
+            )
         user_id: Optional[UUID] = current_user.get("id") if current_user else None
         if user_id:
             user_id = current_user.get("id")
-            return await controller.add_new_item_to_cart(cart_item, response, redis, user_id)
+            return await controller.add_new_item_to_cart(
+                cart_item, response, redis, user_id
+            )
 
         if not user_id:
             # Get or create session ID for guest users
             session_id = request.cookies.get("session_id")
             if not session_id:
-                session_id = await auth_service.create_redis_session(response, redis, user_id)
-            return await controller.add_new_item_to_cart(cart_item, response, redis, None, session_id)
+                session_id = await auth_service.create_redis_session(
+                    response, redis, user_id
+                )
+            return await controller.add_new_item_to_cart(
+                cart_item, response, redis, None, session_id
+            )
     except HTTPException as e:
         raise e
 
 
 @router.delete("/delete")
-async def delete_item_from_cart(cart_item: CartItemUpdate, request: Request, response: Response,
-                               current_user: Optional[dict] = Depends(get_current_user),
-                               session: AsyncSession = Depends(get_session), redis: aioredis.Redis = Depends(get_redis)):
+async def delete_item_from_cart(
+    cart_item: CartItemUpdate,
+    request: Request,
+    response: Response,
+    current_user: Optional[dict] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+    redis: aioredis.Redis = Depends(get_redis),
+):
     service = CartService(session)
     controller = CartController(service)
     product_service = ProductService(session)
 
     try:
         if not await product_service.product_exists(cart_item.product_id):
-            raise ProductException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Product with id {cart_item.product_id} not fund!")
+            raise ProductException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Product with id {cart_item.product_id} not fund!",
+            )
         user_id: Optional[UUID] = current_user.get("id") if current_user else None
         if user_id:
             user_id = current_user.get("id")
-            return await controller.delete_item_from_cart(cart_item, response, redis, user_id, None)
+            return await controller.delete_item_from_cart(
+                cart_item, response, redis, user_id, None
+            )
         if not user_id:
             session_id = request.cookies.get("session_id")
-            return await controller.delete_item_from_cart(cart_item, response, redis, None, session_id)
+            return await controller.delete_item_from_cart(
+                cart_item, response, redis, None, session_id
+            )
     except HTTPException as e:
         raise e

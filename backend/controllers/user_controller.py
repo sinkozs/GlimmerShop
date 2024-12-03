@@ -89,7 +89,9 @@ class UserController:
             if is_valid_update(user_update.email, original_user.email):
                 original_user.email = user_update.email
             if user_update.password:
-                if not bcrypt_context.verify(user_update.password, original_user.hashed_password):
+                if not bcrypt_context.verify(
+                    user_update.password, original_user.hashed_password
+                ):
                     original_user.hashed_password = hash_password(user_update.password)
         try:
             await self._service.edit_user(original_user)

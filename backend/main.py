@@ -13,7 +13,15 @@ from config.parser import load_config
 from config.models import Config
 from dependencies import get_session
 from models.database import build_session_maker, build_session
-from routers import auth_router, user_router, product_router, category_router, cart_router, checkout_router, seller_statistics_router
+from routers import (
+    auth_router,
+    user_router,
+    product_router,
+    category_router,
+    cart_router,
+    checkout_router,
+    seller_statistics_router,
+)
 
 
 def _resolve_dependencies(app: FastAPI, config: Config) -> FastAPI:
@@ -62,17 +70,11 @@ def main():
 def run_server():
     server_cfg = load_config().server_config
     print(server_cfg)
-    uvicorn.run(
-        "main:main",
-        host=server_cfg.host,
-        port=server_cfg.port,
-        reload=True
-    )
+    uvicorn.run("main:main", host=server_cfg.host, port=server_cfg.port, reload=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if not os.path.exists("images"):
         os.makedirs("images")
 
     run_server()
-

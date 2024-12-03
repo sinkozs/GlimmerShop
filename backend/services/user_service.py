@@ -26,11 +26,15 @@ class UserService:
                 if user_model:
                     return db_model_to_dict(user_model)
                 else:
-                    raise UserException(status_code=status.HTTP_404_NOT_FOUND,
-                                        detail=f"User with id {user_id} not found!")
+                    raise UserException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"User with id {user_id} not found!",
+                    )
         except SQLAlchemyError:
-            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def get_all_users(self) -> List[dict]:
         try:
@@ -44,13 +48,17 @@ class UserService:
                     raise UserException()
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def get_users_by_role(self, is_seller: bool) -> List[dict]:
         try:
             async with self.db.begin():
-                result = await self.db.execute(select(User).where(User.is_seller == is_seller))
+                result = await self.db.execute(
+                    select(User).where(User.is_seller == is_seller)
+                )
                 sellers_model = result.scalars().all()
                 if sellers_model:
                     users_data = [db_model_to_dict(user) for user in sellers_model]
@@ -59,8 +67,10 @@ class UserService:
                     raise UserException()
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def get_user_by_email(self, email: str):
         try:
@@ -73,26 +83,29 @@ class UserService:
                 else:
                     raise UserException(
                         status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"No user found with email {email}"
+                        detail=f"No user found with email {email}",
                     )
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def check_seller_exists(self, seller_id: UUID) -> bool:
         try:
             async with self.db.begin():
-                stmt = select(func.count()).where(and_(
-                    User.id == seller_id,
-                    User.is_seller == True
-                ))
+                stmt = select(func.count()).where(
+                    and_(User.id == seller_id, User.is_seller == True)
+                )
                 result = await self.db.execute(stmt)
                 return result.scalar_one() > 0
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def create_new_user(self, user: User):
         try:
@@ -101,25 +114,34 @@ class UserService:
                 await self.db.commit()
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def send_email_to_user(self, user: User):
         async with self.db.begin():
-            await self.db.refresh(instance=user, attribute_names=["id", "first_name", "last_name", "email"])
+            await self.db.refresh(
+                instance=user,
+                attribute_names=["id", "first_name", "last_name", "email"],
+            )
             await send_verification_email(user.first_name, user.email)
 
     async def verify_email(self, email, code):
         try:
             is_verified, message = await verify_code(email, code)
             if not is_verified:
-                raise UserException(status_code=status.HTTP_404_NOT_FOUND, detail=message)
+                raise UserException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail=message
+                )
             else:
                 await self.update_is_verified_column(email)
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def search_sellers(self, query: str) -> List[UserQuery]:
         async with self.db.begin():
@@ -132,7 +154,7 @@ class UserService:
                 or_(
                     User.first_name.ilike(f"%{query}%"),
                     User.last_name.ilike(f"%{query}%"),
-                    User.id == seller_uuid
+                    User.id == seller_uuid,
                 )
             )
 
@@ -149,8 +171,10 @@ class UserService:
             await self.db.commit()
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def edit_user(self, edited_user: User):
         try:
@@ -160,8 +184,10 @@ class UserService:
 
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def delete_user(self, user_id: UUID):
         async with self.db.begin():
@@ -174,5 +200,7 @@ class UserService:
             await self.db.commit()
 
         else:
-            raise UserException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail=f"User with {user_id} id not found!")
+            raise UserException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with {user_id} id not found!",
+            )

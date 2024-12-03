@@ -29,12 +29,16 @@ class ProductService:
             if product:
                 return db_model_to_dict(product)
             else:
-                raise ProductException(status_code=status.HTTP_404_NOT_FOUND,
-                                       detail=f"Product with id {product_id} not found!")
+                raise ProductException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Product with id {product_id} not found!",
+                )
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                   detail="An error occurred when accessing the database!")
+            raise ProductException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def product_exists(self, product_id: int) -> bool:
         stmt = select(exists().where(Product.id == product_id))
@@ -47,7 +51,7 @@ class ProductService:
             if not await user_service.check_seller_exists(seller_id):
                 raise UserException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"No seller found with id {seller_id}"
+                    detail=f"No seller found with id {seller_id}",
                 )
 
             stmt = select(Product).filter(Product.seller_id == seller_id)
@@ -56,12 +60,16 @@ class ProductService:
             if products:
                 return [db_model_to_dict(product) for product in products]
             else:
-                raise ProductException(status_code=status.HTTP_404_NOT_FOUND,
-                                       detail=f"Product with seller id {seller_id} not found!")
+                raise ProductException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Product with seller id {seller_id} not found!",
+                )
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                   detail="An error occurred when accessing the database!")
+            raise ProductException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def get_all_categories_for_product(self, product_id: int) -> List[dict]:
         try:
@@ -69,7 +77,7 @@ class ProductService:
             if not await product_service.check_product_exists(product_id):
                 raise ProductException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"No product found with id {product_id}"
+                    detail=f"No product found with id {product_id}",
                 )
 
             stmt = select(Category).filter(Category)
@@ -79,12 +87,16 @@ class ProductService:
                 product_data = [db_model_to_dict(c) for c in categories]
                 return product_data
             else:
-                raise ProductException(status_code=status.HTTP_404_NOT_FOUND,
-                                       detail=f"Categories with product id {product_id} not found!")
+                raise ProductException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Categories with product id {product_id} not found!",
+                )
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                   detail="An error occurred when accessing the database!")
+            raise ProductException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def get_all_products(self) -> List[dict]:
         try:
@@ -98,17 +110,24 @@ class ProductService:
                     raise ProductException()
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                   detail="An error occurred when accessing the database!")
+            raise ProductException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
-    async def get_products_by_price_range(self, category_id: int, price_range: PriceFilter) -> list:
+    async def get_products_by_price_range(
+        self, category_id: int, price_range: PriceFilter
+    ) -> list:
         try:
             async with self.db.begin():
                 stmt = (
                     select(Product)
                     .join(Product.product_category)
                     .filter(ProductCategory.category_id == category_id)
-                    .filter((Product.price >= price_range.min_price) & (Product.price <= price_range.max_price))
+                    .filter(
+                        (Product.price >= price_range.min_price)
+                        & (Product.price <= price_range.max_price)
+                    )
                 )
 
                 result = await self.db.execute(stmt)
@@ -117,20 +136,28 @@ class ProductService:
                     product_data = [db_model_to_dict(q) for q in products]
                     return product_data
                 else:
-                    raise ProductException(detail="Failed to fetch products by price range")
+                    raise ProductException(
+                        detail="Failed to fetch products by price range"
+                    )
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                   detail="An error occurred when accessing the database!")
+            raise ProductException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
-    async def get_products_by_material(self, category_id: int, materials: MaterialsFilter) -> list:
+    async def get_products_by_material(
+        self, category_id: int, materials: MaterialsFilter
+    ) -> list:
         try:
             async with self.db.begin():
                 extended_materials = set()
                 for material in materials.materials:
                     words = material.lower().split()
                     extended_materials.update(words)
-                material_conditions = [Product.material.ilike(f"%{word}%") for word in extended_materials]
+                material_conditions = [
+                    Product.material.ilike(f"%{word}%") for word in extended_materials
+                ]
 
                 stmt = (
                     select(Product)
@@ -145,18 +172,24 @@ class ProductService:
                     product_data = [db_model_to_dict(p) for p in products]
                     return product_data
                 else:
-                    raise ProductException(detail="Failed to fetch products by material")
+                    raise ProductException(
+                        detail="Failed to fetch products by material"
+                    )
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                   detail="An error occurred when accessing the database!")
+            raise ProductException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def check_product_exists(self, product_id: int) -> bool:
         try:
             async with self.db.begin():
-                stmt = select(func.count()).where(and_(
-                    Product.id == product_id,
-                ))
+                stmt = select(func.count()).where(
+                    and_(
+                        Product.id == product_id,
+                    )
+                )
                 result = await self.db.execute(stmt)
                 return result.scalar_one() > 0
         except SQLAlchemyError as e:
@@ -171,10 +204,10 @@ class ProductService:
                 query_as_uuid = None
 
             stmt = select(Product).where(
-                (Product.seller_id == seller_id) &
-                (
-                        Product.name.ilike(f"%{query}%") |
-                        (Product.id == query_as_uuid if query_as_uuid else False)
+                (Product.seller_id == seller_id)
+                & (
+                    Product.name.ilike(f"%{query}%")
+                    | (Product.id == query_as_uuid if query_as_uuid else False)
                 )
             )
             result = await self.db.execute(stmt)
@@ -187,19 +220,22 @@ class ProductService:
             if not await user_service.check_seller_exists(seller_id):
                 raise UserException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"No seller found with id {seller_id}"
+                    detail=f"No seller found with id {seller_id}",
                 )
             self.db.add(product)
             await self.db.commit()
-            await self.db.refresh(instance=product,
-                                  attribute_names=["id"])
+            await self.db.refresh(instance=product, attribute_names=["id"])
             return product.id
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                   detail="An error occurred when accessing the database!")
+            raise ProductException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
-    async def upload_image(self, product_id: int, image_number: int, image: UploadFile = File(...)):
+    async def upload_image(
+        self, product_id: int, image_number: int, image: UploadFile = File(...)
+    ):
         try:
             image_data = await image.read()
             original_image = Image.open(BytesIO(image_data))
@@ -209,8 +245,8 @@ class ProductService:
             original_image.thumbnail(max_size, Image.Resampling.LANCZOS)
 
             # Convert RGBA to RGB if necessary
-            if original_image.mode == 'RGBA':
-                original_image = original_image.convert('RGB')
+            if original_image.mode == "RGBA":
+                original_image = original_image.convert("RGB")
 
             output_buffer = BytesIO()
             original_image.save(output_buffer, format="JPEG")
@@ -218,10 +254,12 @@ class ProductService:
 
             filename = image.filename
             # Ensure the filename has a valid extension
-            if not filename.lower().endswith(('.jpg', '.jpeg', '.jfif', '.png')):
+            if not filename.lower().endswith((".jpg", ".jpeg", ".jfif", ".png")):
                 filename += ".jpg"
 
-            save_path = os.path.join(os.path.dirname(__file__), '..', 'images', filename)
+            save_path = os.path.join(
+                os.path.dirname(__file__), "..", "images", filename
+            )
             full_path = os.path.abspath(save_path)
 
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
@@ -252,7 +290,7 @@ class ProductService:
             if product is None:
                 raise ProductException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"No product found with id {product_id}"
+                    detail=f"No product found with id {product_id}",
                 )
             if is_valid_update(edited_product.name, product.name):
                 product.name = edited_product.name
@@ -286,9 +324,11 @@ class ProductService:
         except NoResultFound:
             raise UserException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Product with {product_id} id not found!"
+                detail=f"Product with {product_id} id not found!",
             )
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
-            raise UserException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                detail="An error occurred when accessing the database!")
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )

@@ -31,11 +31,15 @@ class CheckoutService:
                     if product is None:
                         raise ProductException(
                             status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"No product found with id {item.id}"
+                            detail=f"No product found with id {item.id}",
                         )
 
                     new_quantity = product.stock_quantity - item.quantity
-                    update_stmt = update(Product).where(Product.id == item.id).values(stock_quantity=new_quantity)
+                    update_stmt = (
+                        update(Product)
+                        .where(Product.id == item.id)
+                        .values(stock_quantity=new_quantity)
+                    )
                     update_statements.append(update_stmt)
 
                 for update_stmt in update_statements:
@@ -52,7 +56,7 @@ class CheckoutService:
         metadata_dict = {
             "product_quantities": {},
             "product_categories": {},
-            "seller_id": ""
+            "seller_id": "",
         }
 
         product_quantities = dict()
@@ -74,22 +78,23 @@ class CheckoutService:
         checkout_session = stripe.checkout.Session.create(
             line_items=[
                 {
-                    'price_data': {
-                        'currency': 'usd',
-                        'product_data': {
-                            'name': f"{item.name}",
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": f"{item.name}",
                         },
-                        'unit_amount': item.price * 100,
+                        "unit_amount": item.price * 100,
                     },
-                    'quantity': item.quantity,
-                } for item in cart_items
+                    "quantity": item.quantity,
+                }
+                for item in cart_items
             ],
             payment_intent_data={
-                'metadata': metadata_dict,
+                "metadata": metadata_dict,
             },
-            mode='payment',
-            success_url=load_config().server_config.frontend_domain + '?success=true',
-            cancel_url=load_config().server_config.frontend_domain + '?canceled=true',
+            mode="payment",
+            success_url=load_config().server_config.frontend_domain + "?success=true",
+            cancel_url=load_config().server_config.frontend_domain + "?canceled=true",
         )
 
         return {"session_id": checkout_session["id"]}

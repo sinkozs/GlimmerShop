@@ -9,21 +9,29 @@ class AuthController:
     def __init__(self, service: AuthService):
         self._service = service
 
-    async def login_for_access_token(self, is_seller: bool, response: Response,
-                                     form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
+    async def login_for_access_token(
+        self,
+        is_seller: bool,
+        response: Response,
+        form_data: OAuth2PasswordRequestForm = Depends(),
+    ) -> dict:
         email = form_data.username
         password = form_data.password
 
         if not is_seller:
             user = await self._service.authenticate_user(email, password)
             if user:
-                response = await self._service.set_response_cookie(user["id"], user["email"], response)
+                response = await self._service.set_response_cookie(
+                    user["id"], user["email"], response
+                )
                 return {"response": response, "user_id": user["id"]}
 
         elif is_seller:
             seller = await self._service.authenticate_seller(email, password)
             if seller:
-                response = await self._service.set_response_cookie(seller["id"], seller["email"], response)
+                response = await self._service.set_response_cookie(
+                    seller["id"], seller["email"], response
+                )
                 print(f"response: {response},  seller_id: {seller['id']}")
                 return {"response": response, "seller_id": seller["id"]}
 

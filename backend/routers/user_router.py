@@ -10,9 +10,7 @@ from schemas.schemas import UserCreate, UserUpdate, UserQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(
-    prefix="/users",
-    tags=["users"],
-    responses={404: {"User": "Not found"}}
+    prefix="/users", tags=["users"], responses={404: {"User": "Not found"}}
 )
 
 
@@ -27,7 +25,9 @@ async def get_all_users(session: AsyncSession = Depends(get_session)):
 
 
 @router.get("/users-by-role")
-async def get_users_by_role(is_seller: bool, session: AsyncSession = Depends(get_session)):
+async def get_users_by_role(
+    is_seller: bool, session: AsyncSession = Depends(get_session)
+):
     service = UserService(session)
     user_controller = UserController(service)
     try:
@@ -37,7 +37,9 @@ async def get_users_by_role(is_seller: bool, session: AsyncSession = Depends(get
 
 
 @router.get("/search/", response_model=List[UserQuery])
-async def search_products(query: str = Query(...), session: AsyncSession = Depends(get_session)):
+async def search_products(
+    query: str = Query(...), session: AsyncSession = Depends(get_session)
+):
     service = UserService(session)
     user_controller = UserController(service)
     try:
@@ -47,8 +49,7 @@ async def search_products(query: str = Query(...), session: AsyncSession = Depen
 
 
 @router.get("/{user_id}")
-async def get_user_by_id(user_id,
-                         session: AsyncSession = Depends(get_session)):
+async def get_user_by_id(user_id, session: AsyncSession = Depends(get_session)):
     service = UserService(session)
     user_controller = UserController(service)
 
@@ -59,8 +60,9 @@ async def get_user_by_id(user_id,
 
 
 @router.get("/public/{user_id}")
-async def get_public_user_info_by_id(user_id,
-                                     session: AsyncSession = Depends(get_session)):
+async def get_public_user_info_by_id(
+    user_id, session: AsyncSession = Depends(get_session)
+):
     service = UserService(session)
     user_controller = UserController(service)
 
@@ -71,7 +73,9 @@ async def get_public_user_info_by_id(user_id,
 
 
 @router.post("/new")
-async def create_new_user(user: UserCreate, session: AsyncSession = Depends(get_session)):
+async def create_new_user(
+    user: UserCreate, session: AsyncSession = Depends(get_session)
+):
     service = UserService(session)
     user_controller = UserController(service)
     print(user)
@@ -93,8 +97,11 @@ async def verify_account(email, code, session: AsyncSession = Depends(get_sessio
 
 
 @router.put("/edit")
-async def edit_user(user_update: UserUpdate, current_user: dict = Depends(get_current_user),
-                    session: AsyncSession = Depends(get_session)):
+async def edit_user(
+    user_update: UserUpdate,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
     service = UserService(session)
     user_controller = UserController(service)
     try:
@@ -107,7 +114,10 @@ async def edit_user(user_update: UserUpdate, current_user: dict = Depends(get_cu
 
 
 @router.delete("/delete")
-async def delete_user(current_user: dict = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+async def delete_user(
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
     service = UserService(session)
     user_controller = UserController(service)
     try:

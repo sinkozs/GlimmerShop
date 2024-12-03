@@ -11,7 +11,11 @@ from datetime import datetime, timedelta
 from uuid import UUID
 
 from models.models import User
-from config.auth_config import bcrypt_context, encryption_algorithm, http_only_auth_cookie
+from config.auth_config import (
+    bcrypt_context,
+    encryption_algorithm,
+    http_only_auth_cookie,
+)
 from exceptions.auth_exceptions import AuthenticationException
 from dependencies import db_model_to_dict, send_password_reset_email, hash_password
 from config.parser import load_config
@@ -32,22 +36,30 @@ class AuthService:
 
         # ensuring the password includes at least one lowercase, one uppercase, one digit, and one special character
         while True:
-            password = ''.join(secrets.choice(alphabet) for i in range(length))
-            if (any(c.islower() for c in password)
-                    and any(c.isupper() for c in password)
-                    and any(c.isdigit() for c in password)
-                    and any(c in string.punctuation for c in password)):
+            password = "".join(secrets.choice(alphabet) for i in range(length))
+            if (
+                any(c.islower() for c in password)
+                and any(c.isupper() for c in password)
+                and any(c.isdigit() for c in password)
+                and any(c in string.punctuation for c in password)
+            ):
                 break
 
         return password
 
     def create_access_token(self, user_id: UUID, email: EmailStr) -> str:
         encode = {"id": str(user_id), "email": str(email)}
-        expire = datetime.now() + timedelta(minutes=self.auth_config.token_expiry_minutes)
+        expire = datetime.now() + timedelta(
+            minutes=self.auth_config.token_expiry_minutes
+        )
         encode.update({"exp": expire})
-        return jwt.encode(encode, self.auth_config.secret_key, algorithm=encryption_algorithm)
+        return jwt.encode(
+            encode, self.auth_config.secret_key, algorithm=encryption_algorithm
+        )
 
-    async def set_response_cookie(self, user_id: UUID, email: EmailStr, response: Response):
+    async def set_response_cookie(
+        self, user_id: UUID, email: EmailStr, response: Response
+    ):
         access_token = self.create_access_token(user_id=user_id, email=email)
         sign_in_response = JSONResponse(content={"message": "Login successful"})
         response.set_cookie(
@@ -57,13 +69,15 @@ class AuthService:
             max_age=3600,
             expires=3600,
             samesite="lax",
-            secure=False
+            secure=False,
         )
         return sign_in_response
 
     async def authenticate_user(self, email: EmailStr, password: str) -> dict:
         async with self.db.begin():
-            stmt = select(User).filter((User.email == email) & (User.is_seller == False))
+            stmt = select(User).filter(
+                (User.email == email) & (User.is_seller == False)
+            )
             result = await self.db.execute(stmt)
             user_model = result.scalars().first()
             if user_model:
@@ -83,7 +97,9 @@ class AuthService:
     async def authenticate_seller(self, email: EmailStr, password: str) -> dict:
         try:
             async with self.db.begin():
-                stmt = select(User).filter((User.email == email) & (User.is_seller == True))
+                stmt = select(User).filter(
+                    (User.email == email) & (User.is_seller == True)
+                )
                 result = await self.db.execute(stmt)
                 seller_model = result.scalars().first()
                 if seller_model:
@@ -100,8 +116,10 @@ class AuthService:
                 await self.db.commit()
                 return seller_dict
         except SQLAlchemyError:
-            raise AuthenticationException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                          detail="An error occurred when accessing the database!")
+            raise AuthenticationException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def regenerate_forgotten_password(self, email: EmailStr):
         try:
@@ -118,8 +136,10 @@ class AuthService:
                 if not user_model:
                     raise AuthenticationException()
         except SQLAlchemyError:
-            raise AuthenticationException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                          detail="An error occurred when accessing the database!")
+            raise AuthenticationException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def user_logout(self, user_id: UUID):
         try:
@@ -131,5 +151,7 @@ class AuthService:
                     user_model.is_active = False
                     await self.db.commit()
         except SQLAlchemyError:
-            raise AuthenticationException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                          detail="An error occurred when accessing the database!")
+            raise AuthenticationException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )

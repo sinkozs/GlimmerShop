@@ -14,7 +14,9 @@ class CategoryController:
 
     async def get_category_by_identifier(self, category_identifier) -> dict:
         try:
-            category_exists = await self._service.check_category_exists(category_identifier)
+            category_exists = await self._service.check_category_exists(
+                category_identifier
+            )
             return category_exists
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
@@ -63,7 +65,9 @@ class CategoryController:
         try:
             category_exists = await self._service.check_category_exists(category_id)
             if category_exists.get("is_exist"):
-                return await self._service.add_category_to_product(product_id, category_id)
+                return await self._service.add_category_to_product(
+                    product_id, category_id
+                )
 
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e

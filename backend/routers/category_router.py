@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 router = APIRouter(
     prefix="/categories",
     tags=["categories"],
-    responses={404: {"Category": "Not found"}}
+    responses={404: {"Category": "Not found"}},
 )
 
 
@@ -26,7 +26,9 @@ async def get_all_categories(session: AsyncSession = Depends(get_session)):
 
 
 @router.get("/search/", response_model=List[CategoryQuery])
-async def search_products(query: str = Query(...), session: AsyncSession = Depends(get_session)):
+async def search_products(
+    query: str = Query(...), session: AsyncSession = Depends(get_session)
+):
     service = CategoryService(session)
     controller = CategoryController(service)
     try:
@@ -36,7 +38,9 @@ async def search_products(query: str = Query(...), session: AsyncSession = Depen
 
 
 @router.get("/category-by-identifier")
-async def get_category_by_identifier(category_identifier, session: AsyncSession = Depends(get_session)):
+async def get_category_by_identifier(
+    category_identifier, session: AsyncSession = Depends(get_session)
+):
     service = CategoryService(session)
     controller = CategoryController(service)
     try:
@@ -46,7 +50,9 @@ async def get_category_by_identifier(category_identifier, session: AsyncSession 
 
 
 @router.get("/product-categories")
-async def get_product_categories(product_id: int, session: AsyncSession = Depends(get_session)) -> list:
+async def get_product_categories(
+    product_id: int, session: AsyncSession = Depends(get_session)
+) -> list:
     service = CategoryService(session)
     controller = CategoryController(service)
     try:
@@ -56,7 +62,9 @@ async def get_product_categories(product_id: int, session: AsyncSession = Depend
 
 
 @router.get("/products-by-category")
-async def get_products_by_category(category_id: int, session: AsyncSession = Depends(get_session)):
+async def get_products_by_category(
+    category_id: int, session: AsyncSession = Depends(get_session)
+):
     service = CategoryService(session)
     controller = CategoryController(service)
     try:
@@ -66,7 +74,9 @@ async def get_products_by_category(category_id: int, session: AsyncSession = Dep
 
 
 @router.post("/new/{category_name}")
-async def add_new_category(category_name: str, session: AsyncSession = Depends(get_session)):
+async def add_new_category(
+    category_name: str, session: AsyncSession = Depends(get_session)
+):
     service = CategoryService(session)
     controller = CategoryController(service)
     try:
@@ -76,18 +86,25 @@ async def add_new_category(category_name: str, session: AsyncSession = Depends(g
 
 
 @router.post("/add-category-to-product")
-async def add_category_to_product(request: CategoryToProductRequest, session: AsyncSession = Depends(get_session)):
+async def add_category_to_product(
+    request: CategoryToProductRequest, session: AsyncSession = Depends(get_session)
+):
     service = CategoryService(session)
     controller = CategoryController(service)
     try:
-        return await controller.add_category_to_product(request.product_id, request.category_id)
+        return await controller.add_category_to_product(
+            request.product_id, request.category_id
+        )
     except HTTPException as e:
         raise e
 
 
 @router.put("/edit")
-async def edit_category(category_id: int, category_update: CategoryUpdate,
-                        session: AsyncSession = Depends(get_session)):
+async def edit_category(
+    category_id: int,
+    category_update: CategoryUpdate,
+    session: AsyncSession = Depends(get_session),
+):
     service = CategoryService(session)
     controller = CategoryController(service)
     try:
@@ -97,11 +114,15 @@ async def edit_category(category_id: int, category_update: CategoryUpdate,
 
 
 @router.delete("/delete-category-from-product")
-async def delete_category_from_product(request: CategoryToProductRequest, session: AsyncSession = Depends(get_session)):
+async def delete_category_from_product(
+    request: CategoryToProductRequest, session: AsyncSession = Depends(get_session)
+):
     service = CategoryService(session)
     controller = CategoryController(service)
     print(request)
     try:
-        return await controller.delete_category_from_product(request.product_id, request.category_id)
+        return await controller.delete_category_from_product(
+            request.product_id, request.category_id
+        )
     except HTTPException as e:
         raise e

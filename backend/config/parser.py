@@ -1,13 +1,22 @@
 from configparser import ConfigParser
 import os
 from dotenv import load_dotenv
-from config.models import DatabaseConfig, ServerConfig, RedisConfig, AuthConfig, SMTPConfig, Config
+from config.models import (
+    DatabaseConfig,
+    ServerConfig,
+    RedisConfig,
+    AuthConfig,
+    SMTPConfig,
+    Config,
+)
 
 DEFAULT_ENV_PATH = ".env"  # for sensitive info + info for docker containers
 DEFAULT_CONFIG_PATH = "config/local.ini"  # for public application info
 
 
-def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_ENV_PATH) -> Config:
+def load_config(
+    config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_ENV_PATH
+) -> Config:
     load_dotenv(env_path)
     parser = ConfigParser()
     parser.read(config_path)
@@ -16,7 +25,7 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
         password=os.getenv("POSTGRES_PASSWORD"),
         host=os.getenv("POSTGRES_HOST"),
         port=int(os.getenv("POSTGRES_PORT")),
-        database=os.getenv("POSTGRES_DB")
+        database=os.getenv("POSTGRES_DB"),
     )
     server_config = ServerConfig(
         host=parser.get("server", "Host"),
@@ -26,7 +35,7 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
     redis_config = RedisConfig(
         host=os.getenv("REDIS_HOST"),
         port=int(os.getenv("REDIS_PORT")),
-        password=os.getenv("REDIS_PASSWORD")
+        password=os.getenv("REDIS_PASSWORD"),
     )
     smtp_config = SMTPConfig(
         smtp_server="smtp.gmail.com",
@@ -36,10 +45,14 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
         sender_email=parser.get("smtp-account-verification", "Sender"),
         verification_email_subject=parser.get("smtp-account-verification", "Subject"),
         verification_email_message=parser.get("smtp-account-verification", "Message"),
-        verification_code_expiration_minutes=int(parser.get("smtp-account-verification", "CodeExpirationMinutes")),
+        verification_code_expiration_minutes=int(
+            parser.get("smtp-account-verification", "CodeExpirationMinutes")
+        ),
         password_reset_email_subject=parser.get("smtp-forgotten-password", "Subject"),
         password_reset_email_message=parser.get("smtp-forgotten-password", "Message"),
-        password_expiration_minutes=int(parser.get("smtp-forgotten-password", "PasswordExpirationMinutes")),
+        password_expiration_minutes=int(
+            parser.get("smtp-forgotten-password", "PasswordExpirationMinutes")
+        ),
     )
     auth_config = AuthConfig(
         secret_key=os.getenv("SECRET_KEY"),
@@ -53,6 +66,6 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_
         server_config=server_config,
         redis_config=redis_config,
         smtp_config=smtp_config,
-        auth_config=auth_config
+        auth_config=auth_config,
     )
     return config

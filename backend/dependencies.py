@@ -8,7 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import EmailStr
 from jose import jwt
 
-from config.auth_config import encryption_algorithm, bcrypt_context, http_only_auth_cookie
+from config.auth_config import (
+    encryption_algorithm,
+    bcrypt_context,
+    http_only_auth_cookie,
+)
 from config.parser import load_config
 from schemas.schemas import SelectedMonthForSellerStatistics
 import random
@@ -30,11 +34,16 @@ def generate_session_id():
 
 
 def is_valid_update(field_value, original_value):
-    return field_value is not None and field_value != '' and field_value != original_value
+    return (
+        field_value is not None and field_value != "" and field_value != original_value
+    )
 
 
 def db_model_to_dict(model_instance) -> dict:
-    return {column.name: getattr(model_instance, column.name) for column in model_instance.__table__.columns}
+    return {
+        column.name: getattr(model_instance, column.name)
+        for column in model_instance.__table__.columns
+    }
 
 
 def dict_to_db_model(model_class, data: dict):
@@ -78,7 +87,9 @@ async def get_current_user(request: Request) -> dict:
         return {"error": "No token found"}
     try:
         auth_config = load_config().auth_config
-        payload = jwt.decode(token, auth_config.secret_key, algorithms=[encryption_algorithm])
+        payload = jwt.decode(
+            token, auth_config.secret_key, algorithms=[encryption_algorithm]
+        )
         email: EmailStr = payload.get("email")
         user_id: UUID = payload.get("id")
         return {"email": email, "id": user_id}
@@ -87,7 +98,7 @@ async def get_current_user(request: Request) -> dict:
 
 
 def generate_random_verification_code() -> str:
-    verification_code = ''.join(random.choices('0123456789', k=6))
+    verification_code = "".join(random.choices("0123456789", k=6))
     return verification_code
 
 
@@ -99,11 +110,12 @@ async def verify_code(email: EmailStr, code):
     if email not in verification_storage:
         return False, "Invalid email or verification code"
 
-    if verification_storage[email]['code'] != code:
+    if verification_storage[email]["code"] != code:
         return False, "Invalid verification code"
 
-    if datetime.now() - verification_storage[email]['timestamp'] > timedelta(
-            minutes=smtp_config.verification_code_expiration_minutes):
+    if datetime.now() - verification_storage[email]["timestamp"] > timedelta(
+        minutes=smtp_config.verification_code_expiration_minutes
+    ):
         return False, "Verification code expired"
     else:
         return True, "Account successfully verified!"
@@ -138,7 +150,12 @@ async def send_email_via_smtp(user_email: EmailStr, message: MIMEMultipart):
 async def send_verification_email(first_name: str, user_email: EmailStr):
     subject = smtp_config.verification_email_subject
     verification_code = generate_random_verification_code()
-    body = f"Hey {first_name}! \n \n " + smtp_config.verification_email_message + " \n \n" + verification_code
+    body = (
+        f"Hey {first_name}! \n \n "
+        + smtp_config.verification_email_message
+        + " \n \n"
+        + verification_code
+    )
 
     message = MIMEMultipart()
     message["From"] = smtp_config.sender_email
@@ -151,8 +168,8 @@ async def send_verification_email(first_name: str, user_email: EmailStr):
 
         # save the email and the generated code
         verification_storage[user_email] = {
-            'code': verification_code,
-            'timestamp': datetime.now()
+            "code": verification_code,
+            "timestamp": datetime.now(),
         }
     except Exception as e:
         print(f"Failed to send email. Error: {e}")

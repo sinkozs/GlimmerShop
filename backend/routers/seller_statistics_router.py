@@ -10,14 +10,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 router = APIRouter(
     prefix="/seller-statistics",
     tags=["seller-statistics"],
-    responses={500: {"Seller Statistics": "Error when fetching Seller statistics"}}
+    responses={500: {"Seller Statistics": "Error when fetching Seller statistics"}},
 )
 
 
 @router.post("/get-monthly-transactions")
-async def get_monthly_transactions(selected_date: SelectedMonthForSellerStatistics,
-                                   current_user: dict = Depends(get_current_user),
-                                   session: AsyncSession = Depends(get_session)):
+async def get_monthly_transactions(
+    selected_date: SelectedMonthForSellerStatistics,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
     service = SellerStatisticsService(session)
     controller = SellerStatisticsController(service)
     try:

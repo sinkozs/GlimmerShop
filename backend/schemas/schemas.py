@@ -8,9 +8,23 @@ from typing_extensions import Annotated
 
 class UserCreate(BaseModel):
     first_name: Annotated[
-        str, Field(strip_whitespace=True, max_length=25, min_length=2, pattern=r'^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+$')]
+        str,
+        Field(
+            strip_whitespace=True,
+            max_length=25,
+            min_length=2,
+            pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+$",
+        ),
+    ]
     last_name: Annotated[
-        str, Field(strip_whitespace=True, max_length=25, min_length=2, pattern=r'^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+$')]
+        str,
+        Field(
+            strip_whitespace=True,
+            max_length=25,
+            min_length=2,
+            pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+$",
+        ),
+    ]
     password: Annotated[str, Field(strip_whitespace=True, max_length=64, min_length=8)]
     email: EmailStr
     is_seller: bool
@@ -18,18 +32,39 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    first_name: Optional[Annotated[
-        str, Field(strip_whitespace=True, max_length=25, min_length=2,
-                   pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+(?: [a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+)*$")]] = None
-    last_name: Optional[Annotated[
-        str, Field(strip_whitespace=True, max_length=25, min_length=2,
-                   pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+(?: [a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+)*$")]] = None
+    first_name: Optional[
+        Annotated[
+            str,
+            Field(
+                strip_whitespace=True,
+                max_length=25,
+                min_length=2,
+                pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+(?: [a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+)*$",
+            ),
+        ]
+    ] = None
+    last_name: Optional[
+        Annotated[
+            str,
+            Field(
+                strip_whitespace=True,
+                max_length=25,
+                min_length=2,
+                pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+(?: [a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+)*$",
+            ),
+        ]
+    ] = None
     email: Optional[EmailStr] = None
-    password: Optional[Annotated[str, Field(
-        strip_whitespace=True,
-        max_length=64,
-        min_length=8,
-    )]] = None
+    password: Optional[
+        Annotated[
+            str,
+            Field(
+                strip_whitespace=True,
+                max_length=64,
+                min_length=8,
+            ),
+        ]
+    ] = None
     password_length: Optional[int] = None
 
 

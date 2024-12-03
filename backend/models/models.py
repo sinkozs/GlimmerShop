@@ -8,7 +8,7 @@ from .database import Base
 
 class Category(Base):
     __tablename__ = "category"
-    __table_args__ = {'schema': 'public'}
+    __table_args__ = {"schema": "public"}
     id = Column(Integer, primary_key=True, index=True)
     category_name = Column(String(length=200))
 
@@ -17,9 +17,9 @@ class Category(Base):
 
 class Product(Base):
     __tablename__ = "product"
-    __table_args__ = {'schema': 'public'}
+    __table_args__ = {"schema": "public"}
     id = Column(Integer, primary_key=True, index=True)
-    seller_id = Column(UUID(as_uuid=True), ForeignKey('public.user.id'))
+    seller_id = Column(UUID(as_uuid=True), ForeignKey("public.user.id"))
     name = Column(String(length=100))
     description = Column(String(length=15000))
     price = Column(Integer)
@@ -37,10 +37,10 @@ class Product(Base):
 
 class ProductCategory(Base):
     __tablename__ = "product_category"
-    __table_args__ = {'schema': 'public'}
+    __table_args__ = {"schema": "public"}
     id = Column(Integer, primary_key=True, index=True)
-    product_id = Column(Integer, ForeignKey('public.product.id'))
-    category_id = Column(Integer, ForeignKey('public.category.id'))
+    product_id = Column(Integer, ForeignKey("public.product.id"))
+    category_id = Column(Integer, ForeignKey("public.category.id"))
 
     product = relationship("Product", back_populates="product_category")
     category = relationship("Category", back_populates="product_category")
@@ -48,7 +48,7 @@ class ProductCategory(Base):
 
 class User(Base):
     __tablename__ = "user"
-    __table_args__ = {'schema': 'public'}
+    __table_args__ = {"schema": "public"}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     first_name = Column(String(50))
     last_name = Column(String(50))
@@ -61,18 +61,32 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
     registration_date = Column(Date, nullable=False)
 
-    product = relationship("Product", back_populates="seller",
-                            primaryjoin="and_(User.id==Product.seller_id, User.is_seller==True)")
-    cart = relationship("Cart", back_populates="user", uselist=False, lazy="joined",
-                        primaryjoin="User.id==Cart.user_id")
-    user_orders = relationship("UserOrder", back_populates="user", primaryjoin="User.id==UserOrder.user_id")
+    product = relationship(
+        "Product",
+        back_populates="seller",
+        primaryjoin="and_(User.id==Product.seller_id, User.is_seller==True)",
+    )
+    cart = relationship(
+        "Cart",
+        back_populates="user",
+        uselist=False,
+        lazy="joined",
+        primaryjoin="User.id==Cart.user_id",
+    )
+    user_orders = relationship(
+        "UserOrder", back_populates="user", primaryjoin="User.id==UserOrder.user_id"
+    )
 
 
 class Cart(Base):
     __tablename__ = "cart"
-    __table_args__ = {'schema': 'public'}
+    __table_args__ = {"schema": "public"}
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('public.user.id', ondelete="CASCADE"), nullable=False)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("public.user.id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
     user = relationship("User", back_populates="cart")
     cart_item = relationship("CartItem", back_populates="cart")
@@ -80,16 +94,16 @@ class Cart(Base):
 
 class CartItem(Base):
     __tablename__ = "cart_item"
-    __table_args__ = {'schema': 'public'}
+    __table_args__ = {"schema": "public"}
     id = Column(Integer, primary_key=True, index=True)
-    cart_id = Column(Integer, ForeignKey('public.cart.id'))
-    product_id = Column(Integer, ForeignKey('public.product.id'))
+    cart_id = Column(Integer, ForeignKey("public.cart.id"))
+    product_id = Column(Integer, ForeignKey("public.product.id"))
     quantity = Column(Integer)
 
     cart = relationship("Cart", back_populates="cart_item")
     product = relationship("Product", back_populates="cart_items")
 
-    @validates('quantity')
+    @validates("quantity")
     def validate_quantity(self, key, value):
         if value < 0:
             raise ValueError(f"{key.capitalize()} cannot be negative")
@@ -98,10 +112,10 @@ class CartItem(Base):
 
 class UserOrder(Base):
     __tablename__ = "user_order"
-    __table_args__ = {'schema': 'public'}
+    __table_args__ = {"schema": "public"}
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('public.user.id'))
-    product_id = Column(Integer, ForeignKey('public.product.id'))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("public.user.id"))
+    product_id = Column(Integer, ForeignKey("public.product.id"))
 
     user = relationship("User", back_populates="user_orders")
     product = relationship("Product", back_populates="user_orders")

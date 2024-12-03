@@ -5,8 +5,13 @@ from PIL import Image
 from services.product_service import ProductService
 from services.category_service import CategoryService
 from models.models import Product
-from schemas.schemas import ProductUpdate, PriceFilter, MaterialsFilter, ProductData, \
-    ProductFilterRequest
+from schemas.schemas import (
+    ProductUpdate,
+    PriceFilter,
+    MaterialsFilter,
+    ProductData,
+    ProductFilterRequest,
+)
 from exceptions.user_exceptions import UserException
 from exceptions.product_exceptions import ProductException
 from fastapi import HTTPException, Query
@@ -36,22 +41,30 @@ class ProductController:
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def get_products_by_price_range(self, category_id: int, price_range: PriceFilter) -> set:
+    async def get_products_by_price_range(
+        self, category_id: int, price_range: PriceFilter
+    ) -> set:
         try:
-            return await self._service.get_products_by_price_range(category_id, price_range)
+            return await self._service.get_products_by_price_range(
+                category_id, price_range
+            )
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def get_products_by_material(self, category_id: int, materials: MaterialsFilter) -> set:
+    async def get_products_by_material(
+        self, category_id: int, materials: MaterialsFilter
+    ) -> set:
         try:
             return await self._service.get_products_by_material(category_id, materials)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    def get_common_products(self, products_by_material, products_by_price_range, products_by_seller):
-        material_ids = {product['id'] for product in products_by_material}
-        price_range_ids = {product['id'] for product in products_by_price_range}
-        seller_ids = {product['id'] for product in products_by_seller}
+    def get_common_products(
+        self, products_by_material, products_by_price_range, products_by_seller
+    ):
+        material_ids = {product["id"] for product in products_by_material}
+        price_range_ids = {product["id"] for product in products_by_price_range}
+        seller_ids = {product["id"] for product in products_by_seller}
 
         common_ids = material_ids
 
@@ -61,28 +74,46 @@ class ProductController:
         if seller_ids:
             common_ids = common_ids & seller_ids
 
-        all_products = {product['id']: product for product in
-                        products_by_material + products_by_price_range + products_by_seller}
+        all_products = {
+            product["id"]: product
+            for product in products_by_material
+            + products_by_price_range
+            + products_by_seller
+        }
 
         common_products = [all_products[product_id] for product_id in common_ids]
         return common_products
 
-    async def filter_products_by_material_price_and_seller(self, filters: ProductFilterRequest):
+    async def filter_products_by_material_price_and_seller(
+        self, filters: ProductFilterRequest
+    ):
         try:
-            products_by_material, products_by_price_range, products_by_seller = list(), list(), list()
+            products_by_material, products_by_price_range, products_by_seller = (
+                list(),
+                list(),
+                list(),
+            )
             if filters.materials:
-                products_by_material = await self._service.get_products_by_material(filters.category_id,
-                                                                                    filters.materials)
-            products_by_price_range = await self._service.get_products_by_price_range(filters.category_id,
-                                                                                      filters.price_range)
+                products_by_material = await self._service.get_products_by_material(
+                    filters.category_id, filters.materials
+                )
+            products_by_price_range = await self._service.get_products_by_price_range(
+                filters.category_id, filters.price_range
+            )
             if filters.seller.seller_id:
-                products_by_seller = await self._service.get_all_products_by_seller(filters.seller.seller_id)
-            return self.get_common_products(products_by_material, products_by_price_range, products_by_seller)
+                products_by_seller = await self._service.get_all_products_by_seller(
+                    filters.seller.seller_id
+                )
+            return self.get_common_products(
+                products_by_material, products_by_price_range, products_by_seller
+            )
 
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def search_products(self, query: str = Query(...), seller_id: UUID = Query(...)) -> List[ProductData]:
+    async def search_products(
+        self, query: str = Query(...), seller_id: UUID = Query(...)
+    ) -> List[ProductData]:
         try:
             return await self._service.search_products(query, seller_id)
         except ProductException as e:
@@ -104,7 +135,9 @@ class ProductController:
             product_id = await self._service.add_new_product(seller_id, product)
             if new_product.categories:
                 for category_id in new_product.categories:
-                    await self._category_service.add_category_to_product(product_id, category_id)
+                    await self._category_service.add_category_to_product(
+                        product_id, category_id
+                    )
 
             return product_id
         except ProductException as e:

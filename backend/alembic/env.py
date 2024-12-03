@@ -18,7 +18,7 @@ db_config = load_config().db_config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-config.set_section_option(section,"DB_URL",db_config.url)
+config.set_section_option(section, "DB_URL", db_config.url)
 
 target_metadata = Base.metadata
 
