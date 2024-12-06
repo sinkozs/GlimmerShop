@@ -111,7 +111,7 @@ function LoginAndSignup() {
 
     try {
       const response = await axios.post(
-        `http://${config.BACKEND_BASE_URL}/users/new`,
+        `${config.BACKEND_BASE_URL}/users/new`,
         formData
       );
 
