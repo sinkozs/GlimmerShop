@@ -9,6 +9,16 @@ services:
       - .env
     ports:
       - "5433:5432"
+      
+  test_db:
+    container_name: glimmershop_test_pg_container
+    image: postgres
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5434:5432"
+
 
   pgadmin:
     container_name: glimmershop_pgadmin4_container
