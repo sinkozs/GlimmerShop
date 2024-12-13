@@ -111,6 +111,11 @@ class UserQuery(BaseModel):
         arbitrary_types_allowed = True
 
 
+class UserVerification(BaseModel):
+    email: EmailStr
+    code: str
+
+
 class CategoryQuery(BaseModel):
     id: int
     category_name: str = Field(max_length=200)

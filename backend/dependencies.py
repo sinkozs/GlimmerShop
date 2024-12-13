@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Optional
 from uuid import UUID
 
@@ -35,13 +35,18 @@ def generate_session_id():
 
 def is_valid_update(field_value, original_value):
     return (
-        field_value is not None and field_value != "" and field_value != original_value
+            field_value is not None and field_value != "" and field_value != original_value
     )
 
 
 def db_model_to_dict(model_instance) -> dict:
+    def convert_value(value):
+        if isinstance(value, (UUID, datetime, date)):
+            return str(value)
+        return value
+
     return {
-        column.name: getattr(model_instance, column.name)
+        column.name: convert_value(getattr(model_instance, column.name))
         for column in model_instance.__table__.columns
     }
 
@@ -114,7 +119,7 @@ async def verify_code(email: EmailStr, code):
         return False, "Invalid verification code"
 
     if datetime.now() - verification_storage[email]["timestamp"] > timedelta(
-        minutes=smtp_config.verification_code_expiration_minutes
+            minutes=smtp_config.verification_code_expiration_minutes
     ):
         return False, "Verification code expired"
     else:
@@ -147,14 +152,14 @@ async def send_email_via_smtp(user_email: EmailStr, message: MIMEMultipart):
         server.quit()
 
 
-async def send_verification_email(first_name: str, user_email: EmailStr):
+async def send_verification_email(first_name: str, user_email: EmailStr) -> bool:
     subject = smtp_config.verification_email_subject
     verification_code = generate_random_verification_code()
     body = (
-        f"Hey {first_name}! \n \n "
-        + smtp_config.verification_email_message
-        + " \n \n"
-        + verification_code
+            f"Hey {first_name}! \n \n "
+            + smtp_config.verification_email_message
+            + " \n \n"
+            + verification_code
     )
 
     message = MIMEMultipart()
@@ -171,6 +176,7 @@ async def send_verification_email(first_name: str, user_email: EmailStr):
             "code": verification_code,
             "timestamp": datetime.now(),
         }
+        return True
     except Exception as e:
         print(f"Failed to send email. Error: {e}")
 

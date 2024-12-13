@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from uuid import UUID
 from typing import List
 from sqlalchemy import func, and_, or_
@@ -5,11 +6,11 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status
-from models.models import User
+from models.models import User, Cart
 from exceptions.user_exceptions import UserException
 from dependencies import db_model_to_dict
-from dependencies import send_verification_email, verify_code
-from schemas.schemas import UserQuery
+from dependencies import send_verification_email, verify_code, hash_password, dict_to_db_model
+from schemas.schemas import UserQuery, UserCreate
 
 
 class UserService:
@@ -20,51 +21,51 @@ class UserService:
     async def get_user_by_id(self, user_id: UUID) -> dict:
         try:
             async with self.db.begin():
-                stmt = select(User).filter(User.id == user_id)
+                stmt = select(User).where(
+                    and_(User.id == user_id, User.is_seller)
+                )
                 result = await self.db.execute(stmt)
-                user_model: User = result.scalars().first()
-                if user_model:
-                    return db_model_to_dict(user_model)
-                else:
+                seller = result.scalar_one_or_none()
+
+                if not seller:
                     raise UserException(
                         status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"User with id {user_id} not found!",
+                        detail=f"Seller with id {user_id} not found"
                     )
-        except SQLAlchemyError:
-            raise UserException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database!",
-            )
-
-    async def get_all_users(self) -> List[dict]:
-        try:
-            async with self.db.begin():
-                result = await self.db.execute(select(User))
-                users_model = result.scalars().all()
-                if users_model:
-                    users_data = [db_model_to_dict(user) for user in users_model]
-                    return users_data
-                else:
-                    raise UserException()
+                await self.db.refresh(seller)
+                return db_model_to_dict(seller)
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database!",
+                detail="An error occurred when accessing the database"
             )
 
-    async def get_users_by_role(self, is_seller: bool) -> List[dict]:
+    async def get_all_users(self) -> list[dict]:
+        try:
+            async with self.db.begin():
+                result = await self.db.execute(select(User))
+                users = result.scalars().all()
+
+                for user in users:
+                    await self.db.refresh(user)
+                return [db_model_to_dict(user) for user in users] if users else []
+
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!"
+            )
+
+    async def get_users_by_role(self, is_seller: bool) -> list[User]:
         try:
             async with self.db.begin():
                 result = await self.db.execute(
                     select(User).where(User.is_seller == is_seller)
                 )
                 sellers_model = result.scalars().all()
-                if sellers_model:
-                    users_data = [db_model_to_dict(user) for user in sellers_model]
-                    return users_data
-                else:
-                    raise UserException()
+                return [user for user in sellers_model] if sellers_model else []
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise UserException(
@@ -72,19 +73,14 @@ class UserService:
                 detail="An error occurred when accessing the database!",
             )
 
-    async def get_user_by_email(self, email: str):
+    async def get_user_by_email(self, email: str) -> dict:
         try:
             async with self.db.begin():
                 stmt = select(User).filter(User.email == email)
                 result = await self.db.execute(stmt)
-                user_model: User = result.scalars().first()
-                if user_model:
-                    return user_model
-                else:
-                    raise UserException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"No user found with email {email}",
-                    )
+                user: User = result.scalars().first()
+                return db_model_to_dict(user) if user else None
+
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise UserException(
@@ -104,28 +100,40 @@ class UserService:
             print(f"Database access error: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database!",
+                detail="An error occurred when accessing the database!"
             )
 
-    async def create_new_user(self, user: User):
+    async def create_new_user(self, user_data: UserCreate) -> str:
         try:
+            user = User(
+                first_name=user_data.first_name,
+                last_name=user_data.last_name,
+                email=user_data.email,
+                hashed_password=hash_password(user_data.password),
+                registration_date=datetime.now(timezone.utc).date(),
+                is_seller=user_data.is_seller,
+                password_length=len(user_data.password)
+            )
+
+            if not user_data.is_seller:
+                user.cart = Cart(user=user)
+
+            user_email = user_data.email
+            user_first_name = user_data.first_name
             async with self.db.begin():
                 self.db.add(user)
-                await self.db.commit()
+                await self.db.flush()
+                await self.db.refresh(user)
+                id = str(user.id)
+            await send_verification_email(user_first_name, user_email)
+            return id
+
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database!",
+                detail="An error occurred when creating the user"
             )
-
-    async def send_email_to_user(self, user: User):
-        async with self.db.begin():
-            await self.db.refresh(
-                instance=user,
-                attribute_names=["id", "first_name", "last_name", "email"],
-            )
-            await send_verification_email(user.first_name, user.email)
 
     async def verify_email(self, email, code):
         try:
@@ -163,25 +171,45 @@ class UserService:
 
             return [UserQuery.model_validate(seller) for seller in sellers]
 
-    async def update_is_verified_column(self, email):
+    async def update_is_verified_column(self, email: str) -> dict:
         try:
-            user: User = await self.get_user_by_email(email)
-            user.is_verified = True
-            self.db.add(user)
-            await self.db.commit()
+            async with self.db.begin():
+                stmt = select(User).filter(User.email == email)
+                result = await self.db.execute(stmt)
+                user: User = result.scalars().first()
+
+                if not user:
+                    raise UserException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"User with email {email} not found"
+                    )
+
+                user.is_verified = True
+                await self.db.flush()
+                await self.db.refresh(user)
+
+                return {
+                    "id": str(user.id),
+                    "email": user.email,
+                    "is_verified": user.is_verified
+                }
+
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database!",
+                detail="An error occurred when accessing the database"
             )
 
-    async def edit_user(self, edited_user: User):
+    async def edit_user(self, edited_user: User) -> User:
         try:
             async with self.db.begin():
                 await self.db.merge(edited_user)
                 await self.db.commit()
 
+                await self.db.refresh(edited_user)
+                return edited_user
+
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise UserException(
@@ -189,18 +217,26 @@ class UserService:
                 detail="An error occurred when accessing the database!",
             )
 
-    async def delete_user(self, user_id: UUID):
-        async with self.db.begin():
-            stmt = select(User).filter(User.id == user_id)
-            result = await self.db.execute(stmt)
-            user_model: User = result.scalars().first()
+    async def delete_user(self, user_id: UUID) -> bool:
+        try:
+            async with self.db.begin():
+                stmt = select(User).filter(User.id == user_id)
+                result = await self.db.execute(stmt)
+                user_model: User = result.scalars().first()
 
-        if user_model is not None:
-            await self.db.delete(user_model)
-            await self.db.commit()
+                if user_model is not None:
+                    await self.db.delete(user_model)
+                    await self.db.commit()
+                    return True
+                else:
+                    raise UserException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"User with {user_id} id not found!"
+                    )
 
-        else:
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
             raise UserException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with {user_id} id not found!",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!"
             )
