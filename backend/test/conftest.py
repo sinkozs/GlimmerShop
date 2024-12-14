@@ -1,4 +1,7 @@
 import sys
+import uuid
+from datetime import datetime, date, timezone
+
 import pytest
 import pytest_asyncio
 from fastapi import FastAPI
@@ -13,7 +16,7 @@ from models.database import Base
 import os
 
 from main import main
-from dependencies import get_session
+from dependencies import get_session, hash_password
 import logging
 from dotenv import load_dotenv
 
@@ -92,3 +95,36 @@ async def async_test_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, No
     print(f"Using POSTGRES_PORT={os.getenv('POSTGRES_PORT')}")
     async with AsyncClient(app=test_app, base_url="http://test") as client:
         yield client
+
+
+# ====== Test Users ======
+@pytest.fixture
+def test_users() -> list[dict]:
+    return [
+        {
+            "id": str(uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791")),
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "seller@example.com",
+            "hashed_password": hash_password("strongpassword"),
+            "password_length": 14,
+            "is_seller": True,
+            "is_verified": True,
+            "is_active": True,
+            "last_login": datetime.now(),
+            "registration_date": date.today()
+        },
+        {
+            "id": str(uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb792")),
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "email": "buyer@example.com",
+            "hashed_password": hash_password("securepassword"),
+            "password_length": 13,
+            "is_seller": False,
+            "is_verified": False,
+            "is_active": False,
+            "last_login": None,
+            "registration_date": date.today()
+        }
+    ]

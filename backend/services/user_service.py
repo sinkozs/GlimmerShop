@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from uuid import UUID
 from typing import List
@@ -12,6 +13,9 @@ from dependencies import db_model_to_dict
 from dependencies import send_verification_email, verify_code, hash_password, dict_to_db_model
 from schemas.schemas import UserQuery, UserCreate
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+
 
 class UserService:
 
@@ -21,21 +25,19 @@ class UserService:
     async def get_user_by_id(self, user_id: UUID) -> dict:
         try:
             async with self.db.begin():
-                stmt = select(User).where(
-                    and_(User.id == user_id, User.is_seller)
-                )
+                stmt = select(User).where(User.id == user_id)
                 result = await self.db.execute(stmt)
-                seller = result.scalar_one_or_none()
+                user = result.scalar_one_or_none()
 
-                if not seller:
+                if not user:
                     raise UserException(
                         status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"Seller with id {user_id} not found"
+                        detail=f"User with id {user_id} not found!"
                     )
-                await self.db.refresh(seller)
-                return db_model_to_dict(seller)
+                await self.db.refresh(user)
+                return db_model_to_dict(user)
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database"
@@ -52,22 +54,22 @@ class UserService:
                 return [db_model_to_dict(user) for user in users] if users else []
 
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!"
             )
 
-    async def get_users_by_role(self, is_seller: bool) -> list[User]:
+    async def get_users_by_role(self, is_seller: bool) -> list[dict]:
         try:
             async with self.db.begin():
                 result = await self.db.execute(
                     select(User).where(User.is_seller == is_seller)
                 )
-                sellers_model = result.scalars().all()
-                return [user for user in sellers_model] if sellers_model else []
+                users = result.scalars().all()
+                return [db_model_to_dict(user) for user in users] if users else []
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -82,7 +84,7 @@ class UserService:
                 return db_model_to_dict(user) if user else None
 
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -97,7 +99,7 @@ class UserService:
                 result = await self.db.execute(stmt)
                 return result.scalar_one() > 0
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!"
@@ -129,7 +131,7 @@ class UserService:
             return id
 
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when creating the user"
@@ -145,7 +147,7 @@ class UserService:
             else:
                 await self.update_is_verified_column(email)
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -195,7 +197,7 @@ class UserService:
                 }
 
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database"
@@ -211,7 +213,7 @@ class UserService:
                 return edited_user
 
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -235,7 +237,7 @@ class UserService:
                     )
 
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!"

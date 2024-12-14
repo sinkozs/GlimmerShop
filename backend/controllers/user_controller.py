@@ -21,14 +21,13 @@ class UserController:
     def __init__(self, user_service: UserService):
         self._service = user_service
 
-
     async def get_user_by_id(self, user_id: UUID) -> JSONResponse:
         try:
             user: dict = await self._service.get_user_by_id(user_id=user_id)
 
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
-                content=UserResponse.model_validate(user)
+                content={"user": UserResponse.model_validate(user).model_dump()}
             )
         except UserException as e:
             raise HTTPException(
@@ -39,14 +38,14 @@ class UserController:
     async def get_all_users(self) -> JSONResponse:
         try:
             users = await self._service.get_all_users()
-            user_responses = [
-                UserResponse.model_validate(user)
-                for user in users
-            ]
-            print(user_responses)
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
-                content=user_responses
+                content={
+                    "users": [
+                        UserResponse.model_validate(user).model_dump()
+                        for user in users
+                    ]
+                }
             )
         except UserException as e:
             raise HTTPException(
@@ -54,7 +53,8 @@ class UserController:
                 detail=str(e.detail)
             ) from e
 
-    async def get_users_by_role(self, is_seller: bool):
+    async def get_users_by_type(self,
+                                is_seller: bool = Query(..., description="True for sellers, False for customers")):
         try:
             return await self._service.get_users_by_role(is_seller)
         except UserException as e:
@@ -93,14 +93,14 @@ class UserController:
                 detail=str(e.detail)
             ) from e
 
-    async def verify_user(self, ver: UserVerification) -> JSONResponse:
+    async def verify_user(self, verification: UserVerification) -> JSONResponse:
         try:
-            await self._service.verify_email(ver.email, ver.code)
+            await self._service.verify_email(verification.email, verification.code)
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
                     "message": "User verified successfully",
-                    "email": ver.email
+                    "email": verification.email
                 }
             )
         except UserException as e:
