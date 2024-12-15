@@ -82,32 +82,14 @@ async def edit_user(
         current_user: dict = Depends(get_current_user),
         user_controller: UserController = Depends(get_user_controller),
 ) -> JSONResponse:
-    try:
-        user_id: UUID = current_user["user_id"]
-        if not user_id:
-            raise HTTPException(status_code=400, detail="Missing user ID")
-        return await user_controller.edit_user(user_id, user_update)
-    except HTTPException as e:
-        raise e
+    user_id: UUID = current_user["user_id"]
+    return await user_controller.edit_user(user_id, user_update)
 
 
 @router.delete("/me")
 async def delete_user(
         current_user: dict = Depends(get_current_user),
-        user_controller: UserController = Depends(get_user_controller)
+        user_controller: UserController = Depends(get_user_controller),
 ) -> JSONResponse:
-    try:
-        user_id = current_user.get("id")
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User ID not found in token"
-            )
-
-        return await user_controller.delete_user(user_id)
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred"
-        )
+    user_id: UUID = current_user["user_id"]
+    return await user_controller.delete_user(user_id)

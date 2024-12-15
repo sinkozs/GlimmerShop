@@ -70,6 +70,7 @@ class AuthConfig:
 @dataclass
 class Config:
     db_config: DatabaseConfig
+    test_db_config: DatabaseConfig
     server_config: ServerConfig
     redis_config: RedisConfig
     smtp_config: SMTPConfig

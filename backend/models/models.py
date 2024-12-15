@@ -51,7 +51,7 @@ class User(Base):
     __table_args__ = {"schema": "public"}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     first_name = Column(String(50))
-    last_name = Column(String(50))
+    last_name = Column(String(55))
     email = Column(String(100), nullable=False, unique=True, index=True)
     hashed_password = Column(String(64), nullable=False)
     password_length = Column(Integer)
@@ -64,12 +64,15 @@ class User(Base):
     product = relationship(
         "Product",
         back_populates="seller",
+        uselist=False,
+        cascade="all, delete-orphan",
         primaryjoin="and_(User.id==Product.seller_id, User.is_seller==True)",
     )
     cart = relationship(
         "Cart",
         back_populates="user",
         uselist=False,
+        cascade="all, delete-orphan",
         lazy="joined",
         primaryjoin="User.id==Cart.user_id",
     )

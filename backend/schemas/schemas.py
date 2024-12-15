@@ -28,7 +28,6 @@ class UserCreate(BaseModel):
     password: Annotated[str, Field(strip_whitespace=True, max_length=64, min_length=8)]
     email: EmailStr
     is_seller: bool
-    password_length: Optional[int] = None
 
 
 class UserUpdate(BaseModel):

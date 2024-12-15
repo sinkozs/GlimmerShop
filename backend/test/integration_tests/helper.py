@@ -2,6 +2,7 @@ import uuid
 from datetime import date, datetime
 from typing import Union, List, Any, Dict
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dependencies import dict_to_db_model
@@ -48,29 +49,32 @@ def convert_non_json_serializable_fields_to_str(data: Dict[str, Any]) -> Dict[st
 
 async def add_test_users(session: AsyncSession, test_users: list[dict]) -> None:
     """
-      Add test users directly to the database for testing purposes.
+    Add test users directly to the database for testing purposes.
 
-      Args:
-          session: SQLAlchemy async session
-          test_users: List of user dictionaries containing complete user data
-              including all required database fields
+    Args:
+        session: SQLAlchemy async session
+        test_users: List of user dictionaries containing complete user data
 
-      Example:
-          test_users = [
-              {
-                  "id": uuid.uuid4(),
-                  "first_name": "John",
-                  "last_name": "Doe",
-                  "email": "test@example.com",
-                  ...
-              }
-          ]
-          await add_test_users(session, test_users)
-      """
-    test_user_models = [dict_to_db_model(User, user) for user in test_users]
-    for user in test_user_models:
-        session.add(user)
-    await session.commit()
+    Example:
+        test_users = [
+            {
+                "id": uuid.uuid4(),
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "test@example.com",
+                ...
+            }
+        ]
+        await add_test_users(session, test_users)
+    """
+    try:
+        async with session.begin():
+            test_user_models = [dict_to_db_model(User, user) for user in test_users]
+            for user in test_user_models:
+                session.add(user)
+    except SQLAlchemyError as e:
+        print(f"Error adding test users: {e}")
+        raise
 
 
 def get_required_user_fields():

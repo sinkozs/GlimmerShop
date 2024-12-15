@@ -153,7 +153,7 @@ async def verify_code(
     ):
         return False, "Verification code expired"
 
-    return True, "Account successfully verified!"
+    return True, "Account successfully verified"
 
 
 async def send_email_via_smtp(user_email: EmailStr, message: MIMEMultipart):

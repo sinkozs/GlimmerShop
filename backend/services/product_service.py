@@ -60,10 +60,7 @@ class ProductService:
             if products:
                 return [db_model_to_dict(product) for product in products]
             else:
-                raise ProductException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Product with seller id {seller_id} not found!",
-                )
+                return []
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise ProductException(
@@ -87,10 +84,7 @@ class ProductService:
                 product_data = [db_model_to_dict(c) for c in categories]
                 return product_data
             else:
-                raise ProductException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Categories with product id {product_id} not found!",
-                )
+                return []
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise ProductException(
@@ -107,7 +101,7 @@ class ProductService:
                     product_data = [db_model_to_dict(product) for product in products]
                     return product_data
                 else:
-                    raise ProductException()
+                    return []
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise ProductException(
@@ -136,9 +130,7 @@ class ProductService:
                     product_data = [db_model_to_dict(q) for q in products]
                     return product_data
                 else:
-                    raise ProductException(
-                        detail="Failed to fetch products by price range"
-                    )
+                    return []
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise ProductException(
@@ -172,9 +164,7 @@ class ProductService:
                     product_data = [db_model_to_dict(p) for p in products]
                     return product_data
                 else:
-                    raise ProductException(
-                        detail="Failed to fetch products by material"
-                    )
+                    return []
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise ProductException(

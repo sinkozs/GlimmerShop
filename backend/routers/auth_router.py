@@ -35,6 +35,7 @@ async def login(
 ):
     service = AuthService(session)
     auth_controller = AuthController(service)
+    print(form_data)
     try:
         return await auth_controller.login_for_access_token(
             is_seller, response, form_data

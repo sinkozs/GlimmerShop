@@ -15,7 +15,7 @@ DEFAULT_CONFIG_PATH = "config/local.ini"  # for public application info
 
 
 def load_config(
-    config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_ENV_PATH
+        config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_ENV_PATH
 ) -> Config:
     load_dotenv(env_path)
     parser = ConfigParser()
@@ -26,6 +26,13 @@ def load_config(
         host=os.getenv("POSTGRES_HOST"),
         port=int(os.getenv("POSTGRES_PORT")),
         database=os.getenv("POSTGRES_DB"),
+    )
+    test_db_config = DatabaseConfig(
+        user=os.getenv("TEST_POSTGRES_USER"),
+        password=os.getenv("TEST_POSTGRES_PASSWORD"),
+        host=os.getenv("TEST_POSTGRES_HOST"),
+        port=int(os.getenv("TEST_POSTGRES_PORT")),
+        database=os.getenv("TEST_POSTGRES_DB"),
     )
     server_config = ServerConfig(
         host=parser.get("server", "Host"),
@@ -63,6 +70,7 @@ def load_config(
     )
     config = Config(
         db_config=db_config,
+        test_db_config=test_db_config,
         server_config=server_config,
         redis_config=redis_config,
         smtp_config=smtp_config,

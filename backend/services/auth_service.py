@@ -98,6 +98,7 @@ class AuthService:
                 stmt = select(User).filter((User.email == email) & (User.is_seller))
                 result = await self.db.execute(stmt)
                 seller_model = result.scalars().first()
+                print(f"seller model: {seller_model}")
                 if seller_model:
                     seller_dict = db_model_to_dict(seller_model)
 

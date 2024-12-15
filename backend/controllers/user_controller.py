@@ -145,25 +145,42 @@ class UserController:
                 detail=str(e.detail)
             ) from e
 
-    async def edit_user(self, user_id: UUID, user_update: UserUpdate):
-        original_user: User = dict_to_db_model(User, await self._service.get_user_by_id(user_id))
-        if original_user:
-            if is_valid_update(user_update.first_name, original_user.first_name):
-                original_user.first_name = user_update.first_name
-            if is_valid_update(user_update.last_name, original_user.last_name):
-                original_user.last_name = user_update.last_name
-            if is_valid_update(user_update.email, original_user.email):
-                original_user.email = user_update.email
+    async def edit_user(self, user_id: UUID, user_update: UserUpdate) -> JSONResponse:
+        try:
+            current_user = await self._service.get_user_by_id(user_id)
+
+            update_data = {}
+            if is_valid_update(user_update.first_name, current_user["first_name"]):
+                update_data["first_name"] = user_update.first_name
+            if is_valid_update(user_update.last_name, current_user["last_name"]):
+                update_data["last_name"] = user_update.last_name
+            if is_valid_update(user_update.email, current_user["email"]):
+                update_data["email"] = user_update.email
+
             if user_update.password:
                 if not bcrypt_context.verify(
-                        user_update.password, original_user.hashed_password
+                        user_update.password,
+                        current_user["hashed_password"]
                 ):
-                    original_user.hashed_password = hash_password(user_update.password)
-        try:
-            await self._service.edit_user(original_user)
+                    update_data["hashed_password"] = hash_password(user_update.password)
+
+            if update_data:
+                updated_user = await self._service.edit_user(user_id, update_data)
+                return JSONResponse(
+                    status_code=status.HTTP_200_OK,
+                    content=updated_user
+                )
+
+            return JSONResponse(
+                status_code=status.HTTP_304_NOT_MODIFIED,
+                content=current_user
+            )
 
         except UserException as e:
-            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+            raise HTTPException(
+                status_code=e.status_code,
+                detail=str(e.detail)
+            ) from e
 
     async def get_user_by_email(self, email: EmailStr):
         try:
@@ -171,8 +188,20 @@ class UserController:
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def delete_user(self, user_id: UUID):
+    async def delete_user(self, user_id: UUID) -> JSONResponse:
         try:
-            await self._service.delete_user(user_id)
+            result = await self._service.delete_user(user_id)
+
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={
+                    "message": result["message"],
+                    "user_id": result["user_id"]
+                }
+            )
+
         except UserException as e:
-            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+            raise HTTPException(
+                status_code=e.status_code,
+                detail=str(e.detail)
+            ) from e
