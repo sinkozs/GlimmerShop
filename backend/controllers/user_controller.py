@@ -38,6 +38,7 @@ class UserController:
     async def get_all_users(self) -> JSONResponse:
         try:
             users = await self._service.get_all_users()
+            print(users)
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
@@ -145,7 +146,7 @@ class UserController:
             ) from e
 
     async def edit_user(self, user_id: UUID, user_update: UserUpdate):
-        original_user: User = dict_to_db_model(User, await self.get_user_by_id(user_id))
+        original_user: User = dict_to_db_model(User, await self._service.get_user_by_id(user_id))
         if original_user:
             if is_valid_update(user_update.first_name, original_user.first_name):
                 original_user.first_name = user_update.first_name

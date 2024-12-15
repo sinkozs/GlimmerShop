@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, date
-from typing import Optional
+from typing import Optional, Dict, Any, Tuple
 from uuid import UUID
 
 from fastapi import Request
@@ -53,8 +53,19 @@ def db_model_to_dict(model_instance) -> dict:
 
 def dict_to_db_model(model_class, data: dict):
     instance = model_class()
+
     for key, value in data.items():
+        if key == 'id' and isinstance(value, str):
+            value = UUID(value)
+
+        if key == 'last_login' and value and isinstance(value, str):
+            value = datetime.fromisoformat(value)
+
+        if key == 'registration_date' and isinstance(value, str):
+            value = date.fromisoformat(value)
+
         setattr(instance, key, value)
+
     return instance
 
 
@@ -111,19 +122,38 @@ def hash_password(password: str) -> str:
     return bcrypt_context.hash(password)
 
 
-async def verify_code(email: EmailStr, code):
-    if email not in verification_storage:
+async def verify_code(
+        email: EmailStr,
+        code: str,
+        storage: Optional[Dict[str, Any]] = None
+) -> Tuple[bool, str]:
+    """
+    Verify email verification code
+
+    Args:
+        email: Email to verify
+        code: Verification code
+        storage: Storage dictionary to use, defaults to global verification_storage
+
+    Returns:
+        Tuple of (is_verified: bool, message: str)
+    """
+    # Use global storage if none provided
+    if storage is None:
+        storage = verification_storage
+
+    if email not in storage:
         return False, "Invalid email or verification code"
 
-    if verification_storage[email]["code"] != code:
+    if storage[email]["code"] != code:
         return False, "Invalid verification code"
 
-    if datetime.now() - verification_storage[email]["timestamp"] > timedelta(
+    if datetime.now() - storage[email]["timestamp"] > timedelta(
             minutes=smtp_config.verification_code_expiration_minutes
     ):
         return False, "Verification code expired"
-    else:
-        return True, "Account successfully verified!"
+
+    return True, "Account successfully verified!"
 
 
 async def send_email_via_smtp(user_email: EmailStr, message: MIMEMultipart):

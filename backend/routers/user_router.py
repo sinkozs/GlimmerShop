@@ -58,7 +58,7 @@ async def get_seller(seller_id, user_controller: UserController = Depends(get_us
     return await user_controller.check_if_seller_exists(seller_id)
 
 
-@router.post("")
+@router.post("/create")
 async def create_new_user(user: UserCreate,
                           user_controller: UserController = Depends(get_user_controller)) -> JSONResponse:
     return await user_controller.create_new_user(user)

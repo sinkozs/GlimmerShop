@@ -1,6 +1,6 @@
 import sys
 import uuid
-from datetime import datetime, date, timezone
+from datetime import datetime, date, timezone, timedelta
 
 import pytest
 import pytest_asyncio
@@ -12,7 +12,10 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession,
     create_async_engine,
 )
+
+from config.parser import load_config
 from models.database import Base
+from schemas.schemas import UserCreate
 import os
 
 from main import main
@@ -46,6 +49,17 @@ def setup_test_env(monkeypatch):
 
     monkeypatch.setenv("TEST_DATABASE_URL", test_db_url)
     return test_db_url
+
+
+@pytest.fixture
+def mock_verification_storage() -> dict:
+    """Setup mock verification service with test storage"""
+    smtp_config_exp_minutes = load_config().smtp_config.verification_code_expiration_minutes
+    return {
+        "seller@example.com": {"code": "123456", "timestamp": datetime.now()},
+        "buyer@example.com": {"code": "222222",
+                              "timestamp": datetime.now() - timedelta(minutes=smtp_config_exp_minutes)}
+    }
 
 
 @pytest_asyncio.fixture
@@ -100,31 +114,52 @@ async def async_test_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, No
 # ====== Test Users ======
 @pytest.fixture
 def test_users() -> list[dict]:
+    # Test user data to directly insert to the DB
     return [
         {
-            "id": str(uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791")),
+            "id": uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"),
             "first_name": "John",
             "last_name": "Doe",
             "email": "seller@example.com",
             "hashed_password": hash_password("strongpassword"),
-            "password_length": 14,
             "is_seller": True,
             "is_verified": True,
             "is_active": True,
             "last_login": datetime.now(),
-            "registration_date": date.today()
+            "registration_date": date.today(),
+            "password_length": 14
         },
         {
-            "id": str(uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb792")),
+            "id": uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb792"),
             "first_name": "Jane",
             "last_name": "Smith",
             "email": "buyer@example.com",
             "hashed_password": hash_password("securepassword"),
-            "password_length": 13,
             "is_seller": False,
             "is_verified": False,
             "is_active": False,
             "last_login": None,
-            "registration_date": date.today()
+            "registration_date": date.today(),
+            "password_length": 13
         }
+    ]
+
+
+@pytest.fixture
+def test_users_pydantic_model() -> list[UserCreate]:
+    return [
+        UserCreate(
+            first_name="John",
+            last_name="Doe",
+            email="seller@example.com",
+            password="strongpassword",
+            is_seller=True
+        ),
+        UserCreate(
+            first_name="Jane",
+            last_name="Smith",
+            email="buyer@example.com",
+            password="securepassword",
+            is_seller=False
+        )
     ]

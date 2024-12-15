@@ -54,7 +54,7 @@ class UserService:
                 return [db_model_to_dict(user) for user in users] if users else []
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error in get_user_by_id: {e}")
+            logger.error(f"Database error in get_all_users: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!"
@@ -69,7 +69,7 @@ class UserService:
                 users = result.scalars().all()
                 return [db_model_to_dict(user) for user in users] if users else []
         except SQLAlchemyError as e:
-            logger.error(f"Database error in get_user_by_id: {e}")
+            logger.error(f"Database error in get_users_by_role: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -81,10 +81,17 @@ class UserService:
                 stmt = select(User).filter(User.email == email)
                 result = await self.db.execute(stmt)
                 user: User = result.scalars().first()
+
+                if not user:
+                    raise UserException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"User with email {email} not found!"
+                    )
+
                 return db_model_to_dict(user) if user else None
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error in get_user_by_id: {e}")
+            logger.error(f"Database error in get_user_by_email: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -99,7 +106,7 @@ class UserService:
                 result = await self.db.execute(stmt)
                 return result.scalar_one() > 0
         except SQLAlchemyError as e:
-            logger.error(f"Database error in get_user_by_id: {e}")
+            logger.error(f"Database error in check_seller_exists: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!"
@@ -126,12 +133,12 @@ class UserService:
                 self.db.add(user)
                 await self.db.flush()
                 await self.db.refresh(user)
-                id = str(user.id)
+                user_id = str(user.id)
             await send_verification_email(user_first_name, user_email)
-            return id
+            return user_id
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error in get_user_by_id: {e}")
+            logger.error(f"Database error in create_new_user: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when creating the user"
@@ -147,7 +154,7 @@ class UserService:
             else:
                 await self.update_is_verified_column(email)
         except SQLAlchemyError as e:
-            logger.error(f"Database error in get_user_by_id: {e}")
+            logger.error(f"Database error in verify_email: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -197,7 +204,7 @@ class UserService:
                 }
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error in get_user_by_id: {e}")
+            logger.error(f"Database error in search_sellers: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database"
@@ -206,6 +213,7 @@ class UserService:
     async def edit_user(self, edited_user: User) -> User:
         try:
             async with self.db.begin():
+
                 await self.db.merge(edited_user)
                 await self.db.commit()
 
@@ -213,7 +221,7 @@ class UserService:
                 return edited_user
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error in get_user_by_id: {e}")
+            logger.error(f"Database error in edit_user: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -237,7 +245,7 @@ class UserService:
                     )
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error in get_user_by_id: {e}")
+            logger.error(f"Database error in delete_user: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!"

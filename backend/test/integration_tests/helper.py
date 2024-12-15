@@ -1,15 +1,72 @@
 import uuid
 from datetime import date, datetime
-from typing import Union, List
+from typing import Union, List, Any, Dict
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dependencies import dict_to_db_model
 from models.models import User
-import pytest
+from schemas.schemas import UserCreate
 
 
-async def add_test_users(session: AsyncSession, test_users) -> None:
+def convert_non_json_serializable_fields_to_str(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Convert dictionary values to JSON-serializable format.
+    Converts UUID, datetime, and date objects to strings.
+
+    Args:
+        data: Dictionary containing potentially non-JSON-serializable values
+
+    Returns:
+        dict: Dictionary with all non-JSON-serializable values converted to strings
+
+    Example:
+        user_dict = {
+            "id": UUID("123e4567..."),
+            "created_at": datetime.now(),
+            "name": "John"
+        }
+        result = convert_non_json_serializable_fields_to_str(user_dict)
+        # Result: {
+        #     "id": "123e4567...",
+        #     "created_at": "2024-12-14T15:30:00",
+        #     "name": "John"
+        # }
+    """
+
+    def convert_value(value: Any) -> Any:
+        """Convert a single value to JSON-serializable format if needed."""
+        if isinstance(value, (uuid.UUID, datetime, date)):
+            return str(value)
+        return value
+
+    return {
+        key: convert_value(value)
+        for key, value in data.items()
+    }
+
+
+async def add_test_users(session: AsyncSession, test_users: list[dict]) -> None:
+    """
+      Add test users directly to the database for testing purposes.
+
+      Args:
+          session: SQLAlchemy async session
+          test_users: List of user dictionaries containing complete user data
+              including all required database fields
+
+      Example:
+          test_users = [
+              {
+                  "id": uuid.uuid4(),
+                  "first_name": "John",
+                  "last_name": "Doe",
+                  "email": "test@example.com",
+                  ...
+              }
+          ]
+          await add_test_users(session, test_users)
+      """
     test_user_models = [dict_to_db_model(User, user) for user in test_users]
     for user in test_user_models:
         session.add(user)
@@ -19,40 +76,16 @@ async def add_test_users(session: AsyncSession, test_users) -> None:
 def get_required_user_fields():
     return {
         "id",
-        "email",
         "first_name",
         "last_name",
+        "email",
+        "hashed_password"
         "is_seller",
         "is_verified",
         "is_active",
         "registration_date",
-        "last_login"
+        "password_length"
     }
-
-
-def get_test_user_service_response() -> list[dict]:
-    return [
-        {
-            "id": str(uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791")),
-            "first_name": "John",
-            "last_name": "Doe",
-            "email": "seller@example.com",
-            "is_seller": True,
-            "is_verified": True,
-            "is_active": True,
-            "last_login": datetime.now().isoformat(),
-        },
-        {
-            "id": str(uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb792")),
-            "first_name": "Jane",
-            "last_name": "Smith",
-            "email": "buyer@example.com",
-            "is_seller": False,
-            "is_verified": False,
-            "is_active": False,
-            "last_login": None,
-        }
-    ]
 
 
 def assert_user_dicts(
@@ -67,13 +100,16 @@ def assert_user_dicts(
         expected: Expected user data (dict or list of dicts)
         actual: Actual user data (dict or list of dicts)
     """
-    # Convert single dicts to lists
-    expected_users = [expected] if isinstance(expected, dict) else expected
+
+    if isinstance(expected, list):
+        expected_users = [convert_non_json_serializable_fields_to_str(u) for u in expected]
+    elif isinstance(expected, dict):
+        expected_users = [convert_non_json_serializable_fields_to_str(expected)]
+
     actual_users = [actual] if isinstance(actual, dict) else actual
 
     assert len(actual_users) == len(expected_users), "Lists have different lengths"
 
-    # Only sort if we have multiple users
     if len(expected_users) > 1:
         expected_users = sorted(expected_users, key=lambda x: x["email"])
         actual_users = sorted(actual_users, key=lambda x: x["email"])
@@ -88,6 +124,49 @@ def assert_user_dicts(
         assert actual["is_seller"] == expected["is_seller"], f"Seller status mismatch"
         assert actual["is_verified"] == expected["is_verified"], f"User verification mismatch"
 
-        # Optional fields
+        # Optional field
         if expected["last_login"] is not None:
-            assert isinstance(actual["last_login"], str), "Last login should be string"
+            assert actual["last_login"] == expected["last_login"], f"Last login mismatch"
+
+
+def assert_user_field_types(user: dict) -> None:
+    """
+    Verify that all user fields have the correct data types.
+
+    Args:
+        user: Dictionary containing user data with expected fields:
+            - id (str): User UUID as string
+            - first_name (str): User's first name
+            - last_name (str): User's last name
+            - email (str): User's email address
+            - is_seller (bool): Whether user is a seller
+            - is_verified (bool): Whether user is verified
+            - is_active (bool): Whether user account is active
+            - last_login (str): Last login timestamp as string, optional
+            - password_length (int): Length of user's password
+
+    Raises:
+        AssertionError: If any field has incorrect type
+        KeyError: If required fields are missing
+
+    Example:
+        user = {
+            "id": "123e4567-e89b-12d3-a456-426614174000",
+            "first_name": "John",
+            ...
+        }
+        assert_user_field_types(user)
+    """
+    if get_required_user_fields() <= user.keys():
+        assert isinstance(user["id"], str), "ID must be string"
+        assert isinstance(user["first_name"], str), "First name must be string"
+        assert isinstance(user["last_name"], str), "Last name must be string"
+        assert isinstance(user["email"], str), "Email must be string"
+        assert isinstance(user["is_seller"], bool), "Is seller must be boolean"
+        assert isinstance(user["is_verified"], bool), "Is verified must be boolean"
+        assert isinstance(user["is_active"], bool), "Is active must be boolean"
+        assert isinstance(user["password_length"], int), "Password length must be integer"
+
+        # Optional
+        if user["last_login"]:
+            assert isinstance(user["last_login"], str), "Last login must be string"
