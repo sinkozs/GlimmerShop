@@ -55,7 +55,7 @@ async def get_user_by_id(user_id, user_controller: UserController = Depends(get_
 
 @router.get("/sellers/{seller_id}")
 async def get_seller(seller_id, user_controller: UserController = Depends(get_user_controller)) -> JSONResponse:
-    return await user_controller.check_if_seller_exists(seller_id)
+    return await user_controller.check_seller_exists(seller_id)
 
 
 @router.post("/create")

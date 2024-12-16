@@ -11,7 +11,7 @@ class UserResponse(BaseModel):
     is_seller: bool
     is_verified: bool
     is_active: bool
-    last_login: Optional[str]=None
+    last_login: Optional[str] = None
 
     class Config:
         from_attributes = True

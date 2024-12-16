@@ -168,34 +168,34 @@ class TestUserService:
             assert exc.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
             assert "database" in exc.value.detail.lower()
 
-    class TestGetUsersByRole:
+    class TestGetUsersByType:
         @pytest.mark.asyncio
-        async def test_get_users_by_role_returns_correct_users(self, test_users, test_session):
+        async def test_get_users_by_type_returns_correct_users(self, test_users, test_session):
             """Test retrieving users by role (is_seller)"""
             user_service = UserService(test_session)
             await add_test_users(test_session, test_users)
 
             # Test for sellers
-            sellers = await user_service.get_users_by_role(is_seller=True)
+            sellers = await user_service.get_users_by_type(is_seller=True)
             # Assuming only 1 seller in the test data
             assert len(sellers) == 1
             assert sellers[0]["email"] == "seller@example.com"
             assert sellers[0]["is_seller"] is True
 
             # Test for non-sellers
-            non_sellers = await user_service.get_users_by_role(is_seller=False)
+            non_sellers = await user_service.get_users_by_type(is_seller=False)
             # Assuming only 1 non-seller in the test data
             assert len(non_sellers) == 1
             assert non_sellers[0]["email"] == "buyer@example.com"
             assert non_sellers[0]["is_seller"] is False
 
         @pytest.mark.asyncio
-        async def test_get_users_by_role_correct_data_format(self, test_users, test_session):
+        async def test_get_users_by_type_correct_data_format(self, test_users, test_session):
             """Test that returned data has correct format and types"""
             user_service = UserService(test_session)
             await add_test_users(test_session, test_users)
 
-            sellers = await user_service.get_users_by_role(is_seller=True)
+            sellers = await user_service.get_users_by_type(is_seller=True)
 
             assert isinstance(sellers, list)
             if sellers:
@@ -204,7 +204,7 @@ class TestUserService:
                 assert_user_field_types(first_seller)
 
         @pytest.mark.asyncio
-        async def test_get_users_by_role_no_users_exist(self, test_session):
+        async def test_get_users_by_type_no_users_exist(self, test_session):
             """Test getting users by role when database is empty"""
             user_service = UserService(test_session)
 
@@ -213,16 +213,16 @@ class TestUserService:
                 result = await test_session.execute(select(User))
                 assert result.scalars().all() == [], "Database should be empty"
 
-            sellers = await user_service.get_users_by_role(is_seller=True)
+            sellers = await user_service.get_users_by_type(is_seller=True)
             assert sellers == []
             assert isinstance(sellers, list)
 
-            non_sellers = await user_service.get_users_by_role(is_seller=False)
+            non_sellers = await user_service.get_users_by_type(is_seller=False)
             assert non_sellers == []
             assert isinstance(non_sellers, list)
 
         @pytest.mark.asyncio
-        async def test_get_users_by_role_database_error(self, test_session, mocker):
+        async def test_get_users_by_type_database_error(self, test_session, mocker):
             """Test database error handling"""
             user_service = UserService(test_session)
 
@@ -234,7 +234,7 @@ class TestUserService:
             )
 
             with pytest.raises(UserException) as exc:
-                await user_service.get_users_by_role(is_seller=True)
+                await user_service.get_users_by_type(is_seller=True)
 
             assert exc.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
             assert "database" in str(exc.value.detail).lower()
@@ -304,15 +304,17 @@ class TestUserService:
             assert seller_exists is True
 
         @pytest.mark.asyncio
-        async def test_check_seller_exists_false(self, test_users, test_session):
-            """Test checking if the service returns False for a non-seller """
+        async def test_check_seller_exists_not_found(self, test_users, test_session):
+            """Test checking if the service raises UserException for a non-seller"""
             user_service = UserService(test_session)
-
             await add_test_users(test_session, test_users)
 
             # test_users[1] is a non-seller
-            seller_exists = await user_service.check_seller_exists(test_users[1]["id"])
-            assert seller_exists is False
+            with pytest.raises(UserException) as exc_info:
+                await user_service.check_seller_exists(test_users[1]["id"])
+
+            assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
+            assert str(exc_info.value.detail) == f"Seller with ID {test_users[1]['id']} not found"
 
         @pytest.mark.asyncio
         async def test_check_seller_exists_database_error(self, test_users, test_session, mocker):

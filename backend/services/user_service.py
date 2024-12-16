@@ -2,6 +2,8 @@ import logging
 from datetime import datetime, timezone
 from uuid import UUID
 from typing import List
+
+from black import Optional
 from sqlalchemy import func, and_, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -60,7 +62,7 @@ class UserService:
                 detail="An error occurred when accessing the database"
             )
 
-    async def get_users_by_role(self, is_seller: bool) -> list[dict]:
+    async def get_users_by_type(self, is_seller: bool) -> list[dict]:
         try:
             async with self.db.begin():
                 result = await self.db.execute(
@@ -88,7 +90,7 @@ class UserService:
                         detail=f"User with email {email} not found"
                     )
 
-                return db_model_to_dict(user) if user else None
+                return db_model_to_dict(user) if user else {}
 
         except SQLAlchemyError as e:
             logger.error(f"Database error in get_user_by_email: {e}")
@@ -104,7 +106,16 @@ class UserService:
                     and_(User.id == seller_id, User.is_seller)
                 )
                 result = await self.db.execute(stmt)
-                return result.scalar_one() > 0
+                count = result.scalar_one()
+
+                if count == 0:
+                    raise UserException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Seller with ID {seller_id} not found"
+                    )
+
+                return True
+
         except SQLAlchemyError as e:
             logger.error(f"Database error in check_seller_exists: {e}")
             raise UserException(
@@ -253,9 +264,6 @@ class UserService:
             )
 
     async def delete_user(self, user_id: UUID) -> dict:
-        """
-        Delete a user from the database
-        """
         try:
             async with self.db.begin():
                 stmt = select(User).filter(User.id == user_id)
