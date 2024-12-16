@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest
@@ -7,12 +7,11 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import status
 
-from config.parser import load_config
-from dependencies import smtp_config, verify_code
+from dependencies import verify_code
 from schemas.schemas import UserCreate
 from services.user_service import UserService
 from exceptions.user_exceptions import UserException
-from helper import add_test_users, get_required_user_fields, assert_user_dicts, assert_user_field_types
+from test.integration_tests.user_tests.helper import add_test_users, assert_user_dicts, assert_user_field_types
 from models.models import User, Cart
 
 

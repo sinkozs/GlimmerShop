@@ -64,7 +64,6 @@ class UserUpdate(BaseModel):
             ),
         ]
     ] = None
-    password_length: Optional[int] = None
 
 
 class ProductUpdate(BaseModel):

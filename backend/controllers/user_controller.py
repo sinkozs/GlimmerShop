@@ -1,16 +1,13 @@
-import json
 from typing import List
 
 from pydantic import EmailStr
 from sqlalchemy.dialects.postgresql import UUID
 
-from dependencies import dict_to_db_model, is_valid_update, hash_password, send_verification_email
+from dependencies import is_valid_update, hash_password, send_verification_email
 from services.user_service import UserService
-from models.models import User, Cart
 from config.auth_config import bcrypt_context
 from schemas.schemas import UserCreate, UserUpdate, UserQuery, UserVerification
 from schemas.response_schemas import UserResponse
-from datetime import datetime, timezone
 from exceptions.user_exceptions import UserException
 from fastapi import HTTPException, Query, status
 from fastapi.responses import JSONResponse
@@ -164,16 +161,16 @@ class UserController:
                 ):
                     update_data["hashed_password"] = hash_password(user_update.password)
 
-            if update_data:
+            if len(update_data) != 0:
                 updated_user = await self._service.edit_user(user_id, update_data)
                 return JSONResponse(
                     status_code=status.HTTP_200_OK,
-                    content=updated_user
+                    content={"user": UserResponse.model_validate(updated_user).model_dump()}
                 )
 
             return JSONResponse(
                 status_code=status.HTTP_304_NOT_MODIFIED,
-                content=current_user
+                content={"user": UserResponse.model_validate(current_user).model_dump()}
             )
 
         except UserException as e:

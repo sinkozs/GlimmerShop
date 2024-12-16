@@ -10,7 +10,7 @@ from fastapi import status
 from models.models import User, Cart
 from exceptions.user_exceptions import UserException
 from dependencies import db_model_to_dict
-from dependencies import send_verification_email, verify_code, hash_password, dict_to_db_model
+from dependencies import send_verification_email, verify_code, hash_password
 from schemas.schemas import UserQuery, UserCreate
 
 logger = logging.getLogger(__name__)

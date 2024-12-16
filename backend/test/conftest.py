@@ -4,6 +4,7 @@ from datetime import datetime, date, timezone, timedelta
 
 import pytest
 import pytest_asyncio
+from click import UUID
 from fastapi import FastAPI
 from httpx import AsyncClient
 from typing import AsyncGenerator
@@ -15,7 +16,7 @@ from sqlalchemy.ext.asyncio import (
 
 from config.parser import load_config
 from models.database import Base
-from schemas.schemas import UserCreate
+from schemas.schemas import UserCreate, UserUpdate
 import os
 
 from main import main
@@ -112,7 +113,7 @@ async def async_test_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, No
 
 
 # ====== Test Users ======
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_users() -> list[dict]:
     # Test user data to directly insert to the DB
     return [
@@ -144,8 +145,7 @@ def test_users() -> list[dict]:
         }
     ]
 
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_users_pydantic_model() -> list[UserCreate]:
     return [
         UserCreate(
