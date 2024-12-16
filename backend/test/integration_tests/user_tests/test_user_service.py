@@ -1,13 +1,13 @@
 import uuid
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest
+from datetime import datetime, date, timezone
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import status
 
-from dependencies import verify_code
+from dependencies import verify_code, hash_password
 from schemas.schemas import UserCreate
 from services.user_service import UserService
 from exceptions.user_exceptions import UserException
@@ -16,6 +16,57 @@ from models.models import User, Cart
 
 
 class TestUserService:
+    @pytest.fixture
+    def test_users(self) -> list[dict]:
+        # Test user data to directly insert to the DB
+        return [
+            {
+                "id": uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"),
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "seller@example.com",
+                "hashed_password": hash_password("strongpassword"),
+                "is_seller": True,
+                "is_verified": True,
+                "is_active": True,
+                "last_login": datetime.now(),
+                "registration_date": date.today(),
+                "password_length": 14
+            },
+            {
+                "id": uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb792"),
+                "first_name": "Jane",
+                "last_name": "Smith",
+                "email": "buyer@example.com",
+                "hashed_password": hash_password("securepassword"),
+                "is_seller": False,
+                "is_verified": False,
+                "is_active": False,
+                "last_login": None,
+                "registration_date": date.today(),
+                "password_length": 13
+            }
+        ]
+
+    @pytest.fixture
+    def test_users_pydantic_model(self) -> list[UserCreate]:
+        return [
+            UserCreate(
+                first_name="John",
+                last_name="Doe",
+                email="seller@example.com",
+                password="strongpassword",
+                is_seller=True
+            ),
+            UserCreate(
+                first_name="Jane",
+                last_name="Smith",
+                email="buyer@example.com",
+                password="securepassword",
+                is_seller=False
+            )
+        ]
+
     class TestGetAllUsers:
         @pytest.mark.asyncio
         async def test_get_all_users_success(self, test_users: list[dict], test_session):
