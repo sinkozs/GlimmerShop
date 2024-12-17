@@ -87,12 +87,17 @@ async def mock_user_service():
 
 @pytest_asyncio.fixture
 async def mock_user_controller():
-    """Create a mock user controller with default responses"""
+    """Create a mock user controller that returns None by default to avoid recursion"""
     controller = AsyncMock()
-    controller.get_all_users.return_value = {"users": []}
-    controller.get_user_by_id.return_value = {"user": {}}
-    controller.get_users_by_type.return_value = {"users": [], "user_type": False}
-    controller.search_sellers.return_value = {"sellers": []}
+    controller.configure_mock(**{
+        "get_all_users.return_value": None,
+        "get_user_by_id.return_value": None,
+        "get_users_by_type.return_value": None,
+        "search_sellers.return_value": None,
+        "create_new_user.return_value": None,
+        "verify_user.return_value": None,
+        "resend_verification_email.return_value": None
+    })
     return controller
 
 
