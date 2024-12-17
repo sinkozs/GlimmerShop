@@ -2,11 +2,12 @@ import uuid
 from unittest.mock import AsyncMock
 
 import pytest
-from datetime import datetime, date, timezone
+from datetime import datetime, date, timezone, timedelta
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import status
 
+from config.parser import load_config
 from dependencies import verify_code, hash_password
 from schemas.schemas import UserCreate
 from services.user_service import UserService
@@ -67,6 +68,18 @@ class TestUserService:
             )
         ]
 
+    @pytest.fixture
+    def mock_verification_storage(self) -> dict:
+        """Setup mock verification service with test storage"""
+        smtp_config_exp_minutes = load_config().smtp_config.verification_code_expiration_minutes
+        return {
+            "seller@example.com": {"code": "123456", "timestamp": datetime.now()},
+            "buyer@example.com": {
+                "code": "222222",
+                "timestamp": datetime.now() - timedelta(minutes=smtp_config_exp_minutes)
+            }
+        }
+
     class TestGetAllUsers:
         @pytest.mark.asyncio
         async def test_get_all_users_success(self, test_users: list[dict], test_session):
@@ -113,7 +126,6 @@ class TestUserService:
             """Test database error handling when retrieving users"""
             user_service = UserService(test_session)
 
-            # Mock database error
             mocker.patch.object(
                 test_session,
                 'execute',
