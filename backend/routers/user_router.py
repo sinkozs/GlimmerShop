@@ -1,11 +1,10 @@
-from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query
 from dependencies import get_session, get_current_user
 from controllers.user_controller import UserController
 from services.user_service import UserService
-from schemas.schemas import UserCreate, UserUpdate, UserQuery, UserVerification
+from schemas.schemas import UserCreate, UserUpdate, UserVerification
 from fastapi.responses import JSONResponse
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,16 +35,10 @@ async def get_users_by_type(is_seller: bool,
     return await user_controller.get_users_by_type(is_seller)
 
 
-@router.get("/sellers/search", response_model=List[UserQuery])
-async def search_products(
-        query: str = Query(...), session: AsyncSession = Depends(get_session)
-) -> List[UserQuery]:
-    service = UserService(session)
-    user_controller = UserController(service)
-    try:
-        return await user_controller.search_sellers(query)
-    except HTTPException as e:
-        raise e
+@router.get("/sellers/search")
+async def search_sellers(user_controller: UserController = Depends(get_user_controller),
+                         query: str = Query(...)) -> JSONResponse:
+    return await user_controller.search_sellers(query)
 
 
 @router.get("/{user_id}")

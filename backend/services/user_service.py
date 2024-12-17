@@ -2,8 +2,6 @@ import logging
 from datetime import datetime, timezone
 from uuid import UUID
 from typing import List
-
-from black import Optional
 from sqlalchemy import func, and_, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +11,7 @@ from models.models import User, Cart
 from exceptions.user_exceptions import UserException
 from dependencies import db_model_to_dict
 from dependencies import send_verification_email, verify_code, hash_password
-from schemas.schemas import UserQuery, UserCreate
+from schemas.schemas import UserCreate
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -176,25 +174,37 @@ class UserService:
                 detail="An error occurred when accessing the database",
             )
 
-    async def search_sellers(self, query: str) -> List[UserQuery]:
-        async with self.db.begin():
-            try:
-                seller_uuid = UUID(query)
-            except ValueError:
-                seller_uuid = None
-
-            stmt = select(User).where(
-                or_(
-                    User.first_name.ilike(f"%{query}%"),
-                    User.last_name.ilike(f"%{query}%"),
-                    User.id == seller_uuid,
-                )
+    async def search_sellers(self, query: str) -> List[dict]:
+        if not query or len(query.strip()) == 0:
+            raise UserException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Search query cannot be empty"
             )
 
-            result = await self.db.execute(stmt)
-            sellers = result.scalars().all()
+        async with self.db.begin():
+            try:
+                try:
+                    seller_uuid = UUID(query)
+                except ValueError:
+                    seller_uuid = None
 
-            return [UserQuery.model_validate(seller) for seller in sellers]
+                stmt = select(User).where(
+                    or_(
+                        User.first_name.ilike(f"%{query}%"),
+                        User.last_name.ilike(f"%{query}%"),
+                        User.id == seller_uuid,
+                    )
+                )
+                result = await self.db.execute(stmt)
+                sellers = result.scalars().all()
+
+                return [db_model_to_dict(seller) for seller in sellers]
+
+            except SQLAlchemyError as e:
+                raise UserException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="An error occurred when accessing the database"
+                ) from e
 
     async def update_is_verified_column(self, email: str) -> dict:
         try:

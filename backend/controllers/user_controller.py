@@ -90,7 +90,13 @@ class UserController:
                 detail=str(e.detail)
             )
 
-    async def search_sellers(self, query: str = Query(...)) -> JSONResponse:
+    async def search_sellers(self, query: str) -> JSONResponse:
+        if not query or not query.strip():
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Search query cannot be empty or whitespace only"
+            )
+
         try:
             sellers = await self._service.search_sellers(query)
             return JSONResponse(

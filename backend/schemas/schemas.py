@@ -93,22 +93,6 @@ class ProductData(BaseModel):
         from_attributes = True
 
 
-class UserQuery(BaseModel):
-    id: UUID
-    first_name: str = Field(max_length=50)
-    last_name: str = Field(max_length=50)
-    email: str = Field(max_length=100)
-    is_seller: bool
-    is_verified: bool
-    is_active: bool
-    last_login: Optional[datetime]
-    registration_date: datetime.date
-
-    class Config:
-        from_attributes = True
-        arbitrary_types_allowed = True
-
-
 class UserVerification(BaseModel):
     email: EmailStr
     code: str
