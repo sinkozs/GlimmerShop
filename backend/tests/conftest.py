@@ -62,7 +62,7 @@ def test_db_url():
         "username": os.getenv("TEST_POSTGRES_USER"),
         "password": os.getenv("TEST_POSTGRES_PASSWORD"),
         "host": os.getenv("TEST_POSTGRES_HOST"),
-        "port": int(os.getenv("TEST_POSTGRES_PORT", "5432")),  # Added default
+        "port": int(os.getenv("TEST_POSTGRES_PORT", "5432")),
         "database": os.getenv("TEST_POSTGRES_DB"),
     }
     assert all(test_db_config.values()), "Missing test database environment variables!"
@@ -74,8 +74,8 @@ def test_db_url():
 
 
 @pytest.fixture(scope="module")
-def setup_test_env(monkeypatch, test_db_url):
-    monkeypatch.setenv("TEST_DATABASE_URL", test_db_url)
+def setup_test_env(test_db_url):
+    os.environ["TEST_DATABASE_URL"] = test_db_url
     return test_db_url
 
 
