@@ -31,7 +31,7 @@ def get_test_db_url() -> str:
         "username": os.getenv("TEST_POSTGRES_USER"),
         "password": os.getenv("TEST_POSTGRES_PASSWORD"),
         "host": os.getenv("TEST_POSTGRES_HOST"),
-        "port": os.getenv("TEST_POSTGRES_PORT"),
+        "port": int(os.getenv("TEST_POSTGRES_PORT")),
         "database": os.getenv("TEST_POSTGRES_DB"),
     }
     assert all(test_db_config.values()), "Missing tests database environment variables!"
