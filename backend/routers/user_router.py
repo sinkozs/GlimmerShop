@@ -8,7 +8,6 @@ from controllers.user_controller import UserController
 from services.user_service import UserService
 from schemas.schemas import UserCreate, UserUpdate, UserVerification
 from fastapi.responses import JSONResponse
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(

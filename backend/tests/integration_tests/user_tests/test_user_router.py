@@ -1,6 +1,4 @@
-from datetime import timedelta, datetime
-from uuid import UUID, uuid4
-
+from uuid import UUID
 import pytest
 from fastapi import status, HTTPException
 from fastapi.responses import JSONResponse
@@ -12,12 +10,9 @@ from config.auth_config import http_only_auth_cookie
 from exceptions.user_exceptions import UserException
 from schemas.response_schemas import UserResponse
 from schemas.schemas import UserCreate, UserVerification, UserUpdate
-from jose import jwt
 
 logger = logging.getLogger(__name__)
 
-
-# pytestmark = pytest.mark.asyncio
 
 class TestUserRoutes:
     @pytest.fixture
@@ -998,7 +993,6 @@ class TestUserRoutes:
                 async_test_client: AsyncClient,
                 mock_user_controller: AsyncMock
         ):
-
             response = await async_test_client.delete(
                 "/users/me"
             )
