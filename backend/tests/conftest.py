@@ -60,6 +60,13 @@ def auth_headers(test_auth_token: str) -> dict:
 
 # Module scope - database setup and expensive operations shared within a test file
 @pytest.fixture(scope="module")
+def event_loop():
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture(scope="module")
 def test_db_url():
     load_dotenv(".env.test")
     test_db_config = {
