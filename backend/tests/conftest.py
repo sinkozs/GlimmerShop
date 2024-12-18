@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -7,6 +8,9 @@ from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from httpx import AsyncClient
 from typing import AsyncGenerator, Any
+
+from sqlalchemy.exc import OperationalError
+
 from config.auth_config import http_only_auth_cookie
 from jose import jwt
 from sqlalchemy.ext.asyncio import (
@@ -81,16 +85,38 @@ def setup_test_env(test_db_url):
 
 @pytest_asyncio.fixture(scope="module")
 async def test_engine(setup_test_env):
-    engine = create_async_engine(os.getenv("TEST_DATABASE_URL"), echo=True)
+    url = os.getenv("TEST_DATABASE_URL")
+    logger.info(f"Connecting to database: {url}")
+
+    engine = create_async_engine(
+        url,
+        echo=True,
+        pool_pre_ping=True
+    )
+
+    max_retries = 5
+    retry_delay = 2  # seconds
+
+    for attempt in range(max_retries):
+        try:
+            async with engine.begin() as conn:
+                logger.info("Creating test database schema...")
+                await conn.run_sync(Base.metadata.create_all)
+                break
+        except OperationalError as e:
+            if attempt == max_retries - 1:
+                logger.error(f"Failed to connect to database after {max_retries} attempts")
+                raise
+            logger.warning(f"Database connection attempt {attempt + 1} failed, retrying in {retry_delay} seconds...")
+            await asyncio.sleep(retry_delay)
+
+    yield engine
+
     try:
-        async with engine.begin() as conn:
-            logger.info("Creating test database schema...")
-            await conn.run_sync(Base.metadata.create_all)
-        yield engine
-    finally:
         async with engine.begin() as conn:
             logger.info("Dropping test database schema...")
             await conn.run_sync(Base.metadata.drop_all)
+    finally:
         await engine.dispose()
 
 

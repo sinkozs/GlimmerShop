@@ -1,5 +1,4 @@
 name: Backend Tests
-
 on:
   push:
     paths:
@@ -13,7 +12,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    
     services:
       postgres:
         image: postgres:15
@@ -28,10 +27,12 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --name postgres
+          --network-alias postgres
 
     steps:
     - uses: actions/checkout@v3
-
+    
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -63,6 +64,7 @@ jobs:
         echo "TEST_POSTGRES_PORT=5432" >> .env.test
         echo "TEST_POSTGRES_DB=${{ secrets.TEST_POSTGRES_DB }}" >> .env.test
         echo "TEST_SECRET_KEY=test-secret-key-1234" >> .env.test
+
     - name: Run tests
       working-directory: ./backend
       env:

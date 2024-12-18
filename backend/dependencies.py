@@ -20,8 +20,14 @@ import smtplib
 import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from functools import lru_cache
 
 verification_storage = dict()
+
+
+@lru_cache
+def get_config():
+    return load_config()
 
 
 async def get_session() -> AsyncSession:
@@ -157,7 +163,6 @@ async def verify_code(
         Tuple of (is_verified: bool, message: str)
     """
     # Use global storage if none provided
-    smtp_config = load_config().smtp_config
     if storage is None:
         storage = verification_storage
 
@@ -168,7 +173,7 @@ async def verify_code(
         return False, "Invalid verification code"
 
     if datetime.now() - storage[email]["timestamp"] > timedelta(
-            minutes=smtp_config.verification_code_expiration_minutes
+            minutes=get_config().smtp_config.verification_code_expiration_minutes
     ):
         return False, "Verification code expired"
 
@@ -203,6 +208,7 @@ async def send_email_via_smtp(user_email: EmailStr, message: MIMEMultipart):
 
 
 async def send_verification_email(first_name: str, user_email: EmailStr) -> bool:
+    smtp_config = get_config().smtp_config
     subject = smtp_config.verification_email_subject
     verification_code = generate_random_verification_code()
     body = (
@@ -232,6 +238,7 @@ async def send_verification_email(first_name: str, user_email: EmailStr) -> bool
 
 
 async def send_password_reset_email(user_email: EmailStr, new_password: str):
+    smtp_config = get_config().smtp_config
     subject = smtp_config.password_reset_email_subject
     body = smtp_config.password_reset_email_message + " \n \n" + new_password
 

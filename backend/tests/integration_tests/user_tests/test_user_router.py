@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestUserRoutes:
-    @pytest.fixture
+    @pytest.fixture(scope="session")
     def test_users(self) -> list[dict]:
         return [
             {
