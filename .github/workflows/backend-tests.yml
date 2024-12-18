@@ -62,8 +62,7 @@ jobs:
         echo "TEST_POSTGRES_HOST=postgres" >> .env.test
         echo "TEST_POSTGRES_PORT=5432" >> .env.test
         echo "TEST_POSTGRES_DB=${{ secrets.TEST_POSTGRES_DB }}" >> .env.test
-        echo "TEST_SECRET_KEY=${{ secrets.TEST_SECRET_KEY }}" >> .env.test
-
+        echo "TEST_SECRET_KEY=test-secret-key-1234" >> .env.test
     - name: Run tests
       working-directory: ./backend
       env:
