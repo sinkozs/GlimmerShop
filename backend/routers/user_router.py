@@ -2,7 +2,6 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import EmailStr
-
 from dependencies import get_session, get_current_user
 from controllers.user_controller import UserController
 from services.user_service import UserService
