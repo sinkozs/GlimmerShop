@@ -24,17 +24,48 @@ from unittest.mock import AsyncMock
 logger = logging.getLogger(__name__)
 
 
-def get_test_db_url() -> str:
-    """Get tests database URL from environment variables"""
+@pytest.fixture(scope="session")
+def test_user_id() -> str:
+    return "123e4567-e89b-12d3-a456-426614174000"
+
+
+@pytest.fixture(scope="session")
+def test_user_email() -> str:
+    return "tests@example.com"
+
+
+@pytest.fixture(scope="session")
+def test_auth_token(test_user_id: str, test_user_email: str) -> str:
+    payload = {
+        "id": str(test_user_id),
+        "email": test_user_email,
+        "exp": datetime.now() + timedelta(minutes=15)
+    }
+    return jwt.encode(
+        payload,
+        "<tests-secret-key>",
+        algorithm="HS256"
+    )
+
+
+@pytest.fixture(scope="session")
+def auth_headers(test_auth_token: str) -> dict:
+    """Create headers with authentication cookie"""
+    return {"cookie": f"{http_only_auth_cookie}={test_auth_token}"}
+
+
+# Module scope - database setup and expensive operations shared within a test file
+@pytest.fixture(scope="module")
+def test_db_url():
     load_dotenv(".env.test")
     test_db_config = {
         "username": os.getenv("TEST_POSTGRES_USER"),
         "password": os.getenv("TEST_POSTGRES_PASSWORD"),
         "host": os.getenv("TEST_POSTGRES_HOST"),
-        "port": int(os.getenv("TEST_POSTGRES_PORT")),
+        "port": int(os.getenv("TEST_POSTGRES_PORT", "5432")),  # Added default
         "database": os.getenv("TEST_POSTGRES_DB"),
     }
-    assert all(test_db_config.values()), "Missing tests database environment variables!"
+    assert all(test_db_config.values()), "Missing test database environment variables!"
 
     return (
         f"postgresql+asyncpg://{test_db_config['username']}:{test_db_config['password']}"
@@ -42,38 +73,30 @@ def get_test_db_url() -> str:
     )
 
 
-@pytest.fixture
-def test_db_url():
-    """Function-scoped fixture for database URL"""
-    return get_test_db_url()
-
-
-@pytest.fixture
+@pytest.fixture(scope="module")
 def setup_test_env(monkeypatch, test_db_url):
-    """Function-scoped fixture for environment setup"""
     monkeypatch.setenv("TEST_DATABASE_URL", test_db_url)
     return test_db_url
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="module")
 async def test_engine(setup_test_env):
-    """Create and configure a tests database engine"""
     engine = create_async_engine(os.getenv("TEST_DATABASE_URL"), echo=True)
     try:
         async with engine.begin() as conn:
-            logger.info("Creating tests database schema...")
+            logger.info("Creating test database schema...")
             await conn.run_sync(Base.metadata.create_all)
         yield engine
     finally:
         async with engine.begin() as conn:
-            logger.info("Dropping tests database schema...")
+            logger.info("Dropping test database schema...")
             await conn.run_sync(Base.metadata.drop_all)
         await engine.dispose()
 
 
+# Function scope - fresh instances for each test
 @pytest_asyncio.fixture
 async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
-    """Create tests database session"""
     session_maker = build_session_maker(test_engine)
     async with session_maker() as session:
         yield session
@@ -81,14 +104,12 @@ async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 
 @pytest_asyncio.fixture
 async def mock_user_service():
-    """Create a mock user service"""
     service = AsyncMock()
     return service
 
 
 @pytest_asyncio.fixture
 async def mock_user_controller():
-    """Create a mock user controller that returns None by default to avoid recursion"""
     controller = AsyncMock()
     controller.configure_mock(**{
         "get_all_users.return_value": None,
@@ -102,37 +123,6 @@ async def mock_user_controller():
         "delete_user.return_value": None
     })
     return controller
-
-
-@pytest.fixture
-def test_user_id() -> str:
-    return "123e4567-e89b-12d3-a456-426614174000"
-
-
-@pytest.fixture
-def test_user_email() -> str:
-    return "tests@example.com"
-
-
-@pytest.fixture
-def test_auth_token(test_user_id: UUID, test_user_email: str) -> str:
-    """Create a valid JWT token for testing"""
-    payload = {
-        "id": str(test_user_id),
-        "email": test_user_email,
-        "exp": datetime.now() + timedelta(minutes=15)
-    }
-    return jwt.encode(
-        payload,
-        "<tests-secret-key>",
-        algorithm="HS256"
-    )
-
-
-@pytest.fixture
-def auth_headers(test_auth_token: str) -> dict:
-    """Create headers with authentication cookie"""
-    return {"cookie": f"{http_only_auth_cookie}={test_auth_token}"}
 
 
 @pytest_asyncio.fixture
@@ -203,7 +193,6 @@ async def test_app(
 
 @pytest_asyncio.fixture
 async def async_test_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
-    """Create an async HTTP client"""
     async with AsyncClient(
             app=test_app,
             base_url="http://test",
