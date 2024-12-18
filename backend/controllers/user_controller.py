@@ -19,7 +19,7 @@ class UserController:
     async def get_user_by_id(self, user_id: UUID) -> JSONResponse:
         try:
             user: dict = await self._service.get_user_by_id(user_id=user_id)
-            
+
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={"user": UserResponse.model_validate(user).model_dump()}

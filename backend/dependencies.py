@@ -21,7 +21,6 @@ import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-smtp_config = load_config().smtp_config
 verification_storage = dict()
 
 
@@ -158,6 +157,7 @@ async def verify_code(
         Tuple of (is_verified: bool, message: str)
     """
     # Use global storage if none provided
+    smtp_config = load_config().smtp_config
     if storage is None:
         storage = verification_storage
 
@@ -177,6 +177,7 @@ async def verify_code(
 
 async def send_email_via_smtp(user_email: EmailStr, message: MIMEMultipart):
     # SMTP server settings
+    smtp_config = load_config().smtp_config
     smtp_server = smtp_config.smtp_server
     smtp_port = smtp_config.smtp_port
 
