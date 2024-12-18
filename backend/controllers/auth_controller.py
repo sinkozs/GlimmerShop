@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, Response
+from fastapi import Depends, HTTPException, Response, status
 from exceptions.auth_exceptions import AuthenticationException
 from pydantic import EmailStr
 from services.auth_service import AuthService
@@ -10,32 +10,49 @@ class AuthController:
         self._service = service
 
     async def login_for_access_token(
-        self,
-        is_seller: bool,
-        response: Response,
-        form_data: OAuth2PasswordRequestForm = Depends(),
+            self,
+            is_seller: bool,
+            response: Response,
+            form_data: OAuth2PasswordRequestForm = Depends(),
     ) -> dict:
         email = form_data.username
         password = form_data.password
 
         if not is_seller:
-            user = await self._service.authenticate_user(email, password)
-            if user:
-                response = await self._service.set_response_cookie(
-                    user["id"], user["email"], response
-                )
-                return {"response": response, "user_id": user["id"]}
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied. Only sellers can login through this endpoint."
+            )
 
-        elif is_seller:
+        try:
             seller = await self._service.authenticate_seller(email, password)
-            if seller:
-                response = await self._service.set_response_cookie(
-                    seller["id"], seller["email"], response
+            if not seller:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid credentials"
                 )
-                print(f"response: {response},  seller_id: {seller['id']}")
-                return {"response": response, "seller_id": seller["id"]}
 
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+            response = await self._service.set_response_cookie(
+                seller["id"],
+                seller["email"],
+                response
+            )
+
+            return {
+                "response": response,
+                "seller_id": seller["id"]
+            }
+
+        except AuthenticationException as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e.detail)
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Login failed"
+            )
 
     async def user_logout(self, user: dict):
         try:

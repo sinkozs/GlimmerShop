@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from dependencies import get_current_user
 from jose import jwt, JWTError
 
-
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
@@ -28,14 +27,13 @@ def verify_password(password1, password2, session: AsyncSession = Depends(get_se
 
 @router.post("/login")
 async def login(
-    is_seller: bool,
-    response: Response,
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    session: AsyncSession = Depends(get_session),
+        is_seller: bool,
+        response: Response,
+        form_data: OAuth2PasswordRequestForm = Depends(),
+        session: AsyncSession = Depends(get_session),
 ):
     service = AuthService(session)
     auth_controller = AuthController(service)
-    print(form_data)
     try:
         return await auth_controller.login_for_access_token(
             is_seller, response, form_data
@@ -44,7 +42,7 @@ async def login(
         raise e
 
 
-@router.get("/test")
+@router.get("/tests")
 async def test_cookie_jwt(request: Request):
     token = request.cookies.get(http_only_auth_cookie)
 
@@ -66,9 +64,9 @@ async def check_if_user_authenticated(current_user: dict = Depends(get_current_u
 
 @router.post("/logout")
 async def user_logout(
-    response: Response,
-    current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+        response: Response,
+        current_user: dict = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session),
 ):
     service = AuthService(session)
     auth_controller = AuthController(service)
@@ -92,7 +90,7 @@ async def user_logout(
 
 @router.post("/forgotten-password")
 async def regenerate_forgotten_password(
-    email: EmailStr, session: AsyncSession = Depends(get_session)
+        email: EmailStr, session: AsyncSession = Depends(get_session)
 ):
     service = AuthService(session)
     auth_controller = AuthController(service)

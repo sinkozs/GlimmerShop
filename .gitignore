@@ -1,5 +1,6 @@
 .idea/
 backend/.env
+backend/.env.test
 backend/.idea/
 backend/alembic/versions/
 backend/config/local.ini
@@ -7,6 +8,7 @@ backend/config/local.ini
 backend/alembic/script.py.mako
 backend/alembic/alembic/README
 frontend/glimmershop/src/images/
+frontend/glimmershop/src/.env
 backend/images/
 
 

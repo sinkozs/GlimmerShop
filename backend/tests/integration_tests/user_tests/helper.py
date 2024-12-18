@@ -49,7 +49,7 @@ def convert_non_json_serializable_fields_to_str(data: Dict[str, Any]) -> Dict[st
 
 async def add_test_users(session: AsyncSession, test_users: list[dict]) -> None:
     """
-    Add test users directly to the database for testing purposes.
+    Add tests users directly to the database for testing purposes.
 
     Args:
         session: SQLAlchemy async session
@@ -61,7 +61,7 @@ async def add_test_users(session: AsyncSession, test_users: list[dict]) -> None:
                 "id": uuid.uuid4(),
                 "first_name": "John",
                 "last_name": "Doe",
-                "email": "test@example.com",
+                "email": "tests@example.com",
                 ...
             }
         ]
@@ -73,7 +73,7 @@ async def add_test_users(session: AsyncSession, test_users: list[dict]) -> None:
             for user in test_user_models:
                 session.add(user)
     except SQLAlchemyError as e:
-        print(f"Error adding test users: {e}")
+        print(f"Error adding tests users: {e}")
         raise
 
 

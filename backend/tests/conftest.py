@@ -1,19 +1,20 @@
-import sys
 from datetime import datetime, timedelta
+from uuid import UUID
+
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from httpx import AsyncClient
 from typing import AsyncGenerator, Any
+from config.auth_config import http_only_auth_cookie
+from jose import jwt
 from sqlalchemy.ext.asyncio import (
-    async_sessionmaker,
     AsyncSession,
     create_async_engine,
 )
-from config.parser import load_config
 from models.database import Base, build_session_maker
-from dependencies import get_session
+from dependencies import get_session, get_current_user
 from routers.user_router import get_user_controller, get_user_service
 import logging
 from dotenv import load_dotenv
@@ -24,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 
 def get_test_db_url() -> str:
-    """Get test database URL from environment variables"""
-    load_dotenv(".env.test")
+    """Get tests database URL from environment variables"""
+    load_dotenv(".env.tests")
     test_db_config = {
         "username": os.getenv("TEST_POSTGRES_USER"),
         "password": os.getenv("TEST_POSTGRES_PASSWORD"),
@@ -33,7 +34,7 @@ def get_test_db_url() -> str:
         "port": os.getenv("TEST_POSTGRES_PORT"),
         "database": os.getenv("TEST_POSTGRES_DB"),
     }
-    assert all(test_db_config.values()), "Missing test database environment variables!"
+    assert all(test_db_config.values()), "Missing tests database environment variables!"
 
     return (
         f"postgresql+asyncpg://{test_db_config['username']}:{test_db_config['password']}"
@@ -56,23 +57,23 @@ def setup_test_env(monkeypatch, test_db_url):
 
 @pytest_asyncio.fixture
 async def test_engine(setup_test_env):
-    """Create and configure a test database engine"""
+    """Create and configure a tests database engine"""
     engine = create_async_engine(os.getenv("TEST_DATABASE_URL"), echo=True)
     try:
         async with engine.begin() as conn:
-            logger.info("Creating test database schema...")
+            logger.info("Creating tests database schema...")
             await conn.run_sync(Base.metadata.create_all)
         yield engine
     finally:
         async with engine.begin() as conn:
-            logger.info("Dropping test database schema...")
+            logger.info("Dropping tests database schema...")
             await conn.run_sync(Base.metadata.drop_all)
         await engine.dispose()
 
 
 @pytest_asyncio.fixture
 async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
-    """Create test database session"""
+    """Create tests database session"""
     session_maker = build_session_maker(test_engine)
     async with session_maker() as session:
         yield session
@@ -96,16 +97,51 @@ async def mock_user_controller():
         "search_sellers.return_value": None,
         "create_new_user.return_value": None,
         "verify_user.return_value": None,
-        "resend_verification_email.return_value": None
+        "resend_verification_email.return_value": None,
+        "edit_user.return_value": None,
+        "delete_user.return_value": None
     })
     return controller
+
+
+@pytest.fixture
+def test_user_id() -> str:
+    return "123e4567-e89b-12d3-a456-426614174000"
+
+
+@pytest.fixture
+def test_user_email() -> str:
+    return "tests@example.com"
+
+
+@pytest.fixture
+def test_auth_token(test_user_id: UUID, test_user_email: str) -> str:
+    """Create a valid JWT token for testing"""
+    payload = {
+        "id": str(test_user_id),
+        "email": test_user_email,
+        "exp": datetime.now() + timedelta(minutes=15)
+    }
+    return jwt.encode(
+        payload,
+        "<tests-secret-key>",
+        algorithm="HS256"
+    )
+
+
+@pytest.fixture
+def auth_headers(test_auth_token: str) -> dict:
+    """Create headers with authentication cookie"""
+    return {"cookie": f"{http_only_auth_cookie}={test_auth_token}"}
 
 
 @pytest_asyncio.fixture
 async def test_app(
         test_session: AsyncSession,
         mock_user_service: Any,
-        mock_user_controller: Any
+        mock_user_controller: Any,
+        test_user_id: str,
+        test_user_email: str
 ) -> AsyncGenerator[FastAPI, None]:
     app = FastAPI(
         title="Test API",
@@ -120,9 +156,38 @@ async def test_app(
     async def override_get_session() -> AsyncGenerator[AsyncSession, None]:
         yield test_session
 
+    async def override_get_current_user(request: Request) -> dict:
+        token = request.cookies.get(http_only_auth_cookie)
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated"
+            )
+        try:
+            if token == "invalid_token":
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Not authenticated"
+                )
+            if token == "expired_token":
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token has expired"
+                )
+            return {
+                "email": test_user_email,
+                "user_id": UUID(test_user_id)
+            }
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated"
+            )
+
     app.dependency_overrides[get_session] = override_get_session
     app.dependency_overrides[get_user_service] = lambda: mock_user_service
     app.dependency_overrides[get_user_controller] = lambda: mock_user_controller
+    app.dependency_overrides[get_current_user] = override_get_current_user
 
     app.add_middleware(
         CORSMiddleware,

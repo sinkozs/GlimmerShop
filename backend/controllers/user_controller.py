@@ -223,7 +223,6 @@ class UserController:
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
-                    "message": result["message"],
                     "user_id": result["user_id"]
                 }
             )

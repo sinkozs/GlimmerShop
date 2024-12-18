@@ -417,7 +417,7 @@ class TestUserController:
 
         @pytest.mark.asyncio
         async def test_search_sellers_error(self, controller, mock_service):
-            search_query = "test"
+            search_query = "tests"
             mock_service.search_sellers.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database error occurred"
@@ -435,7 +435,7 @@ class TestUserController:
         @pytest.mark.asyncio
         async def test_create_new_user_success(self, controller, mock_service):
             user_data = UserCreate(
-                email="test@example.com",
+                email="tests@example.com",
                 password="Password123!",
                 first_name="Test",
                 last_name="User",
@@ -480,7 +480,7 @@ class TestUserController:
         @pytest.mark.asyncio
         async def test_create_new_user_server_error(self, controller, mock_service):
             user_data = UserCreate(
-                email="test@example.com",
+                email="tests@example.com",
                 password="Password123!",
                 first_name="Test",
                 last_name="User",
@@ -503,7 +503,7 @@ class TestUserController:
         @pytest.mark.asyncio
         async def test_verify_user_success(self, controller, mock_service):
             verification = UserVerification(
-                email="test@example.com",
+                email="tests@example.com",
                 code="123456"
             )
             mock_service.verify_email.return_value = None
@@ -527,7 +527,7 @@ class TestUserController:
         @pytest.mark.asyncio
         async def test_verify_user_invalid_code(self, controller, mock_service):
             verification = UserVerification(
-                email="test@example.com",
+                email="tests@example.com",
                 code="invalid"
             )
             mock_service.verify_email.side_effect = UserException(
@@ -658,7 +658,7 @@ class TestUserController:
         async def test_resend_verification_email_send_failure(
                 self, controller, mock_service, mocker
         ):
-            test_email = "test@example.com"
+            test_email = "tests@example.com"
             test_user = {
                 "email": test_email,
                 "first_name": "Test",
@@ -687,7 +687,7 @@ class TestUserController:
         async def test_resend_verification_email_service_error(
                 self, controller, mock_service
         ):
-            test_email = "test@example.com"
+            test_email = "tests@example.com"
             mock_service.get_user_by_email.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database error occurred"
@@ -815,9 +815,7 @@ class TestUserController:
             assert response.status_code == status.HTTP_200_OK
 
             response_content = json.loads(response.body.decode('utf-8'))
-            assert "message" in response_content
             assert "user_id" in response_content
-            assert response_content["message"] == "User deleted successfully"
             assert response_content["user_id"] == str(test_user_id)
 
             mock_service.delete_user.assert_awaited_once_with(test_user_id)

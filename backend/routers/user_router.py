@@ -1,6 +1,8 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
+from pydantic import EmailStr
+
 from dependencies import get_session, get_current_user
 from controllers.user_controller import UserController
 from services.user_service import UserService
@@ -64,7 +66,7 @@ async def verify_user(verification: UserVerification,
 
 
 @router.post("/verify/resend")
-async def resend_verification(email: str,
+async def resend_verification(email: EmailStr,
                               user_controller: UserController = Depends(get_user_controller)) -> JSONResponse:
     return await user_controller.resend_verification_email(email)
 
@@ -75,6 +77,7 @@ async def edit_user(
         current_user: dict = Depends(get_current_user),
         user_controller: UserController = Depends(get_user_controller),
 ) -> JSONResponse:
+
     user_id: UUID = current_user["user_id"]
     return await user_controller.edit_user(user_id, user_update)
 

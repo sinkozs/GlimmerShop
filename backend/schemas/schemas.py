@@ -25,9 +25,12 @@ class UserCreate(BaseModel):
             pattern=r"^[a-zA-ZáÁéÉíÍóÓöÖüÜőŐúÚ-]+$",
         ),
     ]
-    password: Annotated[str, Field(strip_whitespace=True, max_length=64, min_length=8)]
     email: EmailStr
+    password: Annotated[str, Field(strip_whitespace=True, max_length=64, min_length=8)]
     is_seller: bool
+
+    class Config:
+        from_attributes = True
 
 
 class UserUpdate(BaseModel):

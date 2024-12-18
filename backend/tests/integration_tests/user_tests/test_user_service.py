@@ -12,7 +12,7 @@ from dependencies import verify_code, hash_password
 from schemas.schemas import UserCreate
 from services.user_service import UserService
 from exceptions.user_exceptions import UserException
-from test.integration_tests.user_tests.helper import add_test_users, assert_user_dicts, assert_user_field_types
+from tests.integration_tests.user_tests.helper import add_test_users, assert_user_dicts, assert_user_field_types
 from models.models import User, Cart
 
 
@@ -70,7 +70,7 @@ class TestUserService:
 
     @pytest.fixture
     def mock_verification_storage(self) -> dict:
-        """Setup mock verification service with test storage"""
+        """Setup mock verification service with tests storage"""
         smtp_config_exp_minutes = load_config().smtp_config.verification_code_expiration_minutes
         return {
             "seller@example.com": {"code": "123456", "timestamp": datetime.now()},
@@ -189,14 +189,14 @@ class TestUserService:
 
             # Test for sellers
             sellers = await user_service.get_users_by_type(is_seller=True)
-            # Assuming only 1 seller in the test data
+            # Assuming only 1 seller in the tests data
             assert len(sellers) == 1
             assert sellers[0]["email"] == "seller@example.com"
             assert sellers[0]["is_seller"] is True
 
             # Test for non-sellers
             non_sellers = await user_service.get_users_by_type(is_seller=False)
-            # Assuming only 1 non-seller in the test data
+            # Assuming only 1 non-seller in the tests data
             assert len(non_sellers) == 1
             assert non_sellers[0]["email"] == "buyer@example.com"
             assert non_sellers[0]["is_seller"] is False
@@ -427,7 +427,7 @@ class TestUserService:
         async def test_update_is_verified_database_error(self, test_session, mocker):
             """Test handling of database errors during update"""
             user_service = UserService(test_session)
-            test_email = "test@example.com"
+            test_email = "tests@example.com"
 
             # Mock database error
             mocker.patch.object(
@@ -541,7 +541,7 @@ class TestUserService:
             user_data = UserCreate(
                 first_name="Error",
                 last_name="Test",
-                email="error@test.com",
+                email="error@tests.com",
                 password="TestPass123!",
                 is_seller=False
             )
@@ -567,7 +567,7 @@ class TestUserService:
             user_data = UserCreate(
                 first_name="Test",
                 last_name="Email",
-                email="test@email.com",
+                email="tests@email.com",
                 password="TestPass789!",
                 is_seller=False
             )
@@ -594,7 +594,7 @@ class TestUserService:
             user_data = UserCreate(
                 first_name="Pass",
                 last_name="Test",
-                email="pass@test.com",
+                email="pass@tests.com",
                 password="SuperSecret123!",
                 is_seller=False
             )
@@ -619,7 +619,7 @@ class TestUserService:
             user_data = UserCreate(
                 first_name="Date",
                 last_name="Test",
-                email="date@test.com",
+                email="date@tests.com",
                 password="DatePass123!",
                 is_seller=False
             )

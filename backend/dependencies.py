@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, date
 from typing import Optional, Dict, Any, Tuple
 from uuid import UUID
 
-from fastapi import Request
+from fastapi import Request, HTTPException, status
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import EmailStr
@@ -100,17 +100,36 @@ async def get_optional_token_from_cookie(request: Request):
 async def get_current_user(request: Request) -> dict:
     token = request.cookies.get(http_only_auth_cookie)
     if not token:
-        return {"error": "No token found"}
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
     try:
         auth_config = load_config().auth_config
         payload = jwt.decode(
-            token, auth_config.secret_key, algorithms=[encryption_algorithm]
+            token,
+            auth_config.secret_key,
+            algorithms=[encryption_algorithm]
         )
         email: EmailStr = payload.get("email")
         user_id: UUID = payload.get("id")
-        return {"email": email, "id": user_id}
+        if not email or not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload"
+            )
+        return {"email": email, "user_id": user_id}
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired"
+        )
     except JWTError:
-        return {"error": "Invalid token"}
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
 
 
 def generate_random_verification_code() -> str:
