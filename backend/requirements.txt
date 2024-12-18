@@ -8,7 +8,6 @@ async-timeout==4.0.3
 asyncpg==0.29.0
 bcrypt==3.2.0
 black==24.10.0
-Brotli==1.0.9
 certifi==2024.6.2
 cffi==1.16.0
 charset-normalizer==2.0.4
@@ -18,7 +17,6 @@ cryptography==42.0.5
 dnspython==2.6.1
 ecdsa==0.17.0
 email-validator==2.1.1
-expat==2.6.2
 fastapi==0.103.0
 fastapi-sessions==0.3.2
 flake8==7.1.1
@@ -31,7 +29,6 @@ idna==3.4
 iniconfig==2.0.0
 isort==5.13.2
 itsdangerous==2.2.0
-libffi==3.4.4
 mako==1.2.3
 markupsafe==2.1.3
 mccabe==0.7.0
@@ -67,8 +64,5 @@ sqlalchemy==2.0.25
 starlette==0.27.0
 stripe==10.5.0
 typing-extensions==4.9.0
-typing_extensions==4.9.0
 urllib3==2.2.2
 uvicorn==0.20.0
-wheel==0.41.2
-win_inet_pton==1.1.0
