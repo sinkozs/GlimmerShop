@@ -190,6 +190,9 @@ async def test_app(
     yield app
     app.dependency_overrides.clear()
 
+    if "TEST_DATABASE_URL" in os.environ:
+        del os.environ["TEST_DATABASE_URL"]
+
 
 @pytest_asyncio.fixture
 async def async_test_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
