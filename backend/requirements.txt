@@ -9,7 +9,6 @@ asyncpg==0.29.0
 bcrypt==3.2.0
 black==24.10.0
 Brotli==1.0.9
-bzip2==1.0.8
 certifi==2024.6.2
 cffi==1.16.0
 charset-normalizer==2.0.4
