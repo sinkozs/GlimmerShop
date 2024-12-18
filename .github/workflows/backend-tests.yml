@@ -18,9 +18,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: ${{ secrets.TEST_DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.TEST_DB_NAME }}
+          POSTGRES_USER: ${{ secrets.TEST_POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.TEST_POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.TEST_POSTGRES_DB }}
         ports:
           - 5432:5432
         options: >-
@@ -47,11 +47,11 @@ jobs:
     - name: Create .env.test file
       working-directory: ./backend
       run: |
-        echo "TEST_POSTGRES_USER=${{ secrets.TEST_DB_USER }}" >> .env.test
-        echo "TEST_POSTGRES_PASSWORD=${{ secrets.TEST_DB_PASSWORD }}" >> .env.test
-        echo "TEST_POSTGRES_HOST=localhost" >> .env.test
+        echo "TEST_POSTGRES_USER=${{ secrets.TEST_POSTGRES_USER }}" >> .env.test
+        echo "TEST_POSTGRES_PASSWORD=${{ secrets.TEST_POSTGRES_PASSWORD }}" >> .env.test
+        echo "TEST_POSTGRES_HOST=postgres" >> .env.test
         echo "TEST_POSTGRES_PORT=5432" >> .env.test
-        echo "TEST_POSTGRES_DB=${{ secrets.TEST_DB_NAME }}" >> .env.test
+        echo "TEST_POSTGRES_DB=${{ secrets.TEST_POSTGRES_DB }}" >> .env.test
         echo "TEST_SECRET_KEY=${{ secrets.TEST_SECRET_KEY }}" >> .env.test
 
     - name: Run tests
