@@ -61,7 +61,9 @@ def auth_headers(test_auth_token: str) -> dict:
 # Module scope - database setup and expensive operations shared within a test file
 @pytest.fixture(scope="module")
 def event_loop():
-    loop = asyncio.new_event_loop()
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    asyncio.set_event_loop(loop)
     yield loop
     loop.close()
 
@@ -91,7 +93,7 @@ def setup_test_env(test_db_url):
 
 
 @pytest_asyncio.fixture(scope="module")
-async def test_engine(setup_test_env):
+async def test_engine(event_loop, setup_test_env):
     url = os.getenv("TEST_DATABASE_URL")
     logger.info(f"Connecting to database: {url}")
 
