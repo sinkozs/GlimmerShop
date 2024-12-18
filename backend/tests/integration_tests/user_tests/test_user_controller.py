@@ -827,7 +827,6 @@ class TestUserController:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"User with id {test_user_id} not found"
             )
-
             with pytest.raises(HTTPException) as exc_info:
                 await controller.delete_user(test_user_id)
 
