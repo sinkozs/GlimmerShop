@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 def get_test_db_url() -> str:
     """Get tests database URL from environment variables"""
-    load_dotenv(".env.tests")
+    load_dotenv(".env.test")
     test_db_config = {
         "username": os.getenv("TEST_POSTGRES_USER"),
         "password": os.getenv("TEST_POSTGRES_PASSWORD"),
