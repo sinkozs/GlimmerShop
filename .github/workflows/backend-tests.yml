@@ -60,7 +60,7 @@ jobs:
       run: |
         echo "TEST_POSTGRES_USER=${{ secrets.TEST_POSTGRES_USER }}" >> .env.test
         echo "TEST_POSTGRES_PASSWORD=${{ secrets.TEST_POSTGRES_PASSWORD }}" >> .env.test
-        echo "TEST_POSTGRES_HOST=postgres" >> .env.test
+        echo "TEST_POSTGRES_HOST=localhost" >> .env.test
         echo "TEST_POSTGRES_PORT=5432" >> .env.test
         echo "TEST_POSTGRES_DB=${{ secrets.TEST_POSTGRES_DB }}" >> .env.test
         echo "TEST_SECRET_KEY=test-secret-key-1234" >> .env.test
