@@ -1,4 +1,4 @@
-import uuid
+from uuid import UUID, uuid4
 from unittest.mock import AsyncMock
 
 import pytest
@@ -6,8 +6,6 @@ from datetime import datetime, date, timezone, timedelta
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import status
-
-from config.parser import load_config
 from dependencies import verify_code, hash_password
 from schemas.schemas import UserCreate
 from services.user_service import UserService
@@ -22,7 +20,7 @@ class TestUserService:
         # Test user data to directly insert to the DB
         return [
             {
-                "id": uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"),
+                "id": UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"),
                 "first_name": "John",
                 "last_name": "Doe",
                 "email": "seller@example.com",
@@ -35,7 +33,7 @@ class TestUserService:
                 "password_length": 14
             },
             {
-                "id": uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb792"),
+                "id": UUID("7a4ae081-2f63-4653-bf67-f69a00dcb792"),
                 "first_name": "Jane",
                 "last_name": "Smith",
                 "email": "buyer@example.com",
@@ -71,7 +69,7 @@ class TestUserService:
     @pytest.fixture
     def mock_verification_storage(self) -> dict:
         """Setup mock verification service with tests storage"""
-        smtp_config_exp_minutes = load_config().smtp_config.verification_code_expiration_minutes
+        smtp_config_exp_minutes = 20
         return {
             "seller@example.com": {"code": "123456", "timestamp": datetime.now()},
             "buyer@example.com": {
@@ -146,7 +144,7 @@ class TestUserService:
 
             await add_test_users(test_session, test_users)
 
-            actual_user = await user_service.get_user_by_id(uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"))
+            actual_user = await user_service.get_user_by_id(UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"))
 
             assert_user_dicts(test_users[0], actual_user)
 
@@ -154,7 +152,7 @@ class TestUserService:
         async def test_get_user_by_id_user_not_found(self, test_session):
             """Test retrieving a user by ID when the user does not exist in the database"""
             user_service = UserService(test_session)
-            non_existing_user_id = uuid.uuid4()
+            non_existing_user_id = uuid4()
 
             with pytest.raises(UserException) as exc_info:
                 await user_service.get_user_by_id(non_existing_user_id)
@@ -175,7 +173,7 @@ class TestUserService:
             )
 
             with pytest.raises(UserException) as exc:
-                await user_service.get_user_by_id(uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"))
+                await user_service.get_user_by_id(UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"))
 
             assert exc.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
             assert "database" in exc.value.detail.lower()
@@ -666,7 +664,7 @@ class TestUserService:
         @pytest.mark.asyncio
         async def test_edit_user_not_found(self, test_session):
             """Test updating non-existent user"""
-            non_existent_id = uuid.uuid4()
+            non_existent_id = uuid4()
             update_data = {"first_name": "Test"}
 
             user_service = UserService(test_session)
@@ -807,7 +805,7 @@ class TestUserService:
         @pytest.mark.asyncio
         async def test_delete_user_not_found(self, test_session):
             """Test deleting non-existent user"""
-            non_existent_id = uuid.uuid4()
+            non_existent_id = uuid4()
 
             user_service = UserService(test_session)
 
