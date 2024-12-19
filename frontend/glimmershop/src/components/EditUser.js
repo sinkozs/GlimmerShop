@@ -19,16 +19,17 @@ function EditUser() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const sellerId = localStorage.getItem("sellerId");
+      const sellerId = localStorage.getItem("seller_id");
       try {
-        const seller = await axios.get(
+        const response = await axios.get(
           `${config.BACKEND_BASE_URL}/users/${sellerId}`,
           { withCredentials: true }
         );
-        setFirstName(seller.data.first_name);
-        setLastName(seller.data.last_name);
-        setEmail(seller.data.email);
-        setPasswordLength(seller.data.password_length || 0);
+        const seller = response.data.user
+        setFirstName(seller.first_name);
+        setLastName(seller.last_name);
+        setEmail(seller.email);
+        setPasswordLength(seller.password_length || 0);
       } catch (error) {
         console.error("Error fetching seller data:", error);
         setError("Failed to fetch profile details. Please try again later.");

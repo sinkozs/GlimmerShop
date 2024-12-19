@@ -20,7 +20,9 @@ async def get_all_categories(session: AsyncSession = Depends(get_session)):
     service = CategoryService(session)
     controller = CategoryController(service)
     try:
-        return await controller.get_all_categories()
+        r = await controller.get_all_categories()
+        print(r)
+        return r
     except HTTPException as e:
         raise e
 
@@ -73,7 +75,7 @@ async def get_products_by_category(
         raise e
 
 
-@router.post("/new/{category_name}")
+@router.post("/new")
 async def add_new_category(
     category_name: str, session: AsyncSession = Depends(get_session)
 ):

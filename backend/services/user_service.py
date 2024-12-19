@@ -24,18 +24,17 @@ class UserService:
 
     async def get_user_by_id(self, user_id: UUID) -> dict:
         try:
-            async with self.db.begin():
-                stmt = select(User).where(User.id == user_id)
-                result = await self.db.execute(stmt)
-                user = result.scalar_one_or_none()
+            stmt = select(User).where(User.id == user_id)
+            result = await self.db.execute(stmt)
+            user = result.scalar_one_or_none()
 
-                if not user:
-                    raise UserException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"User with id {user_id} not found"
-                    )
-                await self.db.refresh(user)
-                return db_model_to_dict(user)
+            if not user:
+                raise UserException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"User with id {user_id} not found"
+                )
+            await self.db.refresh(user)
+            return db_model_to_dict(user)
         except SQLAlchemyError as e:
             logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
@@ -45,14 +44,11 @@ class UserService:
 
     async def get_all_users(self) -> list[dict]:
         try:
-            async with self.db.begin():
-                result = await self.db.execute(select(User))
-                users = result.scalars().all()
-
-                for user in users:
-                    await self.db.refresh(user)
-                return [db_model_to_dict(user) for user in users] if users else []
-
+            result = await self.db.execute(select(User))
+            users = result.scalars().all()
+            for user in users:
+                await self.db.refresh(user)
+            return [db_model_to_dict(user) for user in users] if users else []
         except SQLAlchemyError as e:
             logger.error(f"Database error in get_all_users: {e}")
             raise UserException(
@@ -62,12 +58,11 @@ class UserService:
 
     async def get_users_by_type(self, is_seller: bool) -> list[dict]:
         try:
-            async with self.db.begin():
-                result = await self.db.execute(
-                    select(User).where(User.is_seller == is_seller)
-                )
-                users = result.scalars().all()
-                return [db_model_to_dict(user) for user in users] if users else []
+            result = await self.db.execute(
+                select(User).where(User.is_seller == is_seller)
+            )
+            users = result.scalars().all()
+            return [db_model_to_dict(user) for user in users] if users else []
         except SQLAlchemyError as e:
             logger.error(f"Database error in get_users_by_role: {e}")
             raise UserException(
@@ -77,18 +72,17 @@ class UserService:
 
     async def get_user_by_email(self, email: str) -> dict:
         try:
-            async with self.db.begin():
-                stmt = select(User).filter(User.email == email)
-                result = await self.db.execute(stmt)
-                user: User = result.scalars().first()
+            stmt = select(User).filter(User.email == email)
+            result = await self.db.execute(stmt)
+            user: User = result.scalars().first()
 
-                if not user:
-                    raise UserException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"User with email {email} not found"
-                    )
+            if not user:
+                raise UserException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"User with email {email} not found"
+                )
 
-                return db_model_to_dict(user) if user else {}
+            return db_model_to_dict(user) if user else {}
 
         except SQLAlchemyError as e:
             logger.error(f"Database error in get_user_by_email: {e}")
@@ -99,21 +93,19 @@ class UserService:
 
     async def check_seller_exists(self, seller_id: UUID) -> bool:
         try:
-            async with self.db.begin():
-                stmt = select(func.count()).where(
-                    and_(User.id == seller_id, User.is_seller)
+            stmt = select(func.count()).where(
+                and_(User.id == seller_id, User.is_seller)
+            )
+            result = await self.db.execute(stmt)
+            count = result.scalar_one()
+
+            if count == 0:
+                raise UserException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Seller with ID {seller_id} not found"
                 )
-                result = await self.db.execute(stmt)
-                count = result.scalar_one()
 
-                if count == 0:
-                    raise UserException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"Seller with ID {seller_id} not found"
-                    )
-
-                return True
-
+            return True
         except SQLAlchemyError as e:
             logger.error(f"Database error in check_seller_exists: {e}")
             raise UserException(
@@ -208,26 +200,25 @@ class UserService:
 
     async def update_is_verified_column(self, email: str) -> dict:
         try:
-            async with self.db.begin():
-                stmt = select(User).filter(User.email == email)
-                result = await self.db.execute(stmt)
-                user: User = result.scalars().first()
+            stmt = select(User).filter(User.email == email)
+            result = await self.db.execute(stmt)
+            user: User = result.scalars().first()
 
-                if not user:
-                    raise UserException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"User with email {email} not found"
-                    )
+            if not user:
+                raise UserException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"User with email {email} not found"
+                )
 
-                user.is_verified = True
-                await self.db.flush()
-                await self.db.refresh(user)
+            user.is_verified = True
+            await self.db.flush()
+            await self.db.refresh(user)
 
-                return {
-                    "id": str(user.id),
-                    "email": user.email,
-                    "is_verified": user.is_verified
-                }
+            return {
+                "id": str(user.id),
+                "email": user.email,
+                "is_verified": user.is_verified
+            }
 
         except SQLAlchemyError as e:
             logger.error(f"Database error in search_sellers: {e}")
@@ -238,33 +229,32 @@ class UserService:
 
     async def edit_user(self, user_id: UUID, update_data: dict) -> dict:
         try:
-            async with self.db.begin():
-                stmt = select(User).filter(User.id == user_id)
-                result = await self.db.execute(stmt)
-                user = result.scalars().first()
+            stmt = select(User).filter(User.id == user_id)
+            result = await self.db.execute(stmt)
+            user = result.scalars().first()
 
-                if not user:
-                    raise UserException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"User with id {user_id} not found"
-                    )
+            if not user:
+                raise UserException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"User with id {user_id} not found"
+                )
 
-                # Check if all update fields are valid
-                valid_fields = UserCreate.model_fields.keys()
-                invalid_fields = [field for field in update_data.keys() if field not in valid_fields]
+            # Check if all update fields are valid
+            valid_fields = UserCreate.model_fields.keys()
+            invalid_fields = [field for field in update_data.keys() if field not in valid_fields]
 
-                if invalid_fields:
-                    raise UserException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Invalid fields: {', '.join(invalid_fields)}"
-                    )
+            if invalid_fields:
+                raise UserException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid fields: {', '.join(invalid_fields)}"
+                )
 
-                for key, value in update_data.items():
-                    setattr(user, key, value)
+            for key, value in update_data.items():
+                setattr(user, key, value)
 
-                await self.db.flush()
-                await self.db.refresh(user)
-                return db_model_to_dict(user)
+            await self.db.flush()
+            await self.db.refresh(user)
+            return db_model_to_dict(user)
 
         except SQLAlchemyError as e:
             logger.error(f"Database error in edit_user: {e}")

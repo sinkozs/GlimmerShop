@@ -20,9 +20,9 @@ function SellerHome() {
     const fetchSellerDataAndProducts = async () => {
       try {
         const seller = await axios.get(
-          `${config.BACKEND_BASE_URL}/users/public/${seller_id}`
+          `${config.BACKEND_BASE_URL}/users/${seller_id}`
         );
-        setSellerData(seller.data);
+        setSellerData(seller.data.user);
 
         const sellerProducts = await axios.get(
           `${config.BACKEND_BASE_URL}/products/products-by-seller`,
@@ -30,7 +30,7 @@ function SellerHome() {
             params: { seller_id: seller_id },
           }
         );
-        setProducts(sellerProducts.data);
+        setProducts(sellerProducts.data.products);
       } catch (error) {
         console.error("Error fetching products:", error);
         setError("Failed to fetch product details. Please try again later.");

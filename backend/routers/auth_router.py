@@ -77,7 +77,7 @@ async def user_logout(
     try:
         response.delete_cookie(key=http_only_auth_cookie, httponly=True)
 
-        user_id: UUID = current_user.get("id")
+        user_id: UUID = current_user.get("user_id")
         if not user_id:
             raise HTTPException(status_code=400, detail="Missing user ID")
 

@@ -23,7 +23,7 @@ async def get_monthly_transactions(
     service = SellerStatisticsService(session)
     controller = SellerStatisticsController(service)
     try:
-        seller_id: UUID = current_user.get("id")
+        seller_id: UUID = current_user.get("user_id")
         if not seller_id:
             raise HTTPException(status_code=400, detail="Missing seller ID")
         return await controller.get_monthly_transactions(seller_id, selected_date)

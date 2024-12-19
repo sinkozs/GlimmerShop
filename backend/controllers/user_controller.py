@@ -1,5 +1,5 @@
 from pydantic import EmailStr
-from sqlalchemy.dialects.postgresql import UUID
+from uuid import UUID
 import dependencies
 from dependencies import is_valid_update, hash_password
 from services.user_service import UserService
@@ -16,9 +16,9 @@ class UserController:
     def __init__(self, user_service: UserService):
         self._service = user_service
 
-    async def get_user_by_id(self, user_id: UUID) -> JSONResponse:
+    async def get_user_by_id(self, user_id: str) -> JSONResponse:
         try:
-            user: dict = await self._service.get_user_by_id(user_id=user_id)
+            user: dict = await self._service.get_user_by_id(user_id=UUID(user_id))
 
             return JSONResponse(
                 status_code=status.HTTP_200_OK,

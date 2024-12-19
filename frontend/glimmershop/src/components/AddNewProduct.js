@@ -62,16 +62,22 @@ function AddNewProduct() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    const categories = selectedCategories.length > 0 
+    ? selectedCategories.map(cat => parseInt(cat, 10)) 
+    : null;
+
     const productData = {
       name: name,
       description: description,
-      price: price,
-      stock_quantity: stockQuantity,
+      price: parseInt(price, 10),
+      stock_quantity: parseInt(stockQuantity, 10),
       material: material,
       color: color,
-      categories: selectedCategories,
+      categories: categories,
+      image_path: null,
+      image_path2: null
     };
-
+    console.log(productData)
     try {
       const response = await axios.post(
         `${config.BACKEND_BASE_URL}/products/new`,
@@ -81,8 +87,8 @@ function AddNewProduct() {
           withCredentials: true,
         }
       );
-
-      const productId = response.data;
+      console.log(response)
+      const productId = response.data.product_id;
       setProductId(productId);
 
       if (image1) {

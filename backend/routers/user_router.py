@@ -42,7 +42,7 @@ async def search_sellers(user_controller: UserController = Depends(get_user_cont
 
 
 @router.get("/{user_id}")
-async def get_user_by_id(user_id, user_controller: UserController = Depends(get_user_controller)) -> JSONResponse:
+async def get_user_by_id(user_id: str, user_controller: UserController = Depends(get_user_controller)) -> JSONResponse:
     return await user_controller.get_user_by_id(user_id)
 
 
@@ -69,18 +69,17 @@ async def resend_verification(email: EmailStr,
     return await user_controller.resend_verification_email(email)
 
 
-@router.put("/me")
+@router.put("/edit")
 async def edit_user(
         user_update: UserUpdate,
         current_user: dict = Depends(get_current_user),
         user_controller: UserController = Depends(get_user_controller),
 ) -> JSONResponse:
-
     user_id: UUID = current_user["user_id"]
     return await user_controller.edit_user(user_id, user_update)
 
 
-@router.delete("/me")
+@router.delete("/delete")
 async def delete_user(
         current_user: dict = Depends(get_current_user),
         user_controller: UserController = Depends(get_user_controller),

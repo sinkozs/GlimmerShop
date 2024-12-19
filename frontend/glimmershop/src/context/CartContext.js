@@ -16,31 +16,43 @@ const cartReducer = (state, action) => {
       );
       if (existingItemIndex > -1) {
         const updatedCart = [...state.cart];
-        updatedCart[existingItemIndex].quantity += action.payload.quantity;
+        const newQuantity = updatedCart[existingItemIndex].quantity + action.payload.quantity;
+        
+        // Check if new quantity exceeds stock
+        if (newQuantity > state.stockQuantity) {
+          return { ...state, showModal: true };
+        }
+        
+        updatedCart[existingItemIndex].quantity = newQuantity;
         return { ...state, cart: updatedCart };
       } else {
+        // Check if initial quantity exceeds stock
+        if (action.payload.quantity > state.stockQuantity) {
+          return { ...state, showModal: true };
+        }
         return { ...state, cart: [...state.cart, action.payload] };
       }
+
     case "REMOVE_FROM_CART":
       return {
         ...state,
         cart: state.cart.filter((item) => item.id !== action.payload),
       };
+
     case "INCREASE_QUANTITY":
+      const itemToUpdate = state.cart.find(item => item.id === action.payload.itemId);
+      if (itemToUpdate && itemToUpdate.quantity >= state.stockQuantity) {
+        return { ...state, showModal: true };
+      }
       return {
         ...state,
         cart: state.cart.map((item) =>
-          item.id === action.payload.itemId &&
-          item.quantity < state.stockQuantity
+          item.id === action.payload.itemId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         ),
-        showModal: state.cart.some(
-          (item) =>
-            item.id === action.payload.itemId &&
-            item.quantity >= state.stockQuantity
-        ),
       };
+
     case "DECREASE_QUANTITY":
       return {
         ...state,
@@ -50,12 +62,16 @@ const cartReducer = (state, action) => {
             : item
         ),
       };
+
     case "SET_STOCK_QUANTITY":
       return { ...state, stockQuantity: action.payload };
+
     case "DELETE_CART":
       return { ...state, cart: [] };
+
     case "CLOSE_MODAL":
       return { ...state, showModal: false };
+
     default:
       return state;
   }
@@ -74,18 +90,27 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = async (item) => {
     try {
-      const product = await axios.get(
+      console.log("Adding to cart, product ID:", item.id);
+      const response = await axios.get(
         `${config.BACKEND_BASE_URL}/products/${item.id}`
       );
-      const newItem = {
-        ...item,
-        image_path: product.data.image_path,
-        quantity: item.quantity,
-      };
+      
+      console.log("Product data:", response.data.product);
+      const stockQuantity = response.data.product.stock_quantity;
+      
+      // First update the stock quantity
       dispatch({
         type: "SET_STOCK_QUANTITY",
-        payload: product.data.stock_quantity,
+        payload: stockQuantity
       });
+
+      const newItem = {
+        ...item,
+        image_path: response.data.product.image_path,
+        quantity: item.quantity,
+      };
+      
+      // Then add to cart
       dispatch({ type: "ADD_TO_CART", payload: newItem });
     } catch (error) {
       console.error("Failed to add product to cart:", error);

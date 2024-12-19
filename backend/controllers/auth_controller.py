@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import Depends, HTTPException, Response, status
 from exceptions.auth_exceptions import AuthenticationException
 from pydantic import EmailStr
@@ -54,7 +56,7 @@ class AuthController:
                 detail="Login failed"
             )
 
-    async def user_logout(self, user: dict):
+    async def user_logout(self, user: UUID):
         try:
             return await self._service.user_logout(user)
         except AuthenticationException as e:

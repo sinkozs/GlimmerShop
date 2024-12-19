@@ -55,6 +55,7 @@ function LoginAndSignup() {
       );
 
       const sellerId = response.data.seller_id;
+      console.log(sellerId)
       localStorage.setItem("seller_id", sellerId);
 
       setEmail("");
@@ -111,7 +112,7 @@ function LoginAndSignup() {
 
     try {
       const response = await axios.post(
-        `${config.BACKEND_BASE_URL}/users/new`,
+        `${config.BACKEND_BASE_URL}/users/create`,
         formData
       );
 

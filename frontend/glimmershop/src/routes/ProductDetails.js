@@ -35,25 +35,31 @@ function ProductDetails() {
         const product = await axios.get(
           `${config.BACKEND_BASE_URL}/products/${product_id}`
         );
-        setProductData(product.data);
-
+        const productResponse = product.data.product;
+        setProductData(productResponse);
+        
         const category = await axios.get(
           `${config.BACKEND_BASE_URL}/categories/product-categories?product_id=${product_id}`
         );
         setProductCategory(category.data[0]);
-
+  
         const seller = await axios.get(
-          `${config.BACKEND_BASE_URL}/users/public/${product.data.seller_id}`
+          `${config.BACKEND_BASE_URL}/users/${productResponse.seller_id}`
         );
-        setSellerData(seller.data);
-        setAvailability(product.data.stock_quantity > 0);
+        setSellerData(seller.data.user);
+        setAvailability(productResponse.stock_quantity > 0);
+        
       } catch (error) {
-        console.error("Error fetching event details:", error);
+        console.error("Error fetching product details:", error);
         setError("Failed to fetch product details. Please try again later.");
       }
     };
-    fetchProductData();
+  
+    if (product_id) {
+      fetchProductData();
+    }
   }, [product_id]);
+
 
   const handleAddToCart = () => {
     if (productData && availability) {
