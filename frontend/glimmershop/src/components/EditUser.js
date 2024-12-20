@@ -25,7 +25,7 @@ function EditUser() {
           `${config.BACKEND_BASE_URL}/users/${sellerId}`,
           { withCredentials: true }
         );
-        const seller = response.data.user
+        const seller = response.data
         setFirstName(seller.first_name);
         setLastName(seller.last_name);
         setEmail(seller.email);

@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { Container, Form, Button } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import Modal from "../components/Modal";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ProductsGrid from "../components/ProductsGrid";
 import "../App.css";
@@ -13,7 +14,9 @@ function SellerHome() {
   const [sellerData, setSellerData] = useState(null);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  
+  const [showNoProductsModal, setShowNoProductsModal] = useState(false);
+  const navigate = useNavigate();
+
   const { seller_id } = useParams();
 
   useEffect(() => {
@@ -22,7 +25,7 @@ function SellerHome() {
         const seller = await axios.get(
           `${config.BACKEND_BASE_URL}/users/${seller_id}`
         );
-        setSellerData(seller.data.user);
+        setSellerData(seller.data);
 
         const sellerProducts = await axios.get(
           `${config.BACKEND_BASE_URL}/products/products-by-seller`,
@@ -30,7 +33,10 @@ function SellerHome() {
             params: { seller_id: seller_id },
           }
         );
-        setProducts(sellerProducts.data.products);
+        if (sellerProducts.data.length === 0) {
+          setShowNoProductsModal(true);
+        }
+        setProducts(sellerProducts.data);
       } catch (error) {
         console.error("Error fetching products:", error);
         setError("Failed to fetch product details. Please try again later.");
@@ -58,6 +64,10 @@ function SellerHome() {
     }
   };
 
+  const closeNoProductsModal = () => {
+    setShowNoProductsModal(false);
+  };
+
   return (
     <Container fluid className="seller-home-wrapper">
       <Container fluid className="seller-home-header-section">
@@ -75,10 +85,20 @@ function SellerHome() {
             Search
           </Button>
         </Form>
+        <Modal
+          show={showNoProductsModal}
+          onClose={closeNoProductsModal}
+          title="No products found!"
+        >
+          <section> You haven't added any products yet.</section>
+
+          <Button onClick={() => navigate("/products/new")} className="back-to-login-btn">
+            Add Your First Product
+          </Button>
+        </Modal>
       </Container>
 
       <ProductsGrid products={products} isAuthenticated={true} />
-
     </Container>
   );
 }

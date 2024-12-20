@@ -20,7 +20,7 @@ function FilterBySeller({ resetFilter, onSellerSelected }) {
   const fetchSellers = async (query) => {
     try {
       const response = await axios.get(
-        `${config.BACKEND_BASE_URL}/users/search/`,
+        `${config.BACKEND_BASE_URL}/users/sellers/search/`,
         {
           params: { query },
         }

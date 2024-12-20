@@ -22,6 +22,8 @@ function LoginAndSignup() {
   const [showModal, setShowModal] = useState(false);
   const [showSuccessfulSignupModal, setShowSuccessfulSignupModal] =
     useState(false);
+  const [showPasswordReminderModal, setShowPasswordReminderModal] =
+    useState(false);
 
   const navigate = useNavigate();
 
@@ -55,15 +57,13 @@ function LoginAndSignup() {
       );
 
       const sellerId = response.data.seller_id;
-      console.log(sellerId)
       localStorage.setItem("seller_id", sellerId);
 
       setEmail("");
       setPassword("");
-      if (response.status === 200) {
-        login();
-        navigate(`/seller/${sellerId}`, { state: { sellerId } });
-      }
+
+      login();
+      navigate(`/seller/${sellerId}`, { state: { sellerId } });
     } catch (error) {
       if (error.response) {
         setError(error.response.data.detail);
@@ -80,22 +80,22 @@ function LoginAndSignup() {
 
   const handleForgotPasswordSubmit = async (event) => {
     event.preventDefault();
-
     const encodedEmail = encodeURIComponent(email);
 
-    await axios
-      .post(
+    try {
+      await axios.post(
         `${config.BACKEND_BASE_URL}/auth/forgotten-password?email=${encodedEmail}`
-      )
-      .then((response) => {
-        setEmail("");
-        setError(null);
-        setIsForgotPassword(false);
-      })
-      .catch((error) => {
-        console.error("Password reset failed:", error);
-        setError(error.response.data.detail);
-      });
+      );
+      setEmail("");
+      setError(null);
+      setShowPasswordReminderModal(true);
+    } catch (error) {
+      setError(
+        error.response?.data?.detail ||
+          "An error occurred sending the reset email"
+      );
+      setShowModal(true);
+    }
   };
 
   const handleSignUpSubmit = async (event) => {
@@ -115,19 +115,14 @@ function LoginAndSignup() {
         `${config.BACKEND_BASE_URL}/users/create`,
         formData
       );
-
-      if (response.status === 200) {
-        setFirstName("");
-        setLastName("");
-        setEmail("");
-        setPassword("");
-        setPasswordLength("");
-        setIsSeller(false);
-        setError(null);
-        setIsSignup(false);
-
-        setShowSuccessfulSignupModal(true);
-      }
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setPassword("");
+      setPasswordLength("");
+      setIsSeller(false);
+      setError(null);
+      setShowSuccessfulSignupModal(true);
     } catch (error) {
       console.error("Signup failed:", error);
       setError(error.response?.data?.detail || "An error occurred");
@@ -135,12 +130,18 @@ function LoginAndSignup() {
     }
   };
 
-  const closeModal = () => {
-    setShowModal(false);
-  };
-
   const closeSuccessfulSignupModal = () => {
     setShowSuccessfulSignupModal(false);
+    setIsSignup(false);
+  };
+
+  const closePasswordReminderModal = () => {
+    setShowPasswordReminderModal(false);
+    setIsForgotPassword(false);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
   };
 
   return (
@@ -172,6 +173,19 @@ function LoginAndSignup() {
               <Button onClick={handleBackToLogin} className="back-to-login-btn">
                 Back to Login
               </Button>
+              <Modal show={showModal} onClose={closeModal} title="Error">
+                <section>{error}</section>
+              </Modal>
+              <Modal
+                show={showPasswordReminderModal}
+                onClose={closePasswordReminderModal}
+                title="Email Sent!"
+              >
+                <section>
+                  Password reset instructions have been sent to your email.
+                  Please check your inbox.
+                </section>
+              </Modal>
             </>
           ) : isSignup ? (
             <>
@@ -240,6 +254,7 @@ function LoginAndSignup() {
                   inbox and verify your account.
                 </section>
               </Modal>
+
               <Button onClick={handleBackToLogin} className="back-to-login-btn">
                 Back to Login
               </Button>

@@ -35,7 +35,7 @@ function ProductDetails() {
         const product = await axios.get(
           `${config.BACKEND_BASE_URL}/products/${product_id}`
         );
-        const productResponse = product.data.product;
+        const productResponse = product.data;
         setProductData(productResponse);
         
         const category = await axios.get(
@@ -46,7 +46,7 @@ function ProductDetails() {
         const seller = await axios.get(
           `${config.BACKEND_BASE_URL}/users/${productResponse.seller_id}`
         );
-        setSellerData(seller.data.user);
+        setSellerData(seller.data);
         setAvailability(productResponse.stock_quantity > 0);
         
       } catch (error) {

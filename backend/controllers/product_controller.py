@@ -12,10 +12,9 @@ from schemas.schemas import (
     ProductData,
     ProductFilterRequest,
 )
-from fastapi.responses import JSONResponse
 from exceptions.user_exceptions import UserException
 from exceptions.product_exceptions import ProductException
-from fastapi import HTTPException, Query, status
+from fastapi import HTTPException, Query
 
 
 class ProductController:
@@ -24,38 +23,27 @@ class ProductController:
         self._service = service
         self._category_service = category_service
 
-    async def get_product_by_id(self, product_id: int) -> JSONResponse:
+    async def get_product_by_id(self, product_id: int) -> dict:
         try:
-            product = await self._service.get_product_by_id(product_id)
-            return JSONResponse(
-                status_code=status.HTTP_200_OK, content={"product": product}
-            )
+            return await self._service.get_product_by_id(product_id)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def get_all_products(self) -> JSONResponse:
+    async def get_all_products(self) -> list:
         try:
-            products = await self._service.get_all_products()
-            return JSONResponse(
-                status_code=status.HTTP_200_OK, content={"products": products}
-            )
-
+            return await self._service.get_all_products()
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def get_all_products_by_seller(self, seller_id: UUID) -> JSONResponse:
+    async def get_all_products_by_seller(self, seller_id: UUID) -> list[dict]:
         try:
-            products = await self._service.get_all_products_by_seller(seller_id)
-            return JSONResponse(
-                status_code=status.HTTP_200_OK, content={"products": products}
-            )
-
+            return await self._service.get_all_products_by_seller(seller_id)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def get_products_by_price_range(
-        self, category_id: int, price_range: PriceFilter
-    ) -> set:
+            self, category_id: int, price_range: PriceFilter
+    ) -> list:
         try:
             return await self._service.get_products_by_price_range(
                 category_id, price_range
@@ -64,15 +52,15 @@ class ProductController:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def get_products_by_material(
-        self, category_id: int, materials: MaterialsFilter
-    ) -> set:
+            self, category_id: int, materials: MaterialsFilter
+    ) -> list:
         try:
             return await self._service.get_products_by_material(category_id, materials)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     def get_common_products(
-        self, products_by_material, products_by_price_range, products_by_seller
+            self, products_by_material, products_by_price_range, products_by_seller
     ):
         material_ids = {product["id"] for product in products_by_material}
         price_range_ids = {product["id"] for product in products_by_price_range}
@@ -89,15 +77,15 @@ class ProductController:
         all_products = {
             product["id"]: product
             for product in products_by_material
-            + products_by_price_range
-            + products_by_seller
+                           + products_by_price_range
+                           + products_by_seller
         }
 
         common_products = [all_products[product_id] for product_id in common_ids]
         return common_products
 
     async def filter_products_by_material_price_and_seller(
-        self, filters: ProductFilterRequest
+            self, filters: ProductFilterRequest
     ):
         try:
             products_by_material, products_by_price_range, products_by_seller = (
@@ -124,7 +112,7 @@ class ProductController:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def search_products(
-        self, query: str = Query(...), seller_id: UUID = Query(...)
+            self, query: str = Query(...), seller_id: UUID = Query(...)
     ) -> List[ProductData]:
         try:
             return await self._service.search_products(query, seller_id)
@@ -132,8 +120,8 @@ class ProductController:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def add_new_product(
-        self, seller_id: UUID, new_product: ProductData
-    ) -> JSONResponse:
+            self, seller_id: UUID, new_product: ProductData
+    ) -> dict[str, int]:
         product = Product()
         product.name = new_product.name
         product.description = new_product.description
@@ -153,9 +141,7 @@ class ProductController:
                         product_id, category_id
                     )
 
-            return JSONResponse(
-                status_code=status.HTTP_200_OK, content={"product_id": product_id}
-            )
+            return {"product_id": product_id}
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 

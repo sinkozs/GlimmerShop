@@ -2,7 +2,6 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
-from fastapi.responses import JSONResponse
 from dependencies import get_session
 from controllers.product_controller import ProductController
 from services.product_service import ProductService
@@ -43,7 +42,7 @@ def get_product_controller(
 @router.get("")
 async def get_all_products(
     product_controller: ProductController = Depends(get_product_controller),
-) -> JSONResponse:
+) -> list:
     return await product_controller.get_all_products()
 
 
@@ -51,7 +50,7 @@ async def get_all_products(
 async def get_products_by_seller(
     seller_id: UUID,
     product_controller: ProductController = Depends(get_product_controller),
-) -> JSONResponse:
+) -> list:
     return await product_controller.get_all_products_by_seller(seller_id)
 
 
@@ -59,7 +58,7 @@ async def get_products_by_seller(
 async def get_product_by_id(
     product_id: int,
     product_controller: ProductController = Depends(get_product_controller),
-) -> JSONResponse:
+) -> dict:
     return await product_controller.get_product_by_id(product_id)
 
 
@@ -107,7 +106,7 @@ async def add_new_product(
     product: ProductData,
     current_user: dict = Depends(get_current_user),
     product_controller: ProductController = Depends(get_product_controller),
-) -> JSONResponse:
+) -> dict:
     seller_id: UUID = current_user.get("user_id")
     print(f"seller id: {seller_id}")
     if not seller_id:
