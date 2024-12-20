@@ -1,4 +1,3 @@
-import os
 import uuid
 from unittest.mock import AsyncMock
 
@@ -7,8 +6,6 @@ from datetime import datetime, date, timezone, timedelta
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import status
-
-from config.parser import load_config
 from dependencies import verify_code, hash_password
 from schemas.schemas import UserCreate
 from services.user_service import UserService
@@ -349,7 +346,7 @@ class TestUserService:
 
     class TestEmailVerification:
         @pytest.mark.asyncio
-        async def test_verify_code_success(self, mock_verification_storage):
+        async def test_verify_code_success(self, mock_verification_storage, mock_config):
             """Test successful email verification"""
             email = "seller@example.com"
             code = "123456"
@@ -360,7 +357,7 @@ class TestUserService:
             assert message == "Account successfully verified"
 
         @pytest.mark.asyncio
-        async def test_verify_code_non_existing_email(self, mock_verification_storage):
+        async def test_verify_code_non_existing_email(self, mock_verification_storage, mock_config):
             """Test email verification with invalid email"""
             email = "non-existing@example.com"
             code = "123456"
@@ -371,7 +368,7 @@ class TestUserService:
             assert message == "Invalid email or verification code"
 
         @pytest.mark.asyncio
-        async def test_verify_code_invalid_code(self, mock_verification_storage):
+        async def test_verify_code_invalid_code(self, mock_verification_storage, mock_config):
             """Test email verification with invalid code"""
             email = "seller@example.com"
             code = "555555"
@@ -382,7 +379,7 @@ class TestUserService:
             assert message == "Invalid verification code"
 
         @pytest.mark.asyncio
-        async def test_verify_code_expired_code(self, mock_verification_storage):
+        async def test_verify_code_expired_code(self, mock_verification_storage, mock_config):
             """Test email verification with expired code"""
             email = "buyer@example.com"
             code = "222222"

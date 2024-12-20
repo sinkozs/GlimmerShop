@@ -73,9 +73,25 @@ def test_auth_token(test_user_id: UUID, test_user_email: str) -> str:
     )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def test_email_verification_code_exp_minutes() -> int:
     return 20
+
+
+@pytest.fixture
+def mock_config(monkeypatch, test_email_verification_code_exp_minutes):
+    class MockSMTPConfig:
+        def __init__(self):
+            self.verification_code_expiration_minutes = test_email_verification_code_exp_minutes
+
+    class MockConfig:
+        def __init__(self):
+            self.smtp_config = MockSMTPConfig()
+
+    monkeypatch.setattr(
+        "dependencies.get_config",
+        lambda: MockConfig()
+    )
 
 
 @pytest.fixture(scope="session")
