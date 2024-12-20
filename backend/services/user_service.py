@@ -93,19 +93,20 @@ class UserService:
 
     async def check_seller_exists(self, seller_id: UUID) -> bool:
         try:
-            stmt = select(func.count()).where(
-                and_(User.id == seller_id, User.is_seller)
+            stmt = select(User).filter(
+                User.id == seller_id,
+                User.is_seller == True
             )
             result = await self.db.execute(stmt)
-            count = result.scalar_one()
+            seller = result.scalar_one_or_none()
 
-            if count == 0:
+            if seller is None:
                 raise UserException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Seller with ID {seller_id} not found"
                 )
-
             return True
+
         except SQLAlchemyError as e:
             logger.error(f"Database error in check_seller_exists: {e}")
             raise UserException(
@@ -265,19 +266,19 @@ class UserService:
 
     async def delete_user(self, user_id: UUID) -> dict:
         try:
-            async with self.db.begin():
-                stmt = select(User).filter(User.id == user_id)
-                result = await self.db.execute(stmt)
-                user: User | None = result.scalars().first()
 
-                if user is None:
-                    raise UserException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"User with id {user_id} not found"
-                    )
+            stmt = select(User).filter(User.id == user_id)
+            result = await self.db.execute(stmt)
+            user: User | None = result.scalars().first()
 
-                await self.db.delete(user)
-                await self.db.flush()
+            if user is None:
+                raise UserException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"User with id {user_id} not found"
+                )
+
+            await self.db.delete(user)
+            await self.db.flush()
 
             return {
                 "message": "User deleted successfully",

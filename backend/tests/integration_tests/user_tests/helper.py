@@ -68,10 +68,9 @@ async def add_test_users(session: AsyncSession, test_users: list[dict]) -> None:
         await add_test_users(session, test_users)
     """
     try:
-        async with session.begin():
-            test_user_models = [dict_to_db_model(User, user) for user in test_users]
-            for user in test_user_models:
-                session.add(user)
+        test_user_models = [dict_to_db_model(User, user) for user in test_users]
+        for user in test_user_models:
+            session.add(user)
     except SQLAlchemyError as e:
         print(f"Error adding tests users: {e}")
         raise
