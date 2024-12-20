@@ -27,72 +27,87 @@ def get_product_service(session: AsyncSession = Depends(get_session)) -> Product
     return ProductService(session)
 
 
-def get_category_service(session: AsyncSession = Depends(get_session)) -> CategoryService:
+def get_category_service(
+    session: AsyncSession = Depends(get_session),
+) -> CategoryService:
     return CategoryService(session)
 
 
 def get_product_controller(
-        product_service: ProductService = Depends(get_product_service),
-        category_service: CategoryService = Depends(get_category_service)) -> ProductController:
+    product_service: ProductService = Depends(get_product_service),
+    category_service: CategoryService = Depends(get_category_service),
+) -> ProductController:
     return ProductController(product_service, category_service)
 
 
 @router.get("")
-async def get_all_products(product_controller: ProductController = Depends(get_product_controller)) -> JSONResponse:
+async def get_all_products(
+    product_controller: ProductController = Depends(get_product_controller),
+) -> JSONResponse:
     return await product_controller.get_all_products()
 
 
 @router.get("/products-by-seller")
 async def get_products_by_seller(
-        seller_id: UUID,
-        product_controller: ProductController = Depends(get_product_controller)) -> JSONResponse:
+    seller_id: UUID,
+    product_controller: ProductController = Depends(get_product_controller),
+) -> JSONResponse:
     return await product_controller.get_all_products_by_seller(seller_id)
 
 
 @router.get("/{product_id}")
 async def get_product_by_id(
-        product_id: int, product_controller: ProductController = Depends(get_product_controller)) -> JSONResponse:
+    product_id: int,
+    product_controller: ProductController = Depends(get_product_controller),
+) -> JSONResponse:
     return await product_controller.get_product_by_id(product_id)
 
 
 @router.get("/search/", response_model=List[ProductData])
 async def search_products(
-        query: str = Query(...),
-        seller_id: UUID = Query(...),
-        product_controller: ProductController = Depends(get_product_controller)
+    query: str = Query(...),
+    seller_id: UUID = Query(...),
+    product_controller: ProductController = Depends(get_product_controller),
 ):
     return await product_controller.search_products(query, seller_id)
 
 
 @router.post("/filter_by_price")
 async def get_products_by_price_range(
-        category_id: int,
-        price_range: PriceFilter,
-        product_controller: ProductController = Depends(get_product_controller)
+    category_id: int,
+    price_range: PriceFilter,
+    product_controller: ProductController = Depends(get_product_controller),
 ):
-    return await product_controller.get_products_by_price_range(category_id, price_range)
+    return await product_controller.get_products_by_price_range(
+        category_id, price_range
+    )
 
 
 @router.post("/filter_by_material")
 async def get_products_by_material(
-        category_id: int,
-        materials: MaterialsFilter,
-        product_controller: ProductController = Depends(get_product_controller)
+    category_id: int,
+    materials: MaterialsFilter,
+    product_controller: ProductController = Depends(get_product_controller),
 ):
     return await product_controller.get_products_by_material(category_id, materials)
 
 
 @router.post("/filter_by_material_price_and_seller")
 async def filter_products_by_material_and_price(
-        filters: ProductFilterRequest, product_controller: ProductController = Depends(get_product_controller)):
-    return await product_controller.filter_products_by_material_price_and_seller(filters)
+    filters: ProductFilterRequest,
+    product_controller: ProductController = Depends(get_product_controller),
+):
+    return await product_controller.filter_products_by_material_price_and_seller(
+        filters
+    )
 
 
 @router.post("/new")
 async def add_new_product(
-        product: ProductData,
-        current_user: dict = Depends(get_current_user),
-        product_controller: ProductController = Depends(get_product_controller)) -> JSONResponse:
+    product: ProductData,
+    current_user: dict = Depends(get_current_user),
+    product_controller: ProductController = Depends(get_product_controller),
+) -> JSONResponse:
     seller_id: UUID = current_user.get("user_id")
     print(f"seller id: {seller_id}")
     if not seller_id:
@@ -102,27 +117,23 @@ async def add_new_product(
 
 @router.post("/upload-image")
 async def upload_image(
-        product_id: int,
-        image_number: int,
-        image: UploadFile = File(...),
-        product_controller: ProductController = Depends(get_product_controller)
+    product_id: int,
+    image_number: int,
+    image: UploadFile = File(...),
+    product_controller: ProductController = Depends(get_product_controller),
 ):
     if image_number in (1, 2):
-        return await product_controller.upload_image(
-            product_id, image_number, image
-        )
+        return await product_controller.upload_image(product_id, image_number, image)
     else:
-        raise HTTPException(
-            status_code=400, detail="Image number can be only 1 or 2"
-        )
+        raise HTTPException(status_code=400, detail="Image number can be only 1 or 2")
 
 
 @router.put("/edit")
 async def edit_product(
-        product_id: int,
-        product: ProductUpdate,
-        current_user: dict = Depends(get_current_user),
-        product_controller: ProductController = Depends(get_product_controller)
+    product_id: int,
+    product: ProductUpdate,
+    current_user: dict = Depends(get_current_user),
+    product_controller: ProductController = Depends(get_product_controller),
 ):
     seller_id: UUID = current_user.get("user_id")
     if not seller_id:
@@ -132,9 +143,9 @@ async def edit_product(
 
 @router.delete("/delete/{product_id}")
 async def delete_product(
-        product_id: int,
-        current_user: dict = Depends(get_current_user),
-        product_controller: ProductController = Depends(get_product_controller)
+    product_id: int,
+    current_user: dict = Depends(get_current_user),
+    product_controller: ProductController = Depends(get_product_controller),
 ):
     seller_id: UUID = current_user.get("user_id")
     if not seller_id:

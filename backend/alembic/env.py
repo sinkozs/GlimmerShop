@@ -24,7 +24,7 @@ target_metadata = Base.metadata
 # Define database URLs
 DATABASE_URLS = [
     app_config.db_config.url,  # Production DB
-    app_config.test_db_config.url  # Test DB
+    app_config.test_db_config.url,  # Test DB
 ]
 
 
@@ -57,12 +57,16 @@ async def run_migrations_for_engine(url: str) -> None:
 
     # Create alembic_version table if it doesn't exist
     async with engine.connect() as connection:
-        await connection.execute(text("""
+        await connection.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS alembic_version (
                 version_num VARCHAR(32) NOT NULL,
                 CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
             )
-        """))
+        """
+            )
+        )
         await connection.commit()
 
         await connection.run_sync(_run_migrations)

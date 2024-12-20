@@ -40,7 +40,7 @@ def generate_session_id():
 
 def is_valid_update(field_value, original_value):
     return (
-            field_value is not None and field_value != "" and field_value != original_value
+        field_value is not None and field_value != "" and field_value != original_value
     )
 
 
@@ -60,13 +60,13 @@ def dict_to_db_model(model_class, data: dict):
     instance = model_class()
 
     for key, value in data.items():
-        if key == 'id' and isinstance(value, str):
+        if key == "id" and isinstance(value, str):
             value = UUID(value)
 
-        if key == 'last_login' and value and isinstance(value, str):
+        if key == "last_login" and value and isinstance(value, str):
             value = datetime.fromisoformat(value)
 
-        if key == 'registration_date' and isinstance(value, str):
+        if key == "registration_date" and isinstance(value, str):
             value = date.fromisoformat(value)
 
         setattr(instance, key, value)
@@ -106,34 +106,28 @@ async def get_current_user(request: Request) -> dict:
     token = request.cookies.get(http_only_auth_cookie)
     if not token:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
         )
     try:
         auth_config = load_config().auth_config
         payload = jwt.decode(
-            token,
-            auth_config.secret_key,
-            algorithms=[encryption_algorithm]
+            token, auth_config.secret_key, algorithms=[encryption_algorithm]
         )
         email: EmailStr = payload.get("email")
         user_id: UUID = payload.get("id")
         if not email or not user_id:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token payload"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
             )
         return {"email": email, "user_id": user_id}
 
     except jwt.ExpiredSignatureError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
         )
     except JWTError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
         )
 
 
@@ -147,9 +141,7 @@ def hash_password(password: str) -> str:
 
 
 async def verify_code(
-        email: EmailStr,
-        code: str,
-        storage: Optional[Dict[str, Any]] = None
+    email: EmailStr, code: str, storage: Optional[Dict[str, Any]] = None
 ) -> Tuple[bool, str]:
     """
     Verify email verification code
@@ -173,7 +165,7 @@ async def verify_code(
         return False, "Invalid verification code"
 
     if datetime.now() - storage[email]["timestamp"] > timedelta(
-            minutes=get_config().smtp_config.verification_code_expiration_minutes
+        minutes=get_config().smtp_config.verification_code_expiration_minutes
     ):
         return False, "Verification code expired"
 
@@ -212,10 +204,10 @@ async def send_verification_email(first_name: str, user_email: EmailStr) -> bool
     subject = smtp_config.verification_email_subject
     verification_code = generate_random_verification_code()
     body = (
-            f"Hey {first_name}! \n \n "
-            + smtp_config.verification_email_message
-            + " \n \n"
-            + verification_code
+        f"Hey {first_name}! \n \n "
+        + smtp_config.verification_email_message
+        + " \n \n"
+        + verification_code
     )
 
     message = MIMEMultipart()

@@ -25,18 +25,18 @@ class TestUserController:
 
     @pytest.fixture
     def sample_users(self) -> list[dict]:
-        return [{
-            "id": "dce380e7-6191-40aa-ac73-63fb372841fa",
-            "first_name": "John",
-            "last_name": "Doe",
-            "email": "john@example.com",
-            "hashed_password": "$2b$12$8EXg7kqAZnwgx8DP.sdrburMSH0Y/4aU5rSXX/7c0xrr9BBnRFTN2",
-            "is_seller": False,
-            "is_verified": False,
-            "is_active": True,
-            "last_login": None
-        },
-
+        return [
+            {
+                "id": "dce380e7-6191-40aa-ac73-63fb372841fa",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com",
+                "hashed_password": "$2b$12$8EXg7kqAZnwgx8DP.sdrburMSH0Y/4aU5rSXX/7c0xrr9BBnRFTN2",
+                "is_seller": False,
+                "is_verified": False,
+                "is_active": True,
+                "last_login": None,
+            },
             {
                 "id": "dce380e7-6191-40aa-ac73-63fb372841fb",
                 "first_name": "Jane",
@@ -46,8 +46,9 @@ class TestUserController:
                 "is_seller": True,
                 "is_verified": True,
                 "is_active": True,
-                "last_login": None
-            }]
+                "last_login": None,
+            },
+        ]
 
     @pytest.fixture
     def user_update(self) -> UserUpdate:
@@ -55,7 +56,7 @@ class TestUserController:
             first_name="Jane",
             last_name="Smith",
             email="jane@example.com",
-            password="newpassword123"
+            password="newpassword123",
         )
 
     @pytest.fixture
@@ -71,13 +72,13 @@ class TestUserController:
             "is_verified": False,
             "is_active": False,
             "last_login": None,
-            "registration_date": "2024-12-16"
+            "registration_date": "2024-12-16",
         }
 
     class TestGetUserById:
         @pytest.mark.asyncio
         async def test_get_user_by_id_success(
-                self, controller, mock_service, sample_users
+            self, controller, mock_service, sample_users
         ):
             sample_user = sample_users[0]
             user_id = sample_user["id"]
@@ -88,7 +89,7 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert len(response_content) == 1
             assert "user" in response_content
 
@@ -99,10 +100,10 @@ class TestUserController:
 
         @pytest.mark.asyncio
         async def test_get_user_by_id_not_found(
-                self, controller, mock_service, test_user_id):
+            self, controller, mock_service, test_user_id
+        ):
             mock_service.get_user_by_id.side_effect = UserException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -113,11 +114,11 @@ class TestUserController:
 
         @pytest.mark.asyncio
         async def test_get_user_by_id_server_error(
-                self, controller, mock_service, test_user_id
+            self, controller, mock_service, test_user_id
         ):
             mock_service.get_user_by_id.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database connection error"
+                detail="Database connection error",
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -131,7 +132,7 @@ class TestUserController:
     class TestGetAllUsers:
         @pytest.mark.asyncio
         async def test_get_all_users_success(
-                self, controller, mock_service, sample_users
+            self, controller, mock_service, sample_users
         ):
             mock_service.get_all_users.return_value = sample_users
 
@@ -140,24 +141,21 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert len(response_content) == 1
             assert "users" in response_content
             assert isinstance(response_content["users"], list)
             assert len(response_content["users"]) == 2
 
             expected_users = [
-                UserResponse.model_validate(user).model_dump()
-                for user in sample_users
+                UserResponse.model_validate(user).model_dump() for user in sample_users
             ]
             assert response_content["users"] == expected_users
 
             mock_service.get_all_users.assert_awaited_once()
 
         @pytest.mark.asyncio
-        async def test_get_all_users_empty_list(
-                self, controller, mock_service
-        ):
+        async def test_get_all_users_empty_list(self, controller, mock_service):
             mock_service.get_all_users.return_value = []
 
             response = await controller.get_all_users()
@@ -165,7 +163,7 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert len(response_content) == 1
 
             assert "users" in response_content
@@ -175,12 +173,10 @@ class TestUserController:
             mock_service.get_all_users.assert_awaited_once()
 
         @pytest.mark.asyncio
-        async def test_get_all_users_server_error(
-                self, controller, mock_service
-        ):
+        async def test_get_all_users_server_error(self, controller, mock_service):
             mock_service.get_all_users.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database connection error"
+                detail="Database connection error",
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -194,7 +190,9 @@ class TestUserController:
     class TestGetUsersByType:
 
         @pytest.mark.asyncio
-        async def test_get_users_by_type_success(self, controller, mock_service, sample_users):
+        async def test_get_users_by_type_success(
+            self, controller, mock_service, sample_users
+        ):
             is_seller = True
             test_seller = sample_users[1]
             mock_service.get_users_by_type.return_value = [test_seller]
@@ -203,7 +201,7 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             expected_user = UserResponse.model_validate(test_seller).model_dump()
             assert len(response_content) == 2
 
@@ -220,9 +218,7 @@ class TestUserController:
             mock_service.get_users_by_type.assert_awaited_once()
 
         @pytest.mark.asyncio
-        async def test_get_users_by_type_empty_list(
-                self, controller, mock_service
-        ):
+        async def test_get_users_by_type_empty_list(self, controller, mock_service):
             is_seller = True
             mock_service.get_users_by_type.return_value = []
 
@@ -231,7 +227,7 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert len(response_content) == 2
 
             assert "users" in response_content
@@ -245,12 +241,10 @@ class TestUserController:
             mock_service.get_users_by_type.assert_awaited_once()
 
         @pytest.mark.asyncio
-        async def test_get_users_by_type_server_error(
-                self, controller, mock_service
-        ):
+        async def test_get_users_by_type_server_error(self, controller, mock_service):
             mock_service.get_users_by_type.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database connection error"
+                detail="Database connection error",
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -263,7 +257,9 @@ class TestUserController:
 
     class TestGetUserByEmail:
         @pytest.mark.asyncio
-        async def test_get_user_by_email_success(self, controller, mock_service, sample_users):
+        async def test_get_user_by_email_success(
+            self, controller, mock_service, sample_users
+        ):
             test_seller = sample_users[0]
             mock_service.get_user_by_email.return_value = test_seller
             response = await controller.get_user_by_email(email=test_seller["email"])
@@ -271,7 +267,7 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             expected_user = UserResponse.model_validate(test_seller).model_dump()
             assert len(response_content) == 1
 
@@ -287,23 +283,23 @@ class TestUserController:
             test_email = "john@example.com"
             mock_service.get_user_by_email.side_effect = UserException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with email {test_email} not found"
+                detail=f"User with email {test_email} not found",
             )
             with pytest.raises(HTTPException) as exc_info:
                 await controller.get_user_by_email(test_email)
 
             assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-            assert str(exc_info.value.detail) == f"User with email {test_email} not found"
+            assert (
+                str(exc_info.value.detail) == f"User with email {test_email} not found"
+            )
 
             mock_service.get_user_by_email.assert_awaited_once_with(test_email)
 
         @pytest.mark.asyncio
-        async def test_get_user_by_email_server_error(
-                self, controller, mock_service
-        ):
+        async def test_get_user_by_email_server_error(self, controller, mock_service):
             mock_service.get_user_by_email.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database connection error"
+                detail="Database connection error",
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -316,14 +312,16 @@ class TestUserController:
 
     class TestCheckSellerExists:
         @pytest.mark.asyncio
-        async def test_check_seller_exists_success(self, controller, mock_service, test_user_id):
+        async def test_check_seller_exists_success(
+            self, controller, mock_service, test_user_id
+        ):
             mock_service.check_seller_exists.return_value = True
             response = await controller.check_seller_exists(seller_id=test_user_id)
 
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert len(response_content) == 2
 
             assert "seller_id" in response_content
@@ -337,24 +335,28 @@ class TestUserController:
             mock_service.check_seller_exists.assert_awaited_once()
 
         @pytest.mark.asyncio
-        async def test_check_seller_exists_seller_not_found(self, controller, mock_service, test_user_id):
+        async def test_check_seller_exists_seller_not_found(
+            self, controller, mock_service, test_user_id
+        ):
             mock_service.check_seller_exists.side_effect = UserException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Seller with ID {test_user_id} not found"
+                detail=f"Seller with ID {test_user_id} not found",
             )
             with pytest.raises(HTTPException) as exc_info:
                 await controller.check_seller_exists(test_user_id)
 
             assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-            assert str(exc_info.value.detail) == f"Seller with ID {test_user_id} not found"
+            assert (
+                str(exc_info.value.detail) == f"Seller with ID {test_user_id} not found"
+            )
 
         @pytest.mark.asyncio
         async def test_check_seller_exists_server_error(
-                self, controller, mock_service, test_user_id
+            self, controller, mock_service, test_user_id
         ):
             mock_service.check_seller_exists.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database connection error"
+                detail="Database connection error",
             )
             with pytest.raises(HTTPException) as exc_info:
                 await controller.check_seller_exists(test_user_id)
@@ -366,7 +368,9 @@ class TestUserController:
 
     class TestSearchSellers:
         @pytest.mark.asyncio
-        async def test_search_sellers_success(self, controller, mock_service, sample_users):
+        async def test_search_sellers_success(
+            self, controller, mock_service, sample_users
+        ):
             # sample_users[1] is a seller
             search_query = "jane"
             test_sellers = [sample_users[1]]
@@ -377,7 +381,7 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert "sellers" in response_content
             assert isinstance(response_content["sellers"], list)
             assert len(response_content["sellers"]) == 1
@@ -398,7 +402,7 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert "sellers" in response_content
             assert isinstance(response_content["sellers"], list)
             assert len(response_content["sellers"]) == 0
@@ -410,7 +414,7 @@ class TestUserController:
             search_query = "tests"
             mock_service.search_sellers.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database error occurred"
+                detail="Database error occurred",
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -429,7 +433,7 @@ class TestUserController:
                 password="Password123!",
                 first_name="Test",
                 last_name="User",
-                is_seller=False
+                is_seller=False,
             )
             test_user_id = "123e4567-e89b-12d3-a456-426614174000"
             mock_service.create_new_user.return_value = test_user_id
@@ -439,7 +443,7 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_201_CREATED
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert "userId" in response_content
             assert response_content["userId"] == test_user_id
 
@@ -452,11 +456,11 @@ class TestUserController:
                 password="Password123!",
                 first_name="Test",
                 last_name="User",
-                is_seller=False
+                is_seller=False,
             )
             mock_service.create_new_user.side_effect = UserException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="User with this email already exists"
+                detail="User with this email already exists",
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -474,11 +478,11 @@ class TestUserController:
                 password="Password123!",
                 first_name="Test",
                 last_name="User",
-                is_seller=False
+                is_seller=False,
             )
             mock_service.create_new_user.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database error occurred"
+                detail="Database error occurred",
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -492,10 +496,7 @@ class TestUserController:
     class TestVerifyUser:
         @pytest.mark.asyncio
         async def test_verify_user_success(self, controller, mock_service):
-            verification = UserVerification(
-                email="tests@example.com",
-                code="123456"
-            )
+            verification = UserVerification(email="tests@example.com", code="123456")
             mock_service.verify_email.return_value = None
 
             response = await controller.verify_user(verification)
@@ -503,26 +504,22 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert "message" in response_content
             assert "email" in response_content
             assert response_content["message"] == "User verified successfully"
             assert response_content["email"] == verification.email
 
             mock_service.verify_email.assert_awaited_once_with(
-                verification.email,
-                verification.code
+                verification.email, verification.code
             )
 
         @pytest.mark.asyncio
         async def test_verify_user_invalid_code(self, controller, mock_service):
-            verification = UserVerification(
-                email="tests@example.com",
-                code="invalid"
-            )
+            verification = UserVerification(email="tests@example.com", code="invalid")
             mock_service.verify_email.side_effect = UserException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid verification code"
+                detail="Invalid verification code",
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -532,19 +529,16 @@ class TestUserController:
             assert str(exc_info.value.detail) == "Invalid verification code"
 
             mock_service.verify_email.assert_awaited_once_with(
-                verification.email,
-                verification.code
+                verification.email, verification.code
             )
 
         @pytest.mark.asyncio
         async def test_verify_user_user_not_found(self, controller, mock_service):
             verification = UserVerification(
-                email="nonexistent@example.com",
-                code="123456"
+                email="nonexistent@example.com", code="123456"
             )
             mock_service.verify_email.side_effect = UserException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -554,19 +548,14 @@ class TestUserController:
             assert str(exc_info.value.detail) == "User not found"
 
             mock_service.verify_email.assert_awaited_once_with(
-                verification.email,
-                verification.code
+                verification.email, verification.code
             )
 
         @pytest.mark.asyncio
         async def test_verify_user_already_verified(self, controller, mock_service):
-            verification = UserVerification(
-                email="verified@example.com",
-                code="123456"
-            )
+            verification = UserVerification(email="verified@example.com", code="123456")
             mock_service.verify_email.side_effect = UserException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="User is already verified"
+                status_code=status.HTTP_409_CONFLICT, detail="User is already verified"
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -576,22 +565,20 @@ class TestUserController:
             assert str(exc_info.value.detail) == "User is already verified"
 
             mock_service.verify_email.assert_awaited_once_with(
-                verification.email,
-                verification.code
+                verification.email, verification.code
             )
 
     class TestResendVerificationEmail:
         @pytest.mark.asyncio
         async def test_resend_verification_email_success(
-                self, controller, mock_service, mocker, sample_users
+            self, controller, mock_service, mocker, sample_users
         ):
             test_user = sample_users[0]
             test_user_email = sample_users[0]["email"]
             mock_service.get_user_by_email.return_value = test_user
 
             mock_send_email = mocker.patch(
-                "dependencies.send_verification_email",
-                return_value=True
+                "dependencies.send_verification_email", return_value=True
             )
 
             response = await controller.resend_verification_email(test_user_email)
@@ -599,19 +586,18 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert "message" in response_content
             assert response_content["message"] == "Verification email sent successfully"
 
             mock_service.get_user_by_email.assert_awaited_once_with(test_user_email)
             mock_send_email.assert_awaited_once_with(
-                test_user["first_name"],
-                test_user["email"]
+                test_user["first_name"], test_user["email"]
             )
 
         @pytest.mark.asyncio
         async def test_resend_verification_email_user_not_found(
-                self, controller, mock_service
+            self, controller, mock_service
         ):
             test_email = "nonexistent@example.com"
             mock_service.get_user_by_email.return_value = None
@@ -626,14 +612,10 @@ class TestUserController:
 
         @pytest.mark.asyncio
         async def test_resend_verification_email_already_verified(
-                self, controller, mock_service
+            self, controller, mock_service
         ):
             test_email = "verified@example.com"
-            test_user = {
-                "email": test_email,
-                "first_name": "Test",
-                "is_verified": True
-            }
+            test_user = {"email": test_email, "first_name": "Test", "is_verified": True}
             mock_service.get_user_by_email.return_value = test_user
 
             with pytest.raises(HTTPException) as exc_info:
@@ -646,19 +628,18 @@ class TestUserController:
 
         @pytest.mark.asyncio
         async def test_resend_verification_email_send_failure(
-                self, controller, mock_service, mocker
+            self, controller, mock_service, mocker
         ):
             test_email = "tests@example.com"
             test_user = {
                 "email": test_email,
                 "first_name": "Test",
-                "is_verified": False
+                "is_verified": False,
             }
             mock_service.get_user_by_email.return_value = test_user
 
             mock_send_email = mocker.patch(
-                "dependencies.send_verification_email",
-                return_value=False
+                "dependencies.send_verification_email", return_value=False
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -669,18 +650,17 @@ class TestUserController:
 
             mock_service.get_user_by_email.assert_awaited_once_with(test_email)
             mock_send_email.assert_called_once_with(
-                test_user["first_name"],
-                test_user["email"]
+                test_user["first_name"], test_user["email"]
             )
 
         @pytest.mark.asyncio
         async def test_resend_verification_email_service_error(
-                self, controller, mock_service
+            self, controller, mock_service
         ):
             test_email = "tests@example.com"
             mock_service.get_user_by_email.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database error occurred"
+                detail="Database error occurred",
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -696,23 +676,25 @@ class TestUserController:
         # Therefore, we don't perform an assertion on the hashed_password field.
         @pytest.mark.asyncio
         async def test_edit_user_successful_update(
-                self, controller, mock_service, sample_users, user_update, edited_user
+            self, controller, mock_service, sample_users, user_update, edited_user
         ):
             sample_user = sample_users[0]
             user_id = sample_user["id"]
             mock_service.get_user_by_id.return_value = sample_user
 
-            with patch('dependencies.is_valid_update', return_value=True), \
-                    patch('config.auth_config.bcrypt_context.verify', return_value=False), \
-                    patch('dependencies.hash_password',
-                          return_value="$2b$12$8EXg7kqAZnwgx8DP.sdrburMSH0Y/4aU5rSXX/7c0xrr9BBnRFNEW"):
+            with patch("dependencies.is_valid_update", return_value=True), patch(
+                "config.auth_config.bcrypt_context.verify", return_value=False
+            ), patch(
+                "dependencies.hash_password",
+                return_value="$2b$12$8EXg7kqAZnwgx8DP.sdrburMSH0Y/4aU5rSXX/7c0xrr9BBnRFNEW",
+            ):
                 mock_service.edit_user.return_value = edited_user
                 response = await controller.edit_user(user_id, user_update)
 
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert len(response_content) == 1
             assert "user" in response_content
 
@@ -724,7 +706,7 @@ class TestUserController:
 
         @pytest.mark.asyncio
         async def test_edit_user_no_changes(
-                self, controller, mock_service, sample_users
+            self, controller, mock_service, sample_users
         ):
             sample_user = sample_users[0]
             user_id = sample_user["id"]
@@ -734,17 +716,18 @@ class TestUserController:
                 first_name=sample_user["first_name"],
                 last_name=sample_user["last_name"],
                 email=sample_user["email"],
-                password=None
+                password=None,
             )
 
-            with patch('dependencies.is_valid_update', return_value=False), \
-                    patch('config.auth_config.bcrypt_context.verify', return_value=True):
+            with patch("dependencies.is_valid_update", return_value=False), patch(
+                "config.auth_config.bcrypt_context.verify", return_value=True
+            ):
                 response = await controller.edit_user(user_id, no_change_update)
 
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_304_NOT_MODIFIED
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert "user" in response_content
 
             expected_response = UserResponse.model_validate(sample_user).model_dump()
@@ -755,12 +738,11 @@ class TestUserController:
 
         @pytest.mark.asyncio
         async def test_edit_user_not_found(
-                self, controller, mock_service, sample_users, user_update
+            self, controller, mock_service, sample_users, user_update
         ):
             user_id = sample_users[0]["id"]
             mock_service.get_user_by_id.side_effect = UserException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -772,13 +754,13 @@ class TestUserController:
 
         @pytest.mark.asyncio
         async def test_edit_user_server_error(
-                self, controller, mock_service, sample_users, user_update
+            self, controller, mock_service, sample_users, user_update
         ):
             sample_user = sample_users[0]
             user_id = sample_user["id"]
             mock_service.get_user_by_id.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database connection error"
+                detail="Database connection error",
             )
 
             with pytest.raises(HTTPException) as exc_info:
@@ -796,7 +778,7 @@ class TestUserController:
             test_user_id = UUID("123e4567-e89b-12d3-a456-426614174000")
             mock_service.delete_user.return_value = {
                 "message": "User deleted successfully",
-                "user_id": str(test_user_id)
+                "user_id": str(test_user_id),
             }
 
             response = await controller.delete_user(test_user_id)
@@ -804,7 +786,7 @@ class TestUserController:
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
 
-            response_content = json.loads(response.body.decode('utf-8'))
+            response_content = json.loads(response.body.decode("utf-8"))
             assert "user_id" in response_content
             assert response_content["user_id"] == str(test_user_id)
 
@@ -815,13 +797,15 @@ class TestUserController:
             test_user_id = UUID("123e4567-e89b-12d3-a456-426614174000")
             mock_service.delete_user.side_effect = UserException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"User with id {test_user_id} not found"
+                detail=f"User with id {test_user_id} not found",
             )
             with pytest.raises(HTTPException) as exc_info:
                 await controller.delete_user(test_user_id)
 
             assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-            assert str(exc_info.value.detail) == f"User with id {test_user_id} not found"
+            assert (
+                str(exc_info.value.detail) == f"User with id {test_user_id} not found"
+            )
 
             mock_service.delete_user.assert_awaited_once_with(test_user_id)
 
@@ -830,13 +814,16 @@ class TestUserController:
             test_user_id = UUID("123e4567-e89b-12d3-a456-426614174000")
             mock_service.delete_user.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Database error occurred while deleting user"
+                detail="Database error occurred while deleting user",
             )
 
             with pytest.raises(HTTPException) as exc_info:
                 await controller.delete_user(test_user_id)
 
             assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-            assert str(exc_info.value.detail) == "Database error occurred while deleting user"
+            assert (
+                str(exc_info.value.detail)
+                == "Database error occurred while deleting user"
+            )
 
             mock_service.delete_user.assert_awaited_once_with(test_user_id)

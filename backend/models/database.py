@@ -19,7 +19,6 @@ def build_session_maker(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]
 
 async def get_redis() -> AsyncGenerator:
     redis_config = load_config().redis_config
-    print(f"Redis URL: {redis_config.url}")
     redis = aioredis.from_url(redis_config.url, decode_responses=True, encoding="utf-8")
     try:
         yield redis

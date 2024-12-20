@@ -1,6 +1,5 @@
-import uuid
 from unittest.mock import AsyncMock
-
+from uuid import UUID, uuid4
 import pytest
 from datetime import datetime, date, timezone, timedelta
 from sqlalchemy import select
@@ -10,7 +9,11 @@ from dependencies import verify_code, hash_password
 from schemas.schemas import UserCreate
 from services.user_service import UserService
 from exceptions.user_exceptions import UserException
-from tests.integration_tests.user_tests.helper import add_test_users, assert_user_dicts, assert_user_field_types
+from tests.integration_tests.user_tests.helper import (
+    add_test_users,
+    assert_user_dicts,
+    assert_user_field_types,
+)
 from models.models import User, Cart
 
 
@@ -20,7 +23,7 @@ class TestUserService:
         # Test user data to directly insert to the DB
         return [
             {
-                "id": uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"),
+                "id": UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"),
                 "first_name": "John",
                 "last_name": "Doe",
                 "email": "seller@example.com",
@@ -30,10 +33,10 @@ class TestUserService:
                 "is_active": True,
                 "last_login": datetime.now(),
                 "registration_date": date.today(),
-                "password_length": 14
+                "password_length": 14,
             },
             {
-                "id": uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb792"),
+                "id": UUID("7a4ae081-2f63-4653-bf67-f69a00dcb792"),
                 "first_name": "Jane",
                 "last_name": "Smith",
                 "email": "buyer@example.com",
@@ -43,8 +46,8 @@ class TestUserService:
                 "is_active": False,
                 "last_login": None,
                 "registration_date": date.today(),
-                "password_length": 13
-            }
+                "password_length": 13,
+            },
         ]
 
     @pytest.fixture
@@ -55,31 +58,36 @@ class TestUserService:
                 last_name="Doe",
                 email="seller@example.com",
                 password="strongpassword",
-                is_seller=True
+                is_seller=True,
             ),
             UserCreate(
                 first_name="Jane",
                 last_name="Smith",
                 email="buyer@example.com",
                 password="securepassword",
-                is_seller=False
-            )
+                is_seller=False,
+            ),
         ]
 
     @pytest.fixture
-    def mock_verification_storage(self, test_email_verification_code_exp_minutes) -> dict:
+    def mock_verification_storage(
+        self, test_email_verification_code_exp_minutes
+    ) -> dict:
         """Setup mock verification service with tests storage"""
         return {
             "seller@example.com": {"code": "123456", "timestamp": datetime.now()},
             "buyer@example.com": {
                 "code": "222222",
-                "timestamp": datetime.now() - timedelta(minutes=test_email_verification_code_exp_minutes)
-            }
+                "timestamp": datetime.now()
+                - timedelta(minutes=test_email_verification_code_exp_minutes),
+            },
         }
 
     class TestGetAllUsers:
         @pytest.mark.asyncio
-        async def test_get_all_users_success(self, test_users: list[dict], test_session):
+        async def test_get_all_users_success(
+            self, test_users: list[dict], test_session
+        ):
             """Test retrieving all users from the database"""
             user_service = UserService(test_session)
 
@@ -124,9 +132,7 @@ class TestUserService:
             user_service = UserService(test_session)
 
             mocker.patch.object(
-                test_session,
-                'execute',
-                side_effect=SQLAlchemyError("Database error")
+                test_session, "execute", side_effect=SQLAlchemyError("Database error")
             )
 
             with pytest.raises(UserException) as exc:
@@ -143,7 +149,9 @@ class TestUserService:
 
             await add_test_users(test_session, test_users)
 
-            actual_user = await user_service.get_user_by_id(uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"))
+            actual_user = await user_service.get_user_by_id(
+                UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791")
+            )
 
             assert_user_dicts(test_users[0], actual_user)
 
@@ -151,13 +159,16 @@ class TestUserService:
         async def test_get_user_by_id_user_not_found(self, test_session):
             """Test retrieving a user by ID when the user does not exist in the database"""
             user_service = UserService(test_session)
-            non_existing_user_id = uuid.uuid4()
+            non_existing_user_id = uuid4()
 
             with pytest.raises(UserException) as exc_info:
                 await user_service.get_user_by_id(non_existing_user_id)
 
             assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-            assert exc_info.value.detail == f"User with id {non_existing_user_id} not found"
+            assert (
+                exc_info.value.detail
+                == f"User with id {non_existing_user_id} not found"
+            )
 
         @pytest.mark.asyncio
         async def test_get_user_by_id_database_error(self, test_session, mocker):
@@ -166,20 +177,22 @@ class TestUserService:
 
             # Mock database error
             mocker.patch.object(
-                test_session,
-                'execute',
-                side_effect=SQLAlchemyError("Database error")
+                test_session, "execute", side_effect=SQLAlchemyError("Database error")
             )
 
             with pytest.raises(UserException) as exc:
-                await user_service.get_user_by_id(uuid.UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791"))
+                await user_service.get_user_by_id(
+                    UUID("7a4ae081-2f63-4653-bf67-f69a00dcb791")
+                )
 
             assert exc.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
             assert "database" in exc.value.detail.lower()
 
     class TestGetUsersByType:
         @pytest.mark.asyncio
-        async def test_get_users_by_type_returns_correct_users(self, test_users, test_session):
+        async def test_get_users_by_type_returns_correct_users(
+            self, test_users, test_session
+        ):
             """Test retrieving users by role (is_seller)"""
             user_service = UserService(test_session)
             await add_test_users(test_session, test_users)
@@ -199,7 +212,9 @@ class TestUserService:
             assert non_sellers[0]["is_seller"] is False
 
         @pytest.mark.asyncio
-        async def test_get_users_by_type_correct_data_format(self, test_users, test_session):
+        async def test_get_users_by_type_correct_data_format(
+            self, test_users, test_session
+        ):
             """Test that returned data has correct format and types"""
             user_service = UserService(test_session)
             await add_test_users(test_session, test_users)
@@ -237,9 +252,7 @@ class TestUserService:
 
             # Mock database error
             mocker.patch.object(
-                test_session,
-                'execute',
-                side_effect=SQLAlchemyError("Database error")
+                test_session, "execute", side_effect=SQLAlchemyError("Database error")
             )
 
             with pytest.raises(UserException) as exc:
@@ -256,16 +269,22 @@ class TestUserService:
 
             await add_test_users(test_session, test_users)
 
-            actual_user = await user_service.get_user_by_email(email="seller@example.com")
+            actual_user = await user_service.get_user_by_email(
+                email="seller@example.com"
+            )
             assert_user_dicts(test_users[0], actual_user)
 
         @pytest.mark.asyncio
-        async def test_get_user_by_email_correct_data_format(self, test_users, test_session):
+        async def test_get_user_by_email_correct_data_format(
+            self, test_users, test_session
+        ):
             """Test that returned data has correct format and types"""
             user_service = UserService(test_session)
             await add_test_users(test_session, test_users)
 
-            actual_user = await user_service.get_user_by_email(email="seller@example.com")
+            actual_user = await user_service.get_user_by_email(
+                email="seller@example.com"
+            )
 
             assert isinstance(actual_user, dict)
             assert_user_field_types(actual_user)
@@ -280,7 +299,10 @@ class TestUserService:
                 await user_service.get_user_by_email(email="nonexistent@example.com")
 
             assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-            assert exc_info.value.detail == "User with email nonexistent@example.com not found"
+            assert (
+                exc_info.value.detail
+                == "User with email nonexistent@example.com not found"
+            )
 
         @pytest.mark.asyncio
         async def test_get_user_by_email_database_error(self, test_session, mocker):
@@ -289,9 +311,7 @@ class TestUserService:
 
             # Mock database error
             mocker.patch.object(
-                test_session,
-                'execute',
-                side_effect=SQLAlchemyError("Database error")
+                test_session, "execute", side_effect=SQLAlchemyError("Database error")
             )
 
             with pytest.raises(UserException) as exc:
@@ -306,11 +326,11 @@ class TestUserService:
             """Test checking if a seller exists"""
 
             await add_test_users(test_session, test_users)
-            test_id = test_users[0]["id"]
+            test_id: UUID = test_users[0]["id"]
 
             user_service = UserService(test_session)
             # test_users[0] is a seller
-            seller_exists = await user_service.check_seller_exists(seller_id=test_id)
+            seller_exists = await user_service.check_seller_exists(test_id)
             assert seller_exists is True
 
         @pytest.mark.asyncio
@@ -324,18 +344,21 @@ class TestUserService:
                 await user_service.check_seller_exists(test_users[1]["id"])
 
             assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-            assert str(exc_info.value.detail) == f"Seller with ID {test_users[1]['id']} not found"
+            assert (
+                str(exc_info.value.detail)
+                == f"Seller with ID {test_users[1]['id']} not found"
+            )
 
         @pytest.mark.asyncio
-        async def test_check_seller_exists_database_error(self, test_users, test_session, mocker):
+        async def test_check_seller_exists_database_error(
+            self, test_users, test_session, mocker
+        ):
             """Test database error handling"""
             user_service = UserService(test_session)
 
             # Mock database error
             mocker.patch.object(
-                test_session,
-                'execute',
-                side_effect=SQLAlchemyError("Database error")
+                test_session, "execute", side_effect=SQLAlchemyError("Database error")
             )
 
             with pytest.raises(UserException) as exc:
@@ -346,45 +369,61 @@ class TestUserService:
 
     class TestEmailVerification:
         @pytest.mark.asyncio
-        async def test_verify_code_success(self, mock_verification_storage, mock_config):
+        async def test_verify_code_success(
+            self, mock_verification_storage, mock_config
+        ):
             """Test successful email verification"""
             email = "seller@example.com"
             code = "123456"
 
-            is_verified, message = await verify_code(email, code, mock_verification_storage)
+            is_verified, message = await verify_code(
+                email, code, mock_verification_storage
+            )
 
             assert is_verified is True
             assert message == "Account successfully verified"
 
         @pytest.mark.asyncio
-        async def test_verify_code_non_existing_email(self, mock_verification_storage, mock_config):
+        async def test_verify_code_non_existing_email(
+            self, mock_verification_storage, mock_config
+        ):
             """Test email verification with invalid email"""
             email = "non-existing@example.com"
             code = "123456"
 
-            is_verified, message = await verify_code(email, code, mock_verification_storage)
+            is_verified, message = await verify_code(
+                email, code, mock_verification_storage
+            )
 
             assert is_verified is False
             assert message == "Invalid email or verification code"
 
         @pytest.mark.asyncio
-        async def test_verify_code_invalid_code(self, mock_verification_storage, mock_config):
+        async def test_verify_code_invalid_code(
+            self, mock_verification_storage, mock_config
+        ):
             """Test email verification with invalid code"""
             email = "seller@example.com"
             code = "555555"
 
-            is_verified, message = await verify_code(email, code, mock_verification_storage)
+            is_verified, message = await verify_code(
+                email, code, mock_verification_storage
+            )
 
             assert is_verified is False
             assert message == "Invalid verification code"
 
         @pytest.mark.asyncio
-        async def test_verify_code_expired_code(self, mock_verification_storage, mock_config):
+        async def test_verify_code_expired_code(
+            self, mock_verification_storage, mock_config
+        ):
             """Test email verification with expired code"""
             email = "buyer@example.com"
             code = "222222"
 
-            is_verified, message = await verify_code(email, code, mock_verification_storage)
+            is_verified, message = await verify_code(
+                email, code, mock_verification_storage
+            )
 
             assert is_verified is False
             assert message == "Verification code expired"
@@ -413,7 +452,9 @@ class TestUserService:
                 await user_service.update_is_verified_column(nonexistent_email)
 
             assert exc.value.status_code == status.HTTP_404_NOT_FOUND
-            assert f"User with email {nonexistent_email} not found" in str(exc.value.detail)
+            assert f"User with email {nonexistent_email} not found" in str(
+                exc.value.detail
+            )
 
         @pytest.mark.asyncio
         async def test_update_is_verified_database_error(self, test_session, mocker):
@@ -424,8 +465,8 @@ class TestUserService:
             # Mock database error
             mocker.patch.object(
                 test_session,
-                'execute',
-                side_effect=SQLAlchemyError("Test database error")
+                "execute",
+                side_effect=SQLAlchemyError("Test database error"),
             )
 
             with pytest.raises(UserException) as exc:
@@ -435,7 +476,9 @@ class TestUserService:
             assert "database" in str(exc.value.detail).lower()
 
         @pytest.mark.asyncio
-        async def test_update_is_verified_returns_correct_types(self, test_users, test_session):
+        async def test_update_is_verified_returns_correct_types(
+            self, test_users, test_session
+        ):
             """Test that returned data has correct types and format"""
             await add_test_users(test_session, test_users)
             test_email = test_users[0]["email"]
@@ -455,7 +498,9 @@ class TestUserService:
             """Test successful seller user creation"""
             # Mock send_verification_email
             mock_send_email = AsyncMock()
-            monkeypatch.setattr('services.user_service.send_verification_email', mock_send_email)
+            monkeypatch.setattr(
+                "services.user_service.send_verification_email", mock_send_email
+            )
 
             # Test data
             user_data = UserCreate(
@@ -463,7 +508,7 @@ class TestUserService:
                 last_name="Doe",
                 email="seller@example.com",
                 password="StrongPass123!",
-                is_seller=True
+                is_seller=True,
             )
 
             user_service = UserService(test_session)
@@ -490,25 +535,29 @@ class TestUserService:
                 assert len(db_user.hashed_password) > 0
 
             # Verify verification email was sent
-            mock_send_email.assert_called_once_with(user_data.first_name, user_data.email)
+            mock_send_email.assert_called_once_with(
+                user_data.first_name, user_data.email
+            )
 
         @pytest.mark.asyncio
         async def test_create_buyer_success(self, test_session, monkeypatch):
             """Test successful buyer user creation with cart"""
             # Mock send_verification_email
             mock_send_email = AsyncMock()
-            monkeypatch.setattr('services.user_service.send_verification_email', mock_send_email)
+            monkeypatch.setattr(
+                "services.user_service.send_verification_email", mock_send_email
+            )
 
             user_data = UserCreate(
                 first_name="Jane",
                 last_name="Smith",
                 email="buyer@example.com",
                 password="StrongPass456!",
-                is_seller=False
+                is_seller=False,
             )
 
             user_service = UserService(test_session)
-            user_id = await user_service.create_new_user(user_data)
+            await user_service.create_new_user(user_data)
 
             # Verify user and cart in database
             async with test_session.begin():
@@ -526,8 +575,8 @@ class TestUserService:
             # Mock database error
             mocker.patch.object(
                 test_session,
-                'flush',
-                side_effect=SQLAlchemyError("Test database error")
+                "flush",
+                side_effect=SQLAlchemyError("Test database error"),
             )
 
             user_data = UserCreate(
@@ -535,7 +584,7 @@ class TestUserService:
                 last_name="Test",
                 email="error@tests.com",
                 password="TestPass123!",
-                is_seller=False
+                is_seller=False,
             )
 
             user_service = UserService(test_session)
@@ -547,21 +596,25 @@ class TestUserService:
             assert "creating the user" in str(exc.value.detail)
 
         @pytest.mark.asyncio
-        async def test_create_user_verification_email_error(self, test_session, monkeypatch):
+        async def test_create_user_verification_email_error(
+            self, test_session, monkeypatch
+        ):
             """Test handling of email sending failure"""
 
             # Mock email sending error
             async def mock_send_email(*args):
                 raise Exception("Email sending failed")
 
-            monkeypatch.setattr('services.user_service.send_verification_email', mock_send_email)
+            monkeypatch.setattr(
+                "services.user_service.send_verification_email", mock_send_email
+            )
 
             user_data = UserCreate(
                 first_name="Test",
                 last_name="Email",
                 email="tests@email.com",
                 password="TestPass789!",
-                is_seller=False
+                is_seller=False,
             )
 
             user_service = UserService(test_session)
@@ -581,14 +634,16 @@ class TestUserService:
         async def test_password_hashing(self, test_session, monkeypatch):
             """Test that password is properly hashed"""
             # Mock email sending
-            monkeypatch.setattr('services.user_service.send_verification_email', AsyncMock())
+            monkeypatch.setattr(
+                "services.user_service.send_verification_email", AsyncMock()
+            )
 
             user_data = UserCreate(
                 first_name="Pass",
                 last_name="Test",
                 email="pass@tests.com",
                 password="SuperSecret123!",
-                is_seller=False
+                is_seller=False,
             )
 
             user_service = UserService(test_session)
@@ -606,14 +661,16 @@ class TestUserService:
         @pytest.mark.asyncio
         async def test_registration_date(self, test_session, monkeypatch):
             """Test that registration date is set correctly"""
-            monkeypatch.setattr('services.user_service.send_verification_email', AsyncMock())
+            monkeypatch.setattr(
+                "services.user_service.send_verification_email", AsyncMock()
+            )
 
             user_data = UserCreate(
                 first_name="Date",
                 last_name="Test",
                 email="date@tests.com",
                 password="DatePass123!",
-                is_seller=False
+                is_seller=False,
             )
 
             user_service = UserService(test_session)
@@ -637,7 +694,7 @@ class TestUserService:
             update_data = {
                 "first_name": "UpdatedName",
                 "last_name": "UpdatedLast",
-                "email": "updated@example.com"
+                "email": "updated@example.com",
             }
 
             user_service = UserService(test_session)
@@ -650,7 +707,7 @@ class TestUserService:
         @pytest.mark.asyncio
         async def test_edit_user_not_found(self, test_session):
             """Test updating non-existent user"""
-            non_existent_id = uuid.uuid4()
+            non_existent_id = uuid4()
             update_data = {"first_name": "Test"}
 
             user_service = UserService(test_session)
@@ -668,9 +725,7 @@ class TestUserService:
             user_id = test_users[0]["id"]
             original_last_name = test_users[0]["last_name"]
 
-            update_data = {
-                "first_name": "UpdatedFirstOnly"
-            }
+            update_data = {"first_name": "UpdatedFirstOnly"}
 
             user_service = UserService(test_session)
             result = await user_service.edit_user(user_id, update_data)
@@ -688,8 +743,8 @@ class TestUserService:
             # Mock database error
             mocker.patch.object(
                 test_session,
-                'flush',
-                side_effect=SQLAlchemyError("Test database error")
+                "flush",
+                side_effect=SQLAlchemyError("Test database error"),
             )
 
             update_data = {"first_name": "ShouldFail"}
@@ -744,9 +799,7 @@ class TestUserService:
             user_id = test_users[0]["id"]
             original_data = test_users[0].copy()
 
-            update_data = {
-                "first_name": "UpdatedName"
-            }
+            update_data = {"first_name": "UpdatedName"}
 
             user_service = UserService(test_session)
             result = await user_service.edit_user(user_id, update_data)
@@ -783,7 +836,7 @@ class TestUserService:
         @pytest.mark.asyncio
         async def test_delete_user_not_found(self, test_session):
             """Test deleting non-existent user"""
-            non_existent_id = uuid.uuid4()
+            non_existent_id = uuid4()
 
             user_service = UserService(test_session)
 
@@ -794,7 +847,9 @@ class TestUserService:
             assert f"User with id {non_existent_id} not found" in str(exc.value.detail)
 
         @pytest.mark.asyncio
-        async def test_delete_user_database_error(self, test_users, test_session, mocker):
+        async def test_delete_user_database_error(
+            self, test_users, test_session, mocker
+        ):
             """Test handling of database errors during deletion"""
             await add_test_users(test_session, test_users)
             user_id = test_users[0]["id"]
@@ -802,8 +857,8 @@ class TestUserService:
             # Mock database error
             mocker.patch.object(
                 test_session,
-                'delete',
-                side_effect=SQLAlchemyError("Test database error")
+                "delete",
+                side_effect=SQLAlchemyError("Test database error"),
             )
 
             user_service = UserService(test_session)

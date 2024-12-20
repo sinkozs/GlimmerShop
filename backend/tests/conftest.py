@@ -12,9 +12,10 @@ from config.auth_config import http_only_auth_cookie
 from jose import jwt
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
-    create_async_engine, async_sessionmaker,
+    create_async_engine,
+    async_sessionmaker,
 )
-from models.database import Base, build_session_maker
+from models.database import Base
 from dependencies import get_session, get_current_user
 from routers.user_router import get_user_controller, get_user_service
 import logging
@@ -22,7 +23,7 @@ from dotenv import load_dotenv
 import os
 from unittest.mock import AsyncMock
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 logger = logging.getLogger(__name__)
 
 
@@ -64,13 +65,9 @@ def test_auth_token(test_user_id: UUID, test_user_email: str) -> str:
     payload = {
         "id": str(test_user_id),
         "email": test_user_email,
-        "exp": datetime.now() + timedelta(minutes=15)
+        "exp": datetime.now() + timedelta(minutes=15),
     }
-    return jwt.encode(
-        payload,
-        "<tests-secret-key>",
-        algorithm="HS256"
-    )
+    return jwt.encode(payload, "<tests-secret-key>", algorithm="HS256")
 
 
 @pytest.fixture
@@ -82,16 +79,15 @@ def test_email_verification_code_exp_minutes() -> int:
 def mock_config(monkeypatch, test_email_verification_code_exp_minutes):
     class MockSMTPConfig:
         def __init__(self):
-            self.verification_code_expiration_minutes = test_email_verification_code_exp_minutes
+            self.verification_code_expiration_minutes = (
+                test_email_verification_code_exp_minutes
+            )
 
     class MockConfig:
         def __init__(self):
             self.smtp_config = MockSMTPConfig()
 
-    monkeypatch.setattr(
-        "dependencies.get_config",
-        lambda: MockConfig()
-    )
+    monkeypatch.setattr("dependencies.get_config", lambda: MockConfig())
 
 
 @pytest.fixture(scope="session")
@@ -133,36 +129,34 @@ async def mock_user_service():
 async def mock_user_controller():
     """Create a mock user controller that returns None by default to avoid recursion"""
     controller = AsyncMock()
-    controller.configure_mock(**{
-        "get_all_users.return_value": None,
-        "get_user_by_id.return_value": None,
-        "get_users_by_type.return_value": None,
-        "search_sellers.return_value": None,
-        "create_new_user.return_value": None,
-        "verify_user.return_value": None,
-        "resend_verification_email.return_value": None,
-        "edit_user.return_value": None,
-        "delete_user.return_value": None
-    })
+    controller.configure_mock(
+        **{
+            "get_all_users.return_value": None,
+            "get_user_by_id.return_value": None,
+            "get_users_by_type.return_value": None,
+            "search_sellers.return_value": None,
+            "create_new_user.return_value": None,
+            "verify_user.return_value": None,
+            "resend_verification_email.return_value": None,
+            "edit_user.return_value": None,
+            "delete_user.return_value": None,
+        }
+    )
     return controller
 
 
 @pytest_asyncio.fixture
 async def test_app(
-        test_session: AsyncSession,
-        mock_user_service: Any,
-        mock_user_controller: Any,
-        test_user_id: str,
-        test_user_email: str
+    test_session: AsyncSession,
+    mock_user_service: Any,
+    mock_user_controller: Any,
+    test_user_id: str,
+    test_user_email: str,
 ) -> AsyncGenerator[FastAPI, None]:
-    app = FastAPI(
-        title="Test API",
-        openapi_url=None,
-        docs_url=None,
-        redoc_url=None
-    )
+    app = FastAPI(title="Test API", openapi_url=None, docs_url=None, redoc_url=None)
 
     from routers.user_router import router as user_router
+
     app.include_router(user_router)
 
     async def override_get_session() -> AsyncGenerator[AsyncSession, None]:
@@ -172,28 +166,21 @@ async def test_app(
         token = request.cookies.get(http_only_auth_cookie)
         if not token:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Not authenticated"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
             )
         try:
             if token == "invalid_token":
                 raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Not authenticated"
+                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
                 )
             if token == "expired_token":
                 raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Token has expired"
+                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
                 )
-            return {
-                "email": test_user_email,
-                "user_id": UUID(test_user_id)
-            }
+            return {"email": test_user_email, "user_id": UUID(test_user_id)}
         except Exception:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Not authenticated"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
             )
 
     app.dependency_overrides[get_session] = override_get_session
@@ -216,8 +203,8 @@ async def test_app(
 @pytest_asyncio.fixture
 async def async_test_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(
-            app=test_app,
-            base_url="http://test",
-            follow_redirects=False,
+        app=test_app,
+        base_url="http://test",
+        follow_redirects=False,
     ) as client:
         yield client

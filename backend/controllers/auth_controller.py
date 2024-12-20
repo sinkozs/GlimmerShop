@@ -12,10 +12,10 @@ class AuthController:
         self._service = service
 
     async def login_for_access_token(
-            self,
-            is_seller: bool,
-            response: Response,
-            form_data: OAuth2PasswordRequestForm = Depends(),
+        self,
+        is_seller: bool,
+        response: Response,
+        form_data: OAuth2PasswordRequestForm = Depends(),
     ) -> dict:
         email = form_data.username
         password = form_data.password
@@ -23,7 +23,7 @@ class AuthController:
         if not is_seller:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied. Only sellers can login through this endpoint."
+                detail="Access denied. Only sellers can login through this endpoint.",
             )
 
         try:
@@ -31,29 +31,18 @@ class AuthController:
             if not seller:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid credentials"
+                    detail="Invalid credentials",
                 )
 
             response = await self._service.set_response_cookie(
-                seller["id"],
-                seller["email"],
-                response
+                seller["id"], seller["email"], response
             )
 
-            return {
-                "response": response,
-                "seller_id": seller["id"]
-            }
+            return {"response": response, "seller_id": seller["id"]}
 
         except AuthenticationException as e:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=str(e.detail)
-            )
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Login failed"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e.detail)
             )
 
     async def user_logout(self, user: UUID):

@@ -22,13 +22,10 @@ class UserController:
 
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
-                content={"user": UserResponse.model_validate(user).model_dump()}
+                content={"user": UserResponse.model_validate(user).model_dump()},
             )
         except UserException as e:
-            raise HTTPException(
-                status_code=e.status_code,
-                detail=str(e.detail)
-            )
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail))
 
     async def get_all_users(self) -> JSONResponse:
         try:
@@ -37,31 +34,29 @@ class UserController:
                 status_code=status.HTTP_200_OK,
                 content={
                     "users": [
-                        UserResponse.model_validate(user).model_dump()
-                        for user in users
+                        UserResponse.model_validate(user).model_dump() for user in users
                     ]
-                }
+                },
             )
         except UserException as e:
-            raise HTTPException(
-                status_code=e.status_code,
-                detail=str(e.detail)
-            ) from e
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def get_users_by_type(self,
-                                is_seller: bool = Query(...,
-                                                        description="True for sellers, False for customers")) -> JSONResponse:
+    async def get_users_by_type(
+        self,
+        is_seller: bool = Query(
+            ..., description="True for sellers, False for customers"
+        ),
+    ) -> JSONResponse:
         try:
             users = await self._service.get_users_by_type(is_seller)
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
                     "users": [
-                        UserResponse.model_validate(user).model_dump()
-                        for user in users
+                        UserResponse.model_validate(user).model_dump() for user in users
                     ],
-                    "user_type": is_seller
-                }
+                    "user_type": is_seller,
+                },
             )
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
@@ -71,7 +66,7 @@ class UserController:
             user: dict = await self._service.get_user_by_email(email)
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
-                content={"user": UserResponse.model_validate(user).model_dump()}
+                content={"user": UserResponse.model_validate(user).model_dump()},
             )
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
@@ -81,20 +76,16 @@ class UserController:
             exists = await self._service.check_seller_exists(seller_id)
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
-                content={"seller_id": str(seller_id),
-                         "exists": exists}
+                content={"seller_id": str(seller_id), "exists": exists},
             )
         except UserException as e:
-            raise HTTPException(
-                status_code=e.status_code,
-                detail=str(e.detail)
-            )
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail))
 
     async def search_sellers(self, query: str) -> JSONResponse:
         if not query or not query.strip():
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Search query cannot be empty or whitespace only"
+                detail="Search query cannot be empty or whitespace only",
             )
 
         try:
@@ -106,27 +97,20 @@ class UserController:
                         UserResponse.model_validate(seller).model_dump()
                         for seller in sellers
                     ]
-                }
+                },
             )
         except UserException as e:
-            raise HTTPException(
-                status_code=e.status_code,
-                detail=str(e.detail)
-            ) from e
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def create_new_user(self, user_data: UserCreate) -> JSONResponse:
         try:
             user_id = await self._service.create_new_user(user_data)
 
             return JSONResponse(
-                status_code=status.HTTP_201_CREATED,
-                content={"userId": user_id}
+                status_code=status.HTTP_201_CREATED, content={"userId": user_id}
             )
         except UserException as e:
-            raise HTTPException(
-                status_code=e.status_code,
-                detail=str(e.detail)
-            ) from e
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def verify_user(self, verification: UserVerification) -> JSONResponse:
         try:
@@ -135,14 +119,11 @@ class UserController:
                 status_code=status.HTTP_200_OK,
                 content={
                     "message": "User verified successfully",
-                    "email": verification.email
-                }
+                    "email": verification.email,
+                },
             )
         except UserException as e:
-            raise HTTPException(
-                status_code=e.status_code,
-                detail=str(e.detail)
-            ) from e
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def resend_verification_email(self, email: str) -> JSONResponse:
         try:
@@ -150,34 +131,32 @@ class UserController:
 
             if not user:
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="User not found"
+                    status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
                 )
 
             if user["is_verified"]:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="User account is already verified!"
+                    detail="User account is already verified!",
                 )
 
-            email_sent = await dependencies.send_verification_email(user["first_name"], user["email"])
+            email_sent = await dependencies.send_verification_email(
+                user["first_name"], user["email"]
+            )
 
             if email_sent:
                 return JSONResponse(
                     status_code=status.HTTP_200_OK,
-                    content={"message": "Verification email sent successfully"}
+                    content={"message": "Verification email sent successfully"},
                 )
             else:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Failed to send verification email"
+                    detail="Failed to send verification email",
                 )
 
         except UserException as e:
-            raise HTTPException(
-                status_code=e.status_code,
-                detail=str(e.detail)
-            ) from e
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def edit_user(self, user_id: UUID, user_update: UserUpdate) -> JSONResponse:
         try:
@@ -193,8 +172,7 @@ class UserController:
 
             if user_update.password:
                 if not bcrypt_context.verify(
-                        user_update.password,
-                        current_user["hashed_password"]
+                    user_update.password, current_user["hashed_password"]
                 ):
                     update_data["hashed_password"] = hash_password(user_update.password)
 
@@ -202,33 +180,28 @@ class UserController:
                 updated_user = await self._service.edit_user(user_id, update_data)
                 return JSONResponse(
                     status_code=status.HTTP_200_OK,
-                    content={"user": UserResponse.model_validate(updated_user).model_dump()}
+                    content={
+                        "user": UserResponse.model_validate(updated_user).model_dump()
+                    },
                 )
 
             return JSONResponse(
                 status_code=status.HTTP_304_NOT_MODIFIED,
-                content={"user": UserResponse.model_validate(current_user).model_dump()}
+                content={
+                    "user": UserResponse.model_validate(current_user).model_dump()
+                },
             )
 
         except UserException as e:
-            raise HTTPException(
-                status_code=e.status_code,
-                detail=str(e.detail)
-            ) from e
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def delete_user(self, user_id: UUID) -> JSONResponse:
         try:
             result = await self._service.delete_user(user_id)
 
             return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={
-                    "user_id": result["user_id"]
-                }
+                status_code=status.HTTP_200_OK, content={"user_id": result["user_id"]}
             )
 
         except UserException as e:
-            raise HTTPException(
-                status_code=e.status_code,
-                detail=str(e.detail)
-            ) from e
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e

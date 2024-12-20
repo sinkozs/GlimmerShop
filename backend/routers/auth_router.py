@@ -27,10 +27,10 @@ def verify_password(password1, password2, session: AsyncSession = Depends(get_se
 
 @router.post("/login")
 async def login(
-        is_seller: bool,
-        response: Response,
-        form_data: OAuth2PasswordRequestForm = Depends(),
-        session: AsyncSession = Depends(get_session),
+    is_seller: bool,
+    response: Response,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    session: AsyncSession = Depends(get_session),
 ):
     service = AuthService(session)
     auth_controller = AuthController(service)
@@ -64,9 +64,9 @@ async def check_if_user_authenticated(current_user: dict = Depends(get_current_u
 
 @router.post("/logout")
 async def user_logout(
-        response: Response,
-        current_user: dict = Depends(get_current_user),
-        session: AsyncSession = Depends(get_session),
+    response: Response,
+    current_user: dict = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
 ):
     service = AuthService(session)
     auth_controller = AuthController(service)
@@ -90,7 +90,7 @@ async def user_logout(
 
 @router.post("/forgotten-password")
 async def regenerate_forgotten_password(
-        email: EmailStr, session: AsyncSession = Depends(get_session)
+    email: EmailStr, session: AsyncSession = Depends(get_session)
 ):
     service = AuthService(session)
     auth_controller = AuthController(service)

@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from dependencies import dict_to_db_model
 from models.models import User
-from schemas.schemas import UserCreate
 
 
 def convert_non_json_serializable_fields_to_str(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -41,10 +40,7 @@ def convert_non_json_serializable_fields_to_str(data: Dict[str, Any]) -> Dict[st
             return str(value)
         return value
 
-    return {
-        key: convert_value(value)
-        for key, value in data.items()
-    }
+    return {key: convert_value(value) for key, value in data.items()}
 
 
 async def add_test_users(session: AsyncSession, test_users: list[dict]) -> None:
@@ -82,18 +78,16 @@ def get_required_user_fields():
         "first_name",
         "last_name",
         "email",
-        "hashed_password"
-        "is_seller",
+        "hashed_password" "is_seller",
         "is_verified",
         "is_active",
         "registration_date",
-        "password_length"
+        "password_length",
     }
 
 
 def assert_user_dicts(
-        expected: Union[dict, List[dict]],
-        actual: Union[dict, List[dict]]
+    expected: Union[dict, List[dict]], actual: Union[dict, List[dict]]
 ):
     """
     Compare user dictionaries for equality of important fields.
@@ -105,7 +99,9 @@ def assert_user_dicts(
     """
 
     if isinstance(expected, list):
-        expected_users = [convert_non_json_serializable_fields_to_str(u) for u in expected]
+        expected_users = [
+            convert_non_json_serializable_fields_to_str(u) for u in expected
+        ]
     elif isinstance(expected, dict):
         expected_users = [convert_non_json_serializable_fields_to_str(expected)]
 
@@ -119,17 +115,23 @@ def assert_user_dicts(
 
     for actual, expected in zip(actual_users, expected_users):
         # Required fields
-        assert actual["id"] == expected["id"], f"ID mismatch: {actual['id']} != {expected['id']}"
-        assert actual["first_name"] == expected["first_name"], f"First name mismatch"
-        assert actual["last_name"] == expected["last_name"], f"Last name mismatch"
-        assert actual["email"] == expected["email"], f"Email mismatch: {actual['email']} != {expected['email']}"
+        assert (
+            actual["id"] == expected["id"]
+        ), f"ID mismatch: {actual['id']} != {expected['id']}"
+        assert actual["first_name"] == expected["first_name"], "First name mismatch"
+        assert actual["last_name"] == expected["last_name"], "Last name mismatch"
+        assert (
+            actual["email"] == expected["email"]
+        ), f"Email mismatch: {actual['email']} != {expected['email']}"
 
-        assert actual["is_seller"] == expected["is_seller"], f"Seller status mismatch"
-        assert actual["is_verified"] == expected["is_verified"], f"User verification mismatch"
+        assert actual["is_seller"] == expected["is_seller"], "Seller status mismatch"
+        assert (
+            actual["is_verified"] == expected["is_verified"]
+        ), "User verification mismatch"
 
         # Optional field
         if expected["last_login"] is not None:
-            assert actual["last_login"] == expected["last_login"], f"Last login mismatch"
+            assert actual["last_login"] == expected["last_login"], "Last login mismatch"
 
 
 def assert_user_field_types(user: dict) -> None:
@@ -168,7 +170,9 @@ def assert_user_field_types(user: dict) -> None:
         assert isinstance(user["is_seller"], bool), "Is seller must be boolean"
         assert isinstance(user["is_verified"], bool), "Is verified must be boolean"
         assert isinstance(user["is_active"], bool), "Is active must be boolean"
-        assert isinstance(user["password_length"], int), "Password length must be integer"
+        assert isinstance(
+            user["password_length"], int
+        ), "Password length must be integer"
 
         # Optional
         if user["last_login"]:

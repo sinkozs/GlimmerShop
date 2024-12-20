@@ -15,7 +15,7 @@ DEFAULT_CONFIG_PATH = "config/local.ini"  # for public application info
 
 
 def load_config(
-        config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_ENV_PATH
+    config_path: str = DEFAULT_CONFIG_PATH, env_path: str = DEFAULT_ENV_PATH
 ) -> Config:
     load_dotenv(env_path)
     parser = ConfigParser()

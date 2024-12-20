@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timezone
 from uuid import UUID
 from typing import List
-from sqlalchemy import func, and_, or_
+from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -31,7 +31,7 @@ class UserService:
             if not user:
                 raise UserException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"User with id {user_id} not found"
+                    detail=f"User with id {user_id} not found",
                 )
             await self.db.refresh(user)
             return db_model_to_dict(user)
@@ -39,7 +39,7 @@ class UserService:
             logger.error(f"Database error in get_user_by_id: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database"
+                detail="An error occurred when accessing the database",
             )
 
     async def get_all_users(self) -> list[dict]:
@@ -53,7 +53,7 @@ class UserService:
             logger.error(f"Database error in get_all_users: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database"
+                detail="An error occurred when accessing the database",
             )
 
     async def get_users_by_type(self, is_seller: bool) -> list[dict]:
@@ -79,7 +79,7 @@ class UserService:
             if not user:
                 raise UserException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"User with email {email} not found"
+                    detail=f"User with email {email} not found",
                 )
 
             return db_model_to_dict(user) if user else {}
@@ -93,17 +93,14 @@ class UserService:
 
     async def check_seller_exists(self, seller_id: UUID) -> bool:
         try:
-            stmt = select(User).filter(
-                User.id == seller_id,
-                User.is_seller == True
-            )
+            stmt = select(User).filter(User.id == seller_id, User.is_seller)
             result = await self.db.execute(stmt)
             seller = result.scalar_one_or_none()
 
             if seller is None:
                 raise UserException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Seller with ID {seller_id} not found"
+                    detail=f"Seller with ID {seller_id} not found",
                 )
             return True
 
@@ -111,7 +108,7 @@ class UserService:
             logger.error(f"Database error in check_seller_exists: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database"
+                detail="An error occurred when accessing the database",
             )
 
     async def create_new_user(self, user_data: UserCreate) -> str:
@@ -123,7 +120,7 @@ class UserService:
                 hashed_password=hash_password(user_data.password),
                 registration_date=datetime.now(timezone.utc).date(),
                 is_seller=user_data.is_seller,
-                password_length=len(user_data.password)
+                password_length=len(user_data.password),
             )
 
             if not user_data.is_seller:
@@ -148,7 +145,7 @@ class UserService:
             logger.error(f"Database error in create_new_user: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when creating the user"
+                detail="An error occurred when creating the user",
             )
 
     async def verify_email(self, email, code):
@@ -171,7 +168,7 @@ class UserService:
         if not query or len(query.strip()) == 0:
             raise UserException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Search query cannot be empty"
+                detail="Search query cannot be empty",
             )
 
         async with self.db.begin():
@@ -196,7 +193,7 @@ class UserService:
             except SQLAlchemyError as e:
                 raise UserException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="An error occurred when accessing the database"
+                    detail="An error occurred when accessing the database",
                 ) from e
 
     async def update_is_verified_column(self, email: str) -> dict:
@@ -208,7 +205,7 @@ class UserService:
             if not user:
                 raise UserException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"User with email {email} not found"
+                    detail=f"User with email {email} not found",
                 )
 
             user.is_verified = True
@@ -218,14 +215,14 @@ class UserService:
             return {
                 "id": str(user.id),
                 "email": user.email,
-                "is_verified": user.is_verified
+                "is_verified": user.is_verified,
             }
 
         except SQLAlchemyError as e:
             logger.error(f"Database error in search_sellers: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database"
+                detail="An error occurred when accessing the database",
             )
 
     async def edit_user(self, user_id: UUID, update_data: dict) -> dict:
@@ -237,17 +234,18 @@ class UserService:
             if not user:
                 raise UserException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"User with id {user_id} not found"
+                    detail=f"User with id {user_id} not found",
                 )
 
-            # Check if all update fields are valid
             valid_fields = UserCreate.model_fields.keys()
-            invalid_fields = [field for field in update_data.keys() if field not in valid_fields]
+            invalid_fields = [
+                field for field in update_data.keys() if field not in valid_fields
+            ]
 
             if invalid_fields:
                 raise UserException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid fields: {', '.join(invalid_fields)}"
+                    detail=f"Invalid fields: {', '.join(invalid_fields)}",
                 )
 
             for key, value in update_data.items():
@@ -261,7 +259,7 @@ class UserService:
             logger.error(f"Database error in edit_user: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database"
+                detail="An error occurred when accessing the database",
             )
 
     async def delete_user(self, user_id: UUID) -> dict:
@@ -274,20 +272,17 @@ class UserService:
             if user is None:
                 raise UserException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"User with id {user_id} not found"
+                    detail=f"User with id {user_id} not found",
                 )
 
             await self.db.delete(user)
             await self.db.flush()
 
-            return {
-                "message": "User deleted successfully",
-                "user_id": str(user_id)
-            }
+            return {"message": "User deleted successfully", "user_id": str(user_id)}
 
         except SQLAlchemyError as e:
             logger.error(f"Database error in delete_user: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database"
+                detail="An error occurred when accessing the database",
             )
