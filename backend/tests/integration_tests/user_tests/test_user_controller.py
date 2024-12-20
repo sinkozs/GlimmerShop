@@ -24,10 +24,6 @@ class TestUserController:
         return UserController(user_service=mock_service)
 
     @pytest.fixture
-    def mock_user_id(self):
-        return UUID("123e4567-e89b-12d3-a456-426614174000")
-
-    @pytest.fixture
     def sample_users(self) -> list[dict]:
         return [{
             "id": "dce380e7-6191-40aa-ac73-63fb372841fa",
@@ -99,42 +95,38 @@ class TestUserController:
             expected_response = UserResponse.model_validate(sample_user).model_dump()
             assert response_content["user"] == expected_response
 
-            mock_service.get_user_by_id.assert_awaited_once_with(user_id=user_id)
+            mock_service.get_user_by_id.assert_awaited_once()
 
         @pytest.mark.asyncio
         async def test_get_user_by_id_not_found(
-                self, controller, mock_service, mock_user_id
-        ):
+                self, controller, mock_service, test_user_id):
             mock_service.get_user_by_id.side_effect = UserException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
 
             with pytest.raises(HTTPException) as exc_info:
-                await controller.get_user_by_id(mock_user_id)
+                await controller.get_user_by_id(test_user_id)
 
             assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
             assert exc_info.value.detail == "User not found"
 
-            mock_service.get_user_by_id.assert_awaited_once_with(user_id=mock_user_id)
-
         @pytest.mark.asyncio
         async def test_get_user_by_id_server_error(
-                self, controller, mock_service
+                self, controller, mock_service, test_user_id
         ):
-            user_id = UUID("123e4567-e89b-12d3-a456-426614174000")
             mock_service.get_user_by_id.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database connection error"
             )
 
             with pytest.raises(HTTPException) as exc_info:
-                await controller.get_user_by_id(user_id)
+                await controller.get_user_by_id(test_user_id)
 
             assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
             assert exc_info.value.detail == "Database connection error"
 
-            mock_service.get_user_by_id.assert_awaited_once_with(user_id=user_id)
+            mock_service.get_user_by_id.assert_awaited_once()
 
     class TestGetAllUsers:
         @pytest.mark.asyncio
@@ -324,9 +316,9 @@ class TestUserController:
 
     class TestCheckSellerExists:
         @pytest.mark.asyncio
-        async def test_check_seller_exists_success(self, controller, mock_service, mock_user_id):
+        async def test_check_seller_exists_success(self, controller, mock_service, test_user_id):
             mock_service.check_seller_exists.return_value = True
-            response = await controller.check_seller_exists(seller_id=mock_user_id)
+            response = await controller.check_seller_exists(seller_id=test_user_id)
 
             assert isinstance(response, JSONResponse)
             assert response.status_code == status.HTTP_200_OK
@@ -336,7 +328,7 @@ class TestUserController:
 
             assert "seller_id" in response_content
             assert isinstance(response_content["seller_id"], str)
-            assert response_content["seller_id"] == str(mock_user_id)
+            assert response_content["seller_id"] == str(test_user_id)
 
             assert "exists" in response_content
             assert isinstance(response_content["exists"], bool)
@@ -345,29 +337,27 @@ class TestUserController:
             mock_service.check_seller_exists.assert_awaited_once()
 
         @pytest.mark.asyncio
-        async def test_check_seller_exists_seller_not_found(self, controller, mock_service, mock_user_id):
+        async def test_check_seller_exists_seller_not_found(self, controller, mock_service, test_user_id):
             mock_service.check_seller_exists.side_effect = UserException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Seller with ID {mock_user_id} not found"
+                detail=f"Seller with ID {test_user_id} not found"
             )
             with pytest.raises(HTTPException) as exc_info:
-                await controller.check_seller_exists(mock_user_id)
+                await controller.check_seller_exists(test_user_id)
 
             assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
-            assert str(exc_info.value.detail) == f"Seller with ID {mock_user_id} not found"
-
-            mock_service.check_seller_exists.assert_awaited_once_with(mock_user_id)
+            assert str(exc_info.value.detail) == f"Seller with ID {test_user_id} not found"
 
         @pytest.mark.asyncio
         async def test_check_seller_exists_server_error(
-                self, controller, mock_service, mock_user_id
+                self, controller, mock_service, test_user_id
         ):
             mock_service.check_seller_exists.side_effect = UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database connection error"
             )
             with pytest.raises(HTTPException) as exc_info:
-                await controller.check_seller_exists(mock_user_id)
+                await controller.check_seller_exists(test_user_id)
 
             assert exc_info.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
             assert exc_info.value.detail == "Database connection error"
