@@ -1,3 +1,4 @@
+import os
 import uuid
 from unittest.mock import AsyncMock
 
@@ -69,14 +70,13 @@ class TestUserService:
         ]
 
     @pytest.fixture
-    def mock_verification_storage(self) -> dict:
+    def mock_verification_storage(self, test_email_verification_code_exp_minutes) -> dict:
         """Setup mock verification service with tests storage"""
-        smtp_config_exp_minutes = load_config().smtp_config.verification_code_expiration_minutes
         return {
             "seller@example.com": {"code": "123456", "timestamp": datetime.now()},
             "buyer@example.com": {
                 "code": "222222",
-                "timestamp": datetime.now() - timedelta(minutes=smtp_config_exp_minutes)
+                "timestamp": datetime.now() - timedelta(minutes=test_email_verification_code_exp_minutes)
             }
         }
 

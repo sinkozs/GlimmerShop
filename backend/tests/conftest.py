@@ -26,9 +26,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture(autouse=True)
-def setup_test_env(monkeypatch):
-    """Set environment variables and build test DB URL for testing"""
+@pytest.fixture(scope="session")
+def test_db_url():
     load_dotenv(".env.test")
     test_db_config = {
         "username": os.getenv("TEST_POSTGRES_USER"),
@@ -38,25 +37,54 @@ def setup_test_env(monkeypatch):
         "database": os.getenv("TEST_POSTGRES_DB"),
     }
     assert all(test_db_config.values()), "Missing test database environment variables!"
-    test_db_url = (
+
+    return (
         f"postgresql+asyncpg://{test_db_config['username']}:{test_db_config['password']}"
         f"@{test_db_config['host']}:{test_db_config['port']}/{test_db_config['database']}"
     )
+
+
+@pytest.fixture(autouse=True)
+def setup_env(monkeypatch, test_db_url):
     monkeypatch.setenv("TEST_DATABASE_URL", test_db_url)
-    return test_db_url
 
 
-#
-# @pytest.fixture
-# def setup_test_env(monkeypatch, test_db_url):
-#     """Function-scoped fixture for environment setup"""
-#     monkeypatch.setenv("TEST_DATABASE_URL", test_db_url)
-#     return test_db_url
-#
+@pytest.fixture(scope="session")
+def test_user_id() -> str:
+    return "123e4567-e89b-12d3-a456-426614174000"
+
+
+@pytest.fixture(scope="session")
+def test_user_email() -> str:
+    return "tests@example.com"
+
+
+@pytest.fixture(scope="session")
+def test_auth_token(test_user_id: UUID, test_user_email: str) -> str:
+    payload = {
+        "id": str(test_user_id),
+        "email": test_user_email,
+        "exp": datetime.now() + timedelta(minutes=15)
+    }
+    return jwt.encode(
+        payload,
+        "<tests-secret-key>",
+        algorithm="HS256"
+    )
+
+
+@pytest.fixture(scope="session")
+def test_email_verification_code_exp_minutes() -> int:
+    return 20
+
+
+@pytest.fixture(scope="session")
+def auth_headers(test_auth_token: str) -> dict:
+    return {"cookie": f"{http_only_auth_cookie}={test_auth_token}"}
+
 
 @pytest_asyncio.fixture
 async def test_engine():
-    """Create and configure a tests database engine"""
     engine = create_async_engine(os.getenv("TEST_DATABASE_URL"), echo=True)
     try:
         async with engine.begin() as conn:
@@ -81,7 +109,6 @@ async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 
 @pytest_asyncio.fixture
 async def mock_user_service():
-    """Create a mock user service"""
     service = AsyncMock()
     return service
 
@@ -102,37 +129,6 @@ async def mock_user_controller():
         "delete_user.return_value": None
     })
     return controller
-
-
-@pytest.fixture
-def test_user_id() -> str:
-    return "123e4567-e89b-12d3-a456-426614174000"
-
-
-@pytest.fixture
-def test_user_email() -> str:
-    return "tests@example.com"
-
-
-@pytest.fixture
-def test_auth_token(test_user_id: UUID, test_user_email: str) -> str:
-    """Create a valid JWT token for testing"""
-    payload = {
-        "id": str(test_user_id),
-        "email": test_user_email,
-        "exp": datetime.now() + timedelta(minutes=15)
-    }
-    return jwt.encode(
-        payload,
-        "<tests-secret-key>",
-        algorithm="HS256"
-    )
-
-
-@pytest.fixture
-def auth_headers(test_auth_token: str) -> dict:
-    """Create headers with authentication cookie"""
-    return {"cookie": f"{http_only_auth_cookie}={test_auth_token}"}
 
 
 @pytest_asyncio.fixture
@@ -203,7 +199,6 @@ async def test_app(
 
 @pytest_asyncio.fixture
 async def async_test_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
-    """Create an async HTTP client"""
     async with AsyncClient(
             app=test_app,
             base_url="http://test",
