@@ -823,11 +823,8 @@ class TestUserService:
             user_service = UserService(test_session)
             result = await user_service.delete_user(user_id)
 
-            assert isinstance(result, dict)
-            assert "message" in result
-            assert "user_id" in result
-            assert result["user_id"] == str(user_id)
-            assert result["message"] == "User deleted successfully"
+            assert isinstance(result, str)
+            assert result == str(user_id)
 
             stmt = select(User).filter(User.id == user_id)
             db_user = (await test_session.execute(stmt)).scalars().first()
@@ -882,7 +879,7 @@ class TestUserService:
             user_service = UserService(test_session)
             result = await user_service.delete_user(buyer_data["id"])
 
-            assert result["user_id"] == str(buyer_data["id"])
+            assert result == str(buyer_data["id"])
 
             # Verify cart was also deleted (cascade)
             cart_stmt = select(Cart).filter(Cart.user_id == buyer_data["id"])

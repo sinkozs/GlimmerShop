@@ -262,7 +262,7 @@ class UserService:
                 detail="An error occurred when accessing the database",
             )
 
-    async def delete_user(self, user_id: UUID) -> dict:
+    async def delete_user(self, user_id: UUID) -> str:
         try:
 
             stmt = select(User).filter(User.id == user_id)
@@ -278,7 +278,7 @@ class UserService:
             await self.db.delete(user)
             await self.db.flush()
 
-            return {"message": "User deleted successfully", "user_id": str(user_id)}
+            return str(user_id)
 
         except SQLAlchemyError as e:
             logger.error(f"Database error in delete_user: {e}")

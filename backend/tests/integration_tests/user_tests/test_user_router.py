@@ -1,7 +1,6 @@
 from uuid import UUID
 import pytest
 from fastapi import status, HTTPException
-from fastapi.responses import JSONResponse
 from httpx import AsyncClient
 from unittest.mock import AsyncMock
 import logging
@@ -57,14 +56,16 @@ class TestUserRoutes:
             mock_user_controller: AsyncMock,
             test_users: list,
         ):
-            """Test successful GET /users request"""
-            mock_user_controller.get_all_users.return_value = JSONResponse(
-                status_code=status.HTTP_200_OK, content={"users": test_users}
-            )
+            expected_response = [
+                UserResponse.model_validate(user).model_dump() for user in test_users
+            ]
+            mock_user_controller.get_all_users.return_value = expected_response
+
             response = await async_test_client.get("/users")
+
             assert response.status_code == status.HTTP_200_OK
-            assert "users" in response.json()
-            assert len(response.json()["users"]) > 0
+            assert isinstance(response.json(), list)
+            assert response.json() == expected_response
             mock_user_controller.get_all_users.assert_awaited_once()
 
         @pytest.mark.asyncio
@@ -72,12 +73,12 @@ class TestUserRoutes:
             self, async_test_client: AsyncClient, mock_user_controller: AsyncMock
         ):
             """Test GET /users when no users exist"""
-            mock_user_controller.get_all_users.return_value = {"users": []}
+            mock_user_controller.get_all_users.return_value = []
             response = await async_test_client.get("/users")
 
             assert response.status_code == status.HTTP_200_OK
-            assert "users" in response.json()
-            assert len(response.json()["users"]) == 0
+            assert isinstance(response.json(), list)
+            assert len(response.json()) == 0
             mock_user_controller.get_all_users.assert_awaited_once()
 
         @pytest.mark.asyncio
@@ -85,10 +86,8 @@ class TestUserRoutes:
             self,
             async_test_client: AsyncClient,
             mock_user_controller: AsyncMock,
-            test_users: list,
         ):
             """Test GET /users when an error occurs"""
-            mock_user_controller.get_all_users.return_value = {"users": test_users}
             mock_user_controller.get_all_users.side_effect = HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database error occurred",
@@ -120,16 +119,16 @@ class TestUserRoutes:
         ):
             """Test successful GET /users/{user_id} request"""
             test_user_id = test_users[0]["id"]
-            mock_user_controller.get_user_by_id.return_value = JSONResponse(
-                status_code=status.HTTP_200_OK, content={"user": test_users[0]}
+            mock_user_controller.get_user_by_id.return_value = (
+                UserResponse.model_validate(test_users[0]).model_dump()
             )
 
             response = await async_test_client.get(f"/users/{test_user_id}")
+            response_json = response.json()
 
             assert response.status_code == status.HTTP_200_OK
-            response_json = response.json()
-            assert "user" in response_json
-            assert response_json["user"] == test_users[0]
+            assert isinstance(response_json, dict)
+            assert response_json == test_users[0]
             mock_user_controller.get_user_by_id.assert_awaited_once_with(test_user_id)
 
         @pytest.mark.asyncio
@@ -158,7 +157,9 @@ class TestUserRoutes:
             test_users: list,
         ):
             """Test GET /users/{user_id} when an error occurs"""
-            mock_user_controller.get_user_by_id.return_value = {"user": test_users[0]}
+            mock_user_controller.get_user_by_id.return_value = (
+                UserResponse.model_validate(test_users[0]).model_dump()
+            )
             mock_user_controller.get_user_by_id.side_effect = HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database error occurred",
@@ -180,11 +181,12 @@ class TestUserRoutes:
             test_users: list,
         ):
             """Test GET /users/by-type for sellers"""
-            seller_users = [user for user in test_users if user["is_seller"]]
-            mock_user_controller.get_users_by_type.return_value = JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={"users": seller_users, "user_type": True},
-            )
+            sellers = [
+                UserResponse.model_validate(user).model_dump()
+                for user in test_users
+                if user["is_seller"]
+            ]
+            mock_user_controller.get_users_by_type.return_value = sellers
 
             response = await async_test_client.get(
                 "/users/by-type", params={"is_seller": True}
@@ -192,10 +194,12 @@ class TestUserRoutes:
 
             assert response.status_code == status.HTTP_200_OK
             response_json = response.json()
-            assert "users" in response_json
-            assert response_json["users"] == seller_users
-            assert "user_type" in response_json
-            assert response_json["user_type"] is True
+            assert isinstance(response_json, list)
+            assert len(response_json) == len(sellers)
+
+            assert isinstance(response_json[0], dict)
+            assert response_json == sellers
+            assert response_json[0]["is_seller"] is True
 
             mock_user_controller.get_users_by_type.assert_awaited_once()
 
@@ -207,11 +211,12 @@ class TestUserRoutes:
             test_users: list,
         ):
             """Test GET /users/by-type for buyers"""
-            buyer_users = [user for user in test_users if not user["is_seller"]]
-            mock_user_controller.get_users_by_type.return_value = JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={"users": buyer_users, "user_type": False},
-            )
+            buyers = [
+                UserResponse.model_validate(user).model_dump()
+                for user in test_users
+                if not user["is_seller"]
+            ]
+            mock_user_controller.get_users_by_type.return_value = buyers
 
             response = await async_test_client.get(
                 "/users/by-type", params={"is_seller": False}
@@ -219,10 +224,12 @@ class TestUserRoutes:
 
             assert response.status_code == status.HTTP_200_OK
             response_json = response.json()
-            assert "users" in response_json
-            assert response_json["users"] == buyer_users
-            assert "user_type" in response_json
-            assert response_json["user_type"] is False
+            assert isinstance(response_json, list)
+            assert len(response_json) == len(buyers)
+
+            assert isinstance(response_json[0], dict)
+            assert response_json == buyers
+            assert response_json[0]["is_seller"] is False
 
             mock_user_controller.get_users_by_type.assert_awaited_once()
 
@@ -271,22 +278,27 @@ class TestUserRoutes:
             """Test successful seller search"""
 
             search_query = "john"
-            mock_sellers = [user for user in test_users if user["is_seller"]]
-            mock_user_controller.search_sellers.return_value = JSONResponse(
-                status_code=status.HTTP_200_OK, content={"sellers": mock_sellers}
-            )
+            mock_sellers = [
+                UserResponse.model_validate(user).model_dump()
+                for user in test_users
+                if user["is_seller"]
+            ]
+            mock_user_controller.search_sellers.return_value = mock_sellers
             response = await async_test_client.get(
                 "/users/sellers/search", params={"query": search_query}
             )
 
             assert response.status_code == status.HTTP_200_OK
-            assert "sellers" in response.json()
-            sellers_list = response.json()["sellers"]
-            assert len(sellers_list) == 2
-            assert all(seller["is_seller"] for seller in sellers_list)
+            response_json = response.json()
+
+            assert isinstance(response_json, list)
+            assert len(response_json) == len(mock_sellers)
+
+            assert len(response_json) == 2
+            assert all(seller["is_seller"] for seller in response_json)
             assert all(
                 search_query.lower() in seller["first_name"].lower()
-                for seller in sellers_list
+                for seller in response_json
             )
             mock_user_controller.search_sellers.assert_awaited_once_with(search_query)
 
@@ -298,15 +310,13 @@ class TestUserRoutes:
         ):
             """Test seller search with no matching results"""
             search_query = "nonexistent"
-            mock_user_controller.search_sellers.return_value = JSONResponse(
-                status_code=status.HTTP_200_OK, content={"sellers": []}
-            )
+            mock_user_controller.search_sellers.return_value = []
             response = await async_test_client.get(
                 "/users/sellers/search", params={"query": search_query}
             )
 
             assert response.status_code == status.HTTP_200_OK
-            assert response.json()["sellers"] == []
+            assert response.json() == []
             mock_user_controller.search_sellers.assert_awaited_once_with(search_query)
 
         @pytest.mark.asyncio
@@ -387,17 +397,16 @@ class TestUserRoutes:
             test_new_user: UserCreate,
         ):
             expected_user_id = "123e4567-e89b-12d3-a456-426614174000"
-            mock_user_controller.create_new_user.return_value = JSONResponse(
-                status_code=status.HTTP_201_CREATED,
-                content={"userId": expected_user_id},
-            )
+            mock_user_controller.create_new_user.return_value = {
+                "user_id": expected_user_id
+            }
 
             response = await async_test_client.post(
                 "/users/create", json=test_new_user.model_dump()
             )
 
-            assert response.status_code == status.HTTP_201_CREATED
-            assert response.json() == {"userId": expected_user_id}
+            assert response.status_code == status.HTTP_200_OK
+            assert response.json() == {"user_id": expected_user_id}
             mock_user_controller.create_new_user.assert_called_once()
 
         @pytest.mark.asyncio
@@ -513,23 +522,15 @@ class TestUserRoutes:
             mock_user_controller: AsyncMock,
             test_verification_data: UserVerification,
         ):
-            mock_user_controller.verify_user.return_value = JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={
-                    "message": "User verified successfully",
-                    "email": test_verification_data.email,
-                },
-            )
+            mock_user_controller.verify_user.return_value = {"is_verified": True}
 
             response = await async_test_client.post(
                 "/users/verify", json=test_verification_data.model_dump()
             )
 
             assert response.status_code == status.HTTP_200_OK
-            assert response.json() == {
-                "message": "User verified successfully",
-                "email": test_verification_data.email,
-            }
+            assert isinstance(response.json(), dict)
+            assert response.json()["is_verified"] is True
             mock_user_controller.verify_user.assert_called_once()
 
         @pytest.mark.asyncio
@@ -624,18 +625,17 @@ class TestUserRoutes:
             self, async_test_client: AsyncClient, mock_user_controller: AsyncMock
         ):
             test_email = "tests@example.com"
-            mock_user_controller.resend_verification_email.return_value = JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={"message": "Verification email sent successfully"},
-            )
+            mock_user_controller.resend_verification_email.return_value = {
+                "email": test_email
+            }
 
             response = await async_test_client.post(
                 "/users/verify/resend", params={"email": test_email}
             )
             assert response.status_code == status.HTTP_200_OK
-            assert response.json() == {
-                "message": "Verification email sent successfully"
-            }
+            assert isinstance(response.json(), dict)
+            assert response.json()["email"] == test_email
+
             mock_user_controller.resend_verification_email.assert_called_once_with(
                 test_email
             )
@@ -771,12 +771,9 @@ class TestUserRoutes:
                 "last_login": None,
             }
 
-            updated_user_response = UserResponse.model_validate(updated_user)
-
-            mock_user_controller.edit_user.return_value = JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={"user": updated_user_response.model_dump()},
-            )
+            mock_user_controller.edit_user.return_value = UserResponse.model_validate(
+                updated_user
+            ).model_dump()
 
             response = await async_test_client.put(
                 "/users/edit",
@@ -785,7 +782,7 @@ class TestUserRoutes:
             )
 
             assert response.status_code == status.HTTP_200_OK
-            response_data = response.json()["user"]
+            response_data = response.json()
             assert response_data["first_name"] == update_data.first_name
             assert response_data["last_name"] == update_data.last_name
             assert response_data["email"] == update_data.email
@@ -884,11 +881,8 @@ class TestUserRoutes:
         update_data = UserUpdate(
             first_name="John", last_name="Doe", email="john@example.com"
         )
-
-        mock_user_controller.edit_user.return_value = JSONResponse(
-            status_code=status.HTTP_304_NOT_MODIFIED,
-            content={"user": UserResponse.model_validate(current_user).model_dump()},
-        )
+        expected_response = UserResponse.model_validate(current_user).model_dump()
+        mock_user_controller.edit_user.return_value = expected_response
 
         response = await async_test_client.put(
             "/users/edit",
@@ -896,7 +890,8 @@ class TestUserRoutes:
             headers=auth_headers,
         )
 
-        assert response.status_code == status.HTTP_304_NOT_MODIFIED
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == expected_response
         mock_user_controller.edit_user.assert_called_once()
 
     class TestDeleteUser:
@@ -908,15 +903,16 @@ class TestUserRoutes:
             test_user_id: str,
             auth_headers: dict,
         ):
-            mock_user_controller.delete_user.return_value = JSONResponse(
-                status_code=status.HTTP_200_OK, content={"user_id": str(test_user_id)}
-            )
+            mock_user_controller.delete_user.return_value = {
+                "user_id": str(test_user_id)
+            }
 
             response = await async_test_client.delete(
                 "/users/delete", headers=auth_headers
             )
 
             assert response.status_code == status.HTTP_200_OK
+            assert isinstance(response.json(), dict)
             assert response.json()["user_id"] == test_user_id
             mock_user_controller.delete_user.assert_called_once_with(UUID(test_user_id))
 

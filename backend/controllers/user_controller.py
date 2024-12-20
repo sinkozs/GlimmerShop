@@ -8,7 +8,6 @@ from schemas.schemas import UserCreate, UserUpdate, UserVerification
 from schemas.response_schemas import UserResponse
 from exceptions.user_exceptions import UserException
 from fastapi import HTTPException, Query, status
-from fastapi.responses import JSONResponse
 
 
 class UserController:
@@ -16,28 +15,17 @@ class UserController:
     def __init__(self, user_service: UserService):
         self._service = user_service
 
-    async def get_user_by_id(self, user_id: str) -> JSONResponse:
+    async def get_user_by_id(self, user_id: str) -> dict:
         try:
             user: dict = await self._service.get_user_by_id(user_id=UUID(user_id))
-
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={"user": UserResponse.model_validate(user).model_dump()},
-            )
+            return UserResponse.model_validate(user).model_dump()
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail))
 
-    async def get_all_users(self) -> JSONResponse:
+    async def get_all_users(self) -> list[dict]:
         try:
             users = await self._service.get_all_users()
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={
-                    "users": [
-                        UserResponse.model_validate(user).model_dump() for user in users
-                    ]
-                },
-            )
+            return [UserResponse.model_validate(user).model_dump() for user in users]
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
@@ -46,42 +34,28 @@ class UserController:
         is_seller: bool = Query(
             ..., description="True for sellers, False for customers"
         ),
-    ) -> JSONResponse:
+    ) -> list[dict]:
         try:
             users = await self._service.get_users_by_type(is_seller)
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={
-                    "users": [
-                        UserResponse.model_validate(user).model_dump() for user in users
-                    ],
-                    "user_type": is_seller,
-                },
-            )
+            return [UserResponse.model_validate(user).model_dump() for user in users]
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def get_user_by_email(self, email: EmailStr) -> JSONResponse:
+    async def get_user_by_email(self, email: EmailStr) -> dict:
         try:
             user: dict = await self._service.get_user_by_email(email)
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={"user": UserResponse.model_validate(user).model_dump()},
-            )
+            return UserResponse.model_validate(user).model_dump()
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def check_seller_exists(self, seller_id: UUID) -> JSONResponse:
+    async def check_seller_exists(self, seller_id: UUID) -> dict[str, bool]:
         try:
             exists = await self._service.check_seller_exists(seller_id)
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={"seller_id": str(seller_id), "exists": exists},
-            )
+            return {"exists": exists}
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail))
 
-    async def search_sellers(self, query: str) -> JSONResponse:
+    async def search_sellers(self, query: str) -> list[dict]:
         if not query or not query.strip():
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -90,42 +64,27 @@ class UserController:
 
         try:
             sellers = await self._service.search_sellers(query)
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={
-                    "sellers": [
-                        UserResponse.model_validate(seller).model_dump()
-                        for seller in sellers
-                    ]
-                },
-            )
+            return [
+                UserResponse.model_validate(seller).model_dump() for seller in sellers
+            ]
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def create_new_user(self, user_data: UserCreate) -> JSONResponse:
+    async def create_new_user(self, user_data: UserCreate) -> dict[str, str]:
         try:
             user_id = await self._service.create_new_user(user_data)
-
-            return JSONResponse(
-                status_code=status.HTTP_201_CREATED, content={"userId": user_id}
-            )
+            return {"user_id": user_id}
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def verify_user(self, verification: UserVerification) -> JSONResponse:
+    async def verify_user(self, verification: UserVerification) -> dict[str, bool]:
         try:
             await self._service.verify_email(verification.email, verification.code)
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={
-                    "message": "User verified successfully",
-                    "email": verification.email,
-                },
-            )
+            return {"is_verified": True}
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def resend_verification_email(self, email: str) -> JSONResponse:
+    async def resend_verification_email(self, email: str) -> dict[str, str]:
         try:
             user: dict = await self._service.get_user_by_email(email)
 
@@ -145,10 +104,7 @@ class UserController:
             )
 
             if email_sent:
-                return JSONResponse(
-                    status_code=status.HTTP_200_OK,
-                    content={"message": "Verification email sent successfully"},
-                )
+                return {"email": email}
             else:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -158,7 +114,7 @@ class UserController:
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def edit_user(self, user_id: UUID, user_update: UserUpdate) -> JSONResponse:
+    async def edit_user(self, user_id: UUID, user_update: UserUpdate) -> dict:
         try:
             current_user = await self._service.get_user_by_id(user_id)
 
@@ -178,30 +134,16 @@ class UserController:
 
             if len(update_data) != 0:
                 updated_user = await self._service.edit_user(user_id, update_data)
-                return JSONResponse(
-                    status_code=status.HTTP_200_OK,
-                    content={
-                        "user": UserResponse.model_validate(updated_user).model_dump()
-                    },
-                )
-
-            return JSONResponse(
-                status_code=status.HTTP_304_NOT_MODIFIED,
-                content={
-                    "user": UserResponse.model_validate(current_user).model_dump()
-                },
-            )
+                return UserResponse.model_validate(updated_user).model_dump()
+            return UserResponse.model_validate(current_user).model_dump()
 
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def delete_user(self, user_id: UUID) -> JSONResponse:
+    async def delete_user(self, user_id: UUID) -> dict[str, str]:
         try:
             result = await self._service.delete_user(user_id)
-
-            return JSONResponse(
-                status_code=status.HTTP_200_OK, content={"user_id": result["user_id"]}
-            )
+            return {"user_id": result}
 
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e

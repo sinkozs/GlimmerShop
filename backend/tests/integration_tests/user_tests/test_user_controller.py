@@ -1,9 +1,7 @@
-import json
 import pytest
 from unittest.mock import AsyncMock, patch
 from uuid import UUID
 from fastapi import HTTPException, status
-from fastapi.responses import JSONResponse
 from schemas.schemas import UserUpdate, UserCreate, UserVerification
 from schemas.response_schemas import UserResponse
 from controllers.user_controller import UserController
@@ -85,16 +83,10 @@ class TestUserController:
             mock_service.get_user_by_id.return_value = sample_user
 
             response = await controller.get_user_by_id(user_id)
-
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert len(response_content) == 1
-            assert "user" in response_content
+            assert isinstance(response, dict)
 
             expected_response = UserResponse.model_validate(sample_user).model_dump()
-            assert response_content["user"] == expected_response
+            assert response == expected_response
 
             mock_service.get_user_by_id.assert_awaited_once()
 
@@ -138,19 +130,13 @@ class TestUserController:
 
             response = await controller.get_all_users()
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert len(response_content) == 1
-            assert "users" in response_content
-            assert isinstance(response_content["users"], list)
-            assert len(response_content["users"]) == 2
+            assert isinstance(response, list)
+            assert len(response) == 2
 
             expected_users = [
                 UserResponse.model_validate(user).model_dump() for user in sample_users
             ]
-            assert response_content["users"] == expected_users
+            assert response == expected_users
 
             mock_service.get_all_users.assert_awaited_once()
 
@@ -160,15 +146,8 @@ class TestUserController:
 
             response = await controller.get_all_users()
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert len(response_content) == 1
-
-            assert "users" in response_content
-            assert isinstance(response_content["users"], list)
-            assert len(response_content["users"]) == 0
+            assert isinstance(response, list)
+            assert len(response) == 0
 
             mock_service.get_all_users.assert_awaited_once()
 
@@ -198,22 +177,15 @@ class TestUserController:
             mock_service.get_users_by_type.return_value = [test_seller]
             response = await controller.get_users_by_type(is_seller=is_seller)
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
+            assert isinstance(response, list)
 
-            response_content = json.loads(response.body.decode("utf-8"))
             expected_user = UserResponse.model_validate(test_seller).model_dump()
-            assert len(response_content) == 2
 
-            assert "users" in response_content
-            assert len(response_content["users"]) > 0
-            assert isinstance(response_content["users"], list)
-            assert response_content["users"][0] == expected_user
-            assert isinstance(response_content["users"][0], dict)
+            assert isinstance(response, list)
+            assert len(response) > 0
 
-            assert "user_type" in response_content
-            assert isinstance(response_content["user_type"], bool)
-            assert response_content["user_type"] == is_seller
+            assert response[0] == expected_user
+            assert isinstance(response[0], dict)
 
             mock_service.get_users_by_type.assert_awaited_once()
 
@@ -224,20 +196,8 @@ class TestUserController:
 
             response = await controller.get_users_by_type(is_seller=is_seller)
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert len(response_content) == 2
-
-            assert "users" in response_content
-            assert isinstance(response_content["users"], list)
-            assert len(response_content["users"]) == 0
-
-            assert "user_type" in response_content
-            assert isinstance(response_content["user_type"], bool)
-            assert response_content["user_type"] == is_seller
-
+            assert isinstance(response, list)
+            assert len(response) == 0
             mock_service.get_users_by_type.assert_awaited_once()
 
         @pytest.mark.asyncio
@@ -264,17 +224,11 @@ class TestUserController:
             mock_service.get_user_by_email.return_value = test_seller
             response = await controller.get_user_by_email(email=test_seller["email"])
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_content = json.loads(response.body.decode("utf-8"))
+            assert isinstance(response, dict)
             expected_user = UserResponse.model_validate(test_seller).model_dump()
-            assert len(response_content) == 1
 
-            assert "user" in response_content
-            assert isinstance(response_content["user"], dict)
-            assert len(response_content["user"]) > 0
-            assert response_content["user"] == expected_user
+            assert isinstance(response, dict)
+            assert response == expected_user
 
             mock_service.get_user_by_email.assert_awaited_once()
 
@@ -318,19 +272,10 @@ class TestUserController:
             mock_service.check_seller_exists.return_value = True
             response = await controller.check_seller_exists(seller_id=test_user_id)
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert len(response_content) == 2
-
-            assert "seller_id" in response_content
-            assert isinstance(response_content["seller_id"], str)
-            assert response_content["seller_id"] == str(test_user_id)
-
-            assert "exists" in response_content
-            assert isinstance(response_content["exists"], bool)
-            assert response_content["exists"] is True
+            assert isinstance(response, dict)
+            assert "exists" in response.keys()
+            assert isinstance(response["exists"], bool)
+            assert response["exists"] is True
 
             mock_service.check_seller_exists.assert_awaited_once()
 
@@ -378,15 +323,10 @@ class TestUserController:
 
             response = await controller.search_sellers(query=search_query)
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
+            assert isinstance(response, list)
+            assert len(response) == 1
 
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert "sellers" in response_content
-            assert isinstance(response_content["sellers"], list)
-            assert len(response_content["sellers"]) == 1
-
-            seller_data = response_content["sellers"][0]
+            seller_data = response[0]
             expected_seller = UserResponse.model_validate(test_sellers[0]).model_dump()
             assert seller_data == expected_seller
 
@@ -399,13 +339,8 @@ class TestUserController:
 
             response = await controller.search_sellers(query=search_query)
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert "sellers" in response_content
-            assert isinstance(response_content["sellers"], list)
-            assert len(response_content["sellers"]) == 0
+            assert isinstance(response, list)
+            assert len(response) == 0
 
             mock_service.search_sellers.assert_awaited_once_with(search_query)
 
@@ -440,12 +375,10 @@ class TestUserController:
 
             response = await controller.create_new_user(user_data)
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_201_CREATED
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert "userId" in response_content
-            assert response_content["userId"] == test_user_id
+            assert isinstance(response, dict)
+            assert "user_id" in response.keys()
+            assert isinstance(response["user_id"], str)
+            assert response["user_id"] == test_user_id
 
             mock_service.create_new_user.assert_awaited_once_with(user_data)
 
@@ -501,14 +434,10 @@ class TestUserController:
 
             response = await controller.verify_user(verification)
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert "message" in response_content
-            assert "email" in response_content
-            assert response_content["message"] == "User verified successfully"
-            assert response_content["email"] == verification.email
+            assert isinstance(response, dict)
+            assert "is_verified" in response.keys()
+            assert isinstance(response["is_verified"], bool)
+            assert response["is_verified"] is True
 
             mock_service.verify_email.assert_awaited_once_with(
                 verification.email, verification.code
@@ -583,12 +512,10 @@ class TestUserController:
 
             response = await controller.resend_verification_email(test_user_email)
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert "message" in response_content
-            assert response_content["message"] == "Verification email sent successfully"
+            assert isinstance(response, dict)
+            assert "email" in response.keys()
+            assert isinstance(response["email"], str)
+            assert response["email"] == test_user_email
 
             mock_service.get_user_by_email.assert_awaited_once_with(test_user_email)
             mock_send_email.assert_awaited_once_with(
@@ -691,15 +618,9 @@ class TestUserController:
                 mock_service.edit_user.return_value = edited_user
                 response = await controller.edit_user(user_id, user_update)
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert len(response_content) == 1
-            assert "user" in response_content
-
+            assert isinstance(response, dict)
             expected_response = UserResponse.model_validate(edited_user).model_dump()
-            assert response_content["user"] == expected_response
+            assert response == expected_response
 
             mock_service.get_user_by_id.assert_awaited_once_with(user_id)
             mock_service.edit_user.assert_awaited_once()
@@ -724,14 +645,10 @@ class TestUserController:
             ):
                 response = await controller.edit_user(user_id, no_change_update)
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_304_NOT_MODIFIED
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert "user" in response_content
+            assert isinstance(response, dict)
 
             expected_response = UserResponse.model_validate(sample_user).model_dump()
-            assert response_content["user"] == expected_response
+            assert response == expected_response
 
             mock_service.get_user_by_id.assert_awaited_once_with(user_id)
             mock_service.edit_user.assert_not_awaited()
@@ -774,23 +691,18 @@ class TestUserController:
 
     class TestDeleteUser:
         @pytest.mark.asyncio
-        async def test_delete_user_success(self, controller, mock_service):
-            test_user_id = UUID("123e4567-e89b-12d3-a456-426614174000")
-            mock_service.delete_user.return_value = {
-                "message": "User deleted successfully",
-                "user_id": str(test_user_id),
-            }
+        async def test_delete_user_success(
+            self, controller, mock_service, test_user_id
+        ):
+            mock_service.delete_user.return_value = test_user_id
+            response = await controller.delete_user(UUID(test_user_id))
 
-            response = await controller.delete_user(test_user_id)
+            assert isinstance(response, dict)
+            assert "user_id" in response.keys()
+            assert isinstance(response["user_id"], str)
+            assert response["user_id"] == test_user_id
 
-            assert isinstance(response, JSONResponse)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_content = json.loads(response.body.decode("utf-8"))
-            assert "user_id" in response_content
-            assert response_content["user_id"] == str(test_user_id)
-
-            mock_service.delete_user.assert_awaited_once_with(test_user_id)
+            mock_service.delete_user.assert_awaited_once_with(UUID(test_user_id))
 
         @pytest.mark.asyncio
         async def test_delete_user_not_found(self, controller, mock_service):
