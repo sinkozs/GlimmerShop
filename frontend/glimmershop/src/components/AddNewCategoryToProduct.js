@@ -10,10 +10,12 @@ import "../styles/Category.css";
 function AddNewCategoryToProduct() {
   const [currentCategories, setCurrentCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
   const [modalText, setModalText] = useState("");
   const [error, setError] = useState(null);
   const { product_id } = useParams();
@@ -62,27 +64,6 @@ function AddNewCategoryToProduct() {
     }
   };
 
-  const addNewCategory = async (newCategoryName) => {
-    try {
-      console.log(newCategoryName);
-
-      const response = await axios.post(
-        `${config.BACKEND_BASE_URL}/categories/new/${newCategoryName}`,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
-
-      const newCategoryId = response.data;
-      console.log(newCategoryId)
-
-      fetchProductCategories();
-    } catch (error) {
-      console.error("Failed to add new category:", error);
-    }
-  };
-
   const fetchCategories = async (query) => {
     try {
       const response = await axios.get(
@@ -94,7 +75,6 @@ function AddNewCategoryToProduct() {
 
       if (response.data.length == 0) {
         console.log("empty");
-        addNewCategory(query);
       }
     } catch (error) {
       console.error("Error searching categories:", error);
@@ -119,29 +99,55 @@ function AddNewCategoryToProduct() {
     setShowDropdown(false);
   };
 
-  const addExistingCategoryToProduct = async (e) => {
+  const handleAddCategoryToProduct = async (e) => {
     e.preventDefault();
     try {
-      const requestData = {
-        product_id: product_id,
-        category_id: selectedCategoryId,
-      };
+      let categoryId = selectedCategoryId;
+
+      if (!selectedCategoryId && newCategoryName) {
+        const newCategoryRequest = {};
+        if (newCategoryName !== "")
+          newCategoryRequest.category_name = newCategoryName;
+        try {
+          const newCategoryResponse = await axios.post(
+            `${config.BACKEND_BASE_URL}/categories/new`,
+            newCategoryRequest,
+            {
+              headers: { "Content-Type": "application/json" },
+              withCredentials: true,
+            }
+          );
+          categoryId = newCategoryResponse.data;
+        } catch (error) {
+          setModalTitle("Error");
+          setModalText(error.response.data.detail);
+          setShowModal(true);
+          return;
+        }
+      }
 
       const response = await axios.post(
         `${config.BACKEND_BASE_URL}/categories/add-category-to-product`,
-        requestData,
+        {
+          product_id: product_id,
+          category_id: categoryId,
+        },
         {
           headers: { "Content-Type": "application/json" },
+          withCredentials: true,
         }
       );
+
       if (response.status === 200) {
+        setModalTitle("Success");
         setModalText(response.data.message);
         setShowModal(true);
         fetchProductCategories();
       }
     } catch (error) {
-      console.error("Error adding category to product:", error);
-      setError("Failed to add category to product. Please try again later.");
+      setModalTitle("Error");
+      setModalText(error.response.data.detail);
+      setShowModal(true);
     }
   };
 
@@ -182,14 +188,17 @@ function AddNewCategoryToProduct() {
           <p>No categories available.</p>
         )}
 
-        <h3 className="category-h3">Add a new category to the product</h3>
-        <Container fluid className="login-form-content">
+        <Container fluid>
+          <h3 className="category-h3">
+            Add an existing category to the product
+          </h3>
           <Form>
             <Form.Control
               type="text"
               placeholder="Search categories by name"
               value={searchQuery}
               onChange={handleInputChange}
+              className="form-control"
             />
           </Form>
 
@@ -206,27 +215,28 @@ function AddNewCategoryToProduct() {
                   </ListGroup.Item>
                 ))
               ) : (
-                <ListGroup.Item>
-                  {" "}
-                  <Button
-                    className="admin-btn"
-                    variant="danger"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addNewCategory(searchQuery);
-                    }}
-                  >
-                    Create new category
-                  </Button>{" "}
-                </ListGroup.Item>
+                <ListGroup.Item>No categories found</ListGroup.Item>
               )}
             </ListGroup>
           )}
 
+          <Container fluid>
+            <h3 className="category-h3">Add a new category</h3>
+            <Form.Group controlId="newCategoryName" className="form-group">
+              <Form.Control
+                type="text"
+                placeholder="New Category Name"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                className="form-control"
+              />
+            </Form.Group>
+          </Container>
+
           {error && <section className="error-message">{error}</section>}
 
           <Button
-            onClick={addExistingCategoryToProduct}
+            onClick={handleAddCategoryToProduct}
             variant="primary"
             type="submit"
             className="login-btn"
@@ -234,7 +244,7 @@ function AddNewCategoryToProduct() {
             SAVE
           </Button>
 
-          <Modal show={showModal} onClose={closeModal} title="Success!">
+          <Modal show={showModal} onClose={closeModal} title={modalTitle}>
             <section>{modalText}</section>
           </Modal>
         </Container>

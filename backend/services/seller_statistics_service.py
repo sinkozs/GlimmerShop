@@ -1,8 +1,6 @@
 from typing import Dict
 from uuid import UUID
-
 from fastapi import HTTPException
-
 from dependencies import get_first_and_last_day_of_month
 from schemas.schemas import SelectedMonthForSellerStatistics
 from config.parser import load_config

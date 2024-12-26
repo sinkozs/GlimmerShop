@@ -62,6 +62,7 @@ function ProductDetails() {
 
 
   const handleAddToCart = () => {
+    console.log(productData)
     if (productData && availability) {
       const existingItem = cart.find((item) => item.id === productData.id);
       if (existingItem) {

@@ -179,7 +179,6 @@ class CartService:
                     quantity=cart_item.quantity,
                 )
                 self.db.add(new_cart_item)
-            await self.db.commit()
         else:
             cart_key = f"cart:{session_id}"
 
@@ -223,7 +222,6 @@ class CartService:
                         )
                     else:
                         existing_cart_item.quantity -= cart_item.quantity
-                        await self.db.commit()
             else:
                 cart_key = f"cart:{session_id}"
 

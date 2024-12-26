@@ -1,17 +1,27 @@
-from sqlalchemy.dialects.postgresql import UUID
+from uuid import UUID
 
+from exceptions.product_exceptions import ProductException
 from services.cart_service import CartService
+from services.auth_service import AuthService
+from services.product_service import ProductService
 from schemas.schemas import CartItemUpdate
 from exceptions.cart_exceptions import CartException
 import redis.asyncio as aioredis
 from typing import Optional, List
-from fastapi import HTTPException, Response
+from fastapi import HTTPException, Response, status
 
 
 class CartController:
 
-    def __init__(self, service: CartService):
+    def __init__(
+        self,
+        service: CartService,
+        auth_service: AuthService,
+        product_service: ProductService,
+    ):
         self._service = service
+        self._auth_service = auth_service
+        self._product_service = product_service
 
     async def get_all_cart_item_by_user_id(self, user_id: UUID):
         try:
@@ -41,17 +51,25 @@ class CartController:
         redis: aioredis.Redis,
         user_id: Optional[UUID] = None,
         session_id: Optional[str] = None,
-    ):
+    ) -> dict:
         try:
-            if user_id:
-                await self._service.add_new_item_to_cart(
-                    new_cart_item, response, redis, user_id
+            if not await self._product_service.product_exists(new_cart_item.product_id):
+                raise ProductException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Product with id {new_cart_item.product_id} not found!",
                 )
-            elif session_id:
-                await self._service.add_new_item_to_cart(
-                    new_cart_item, response, redis, None, session_id
+
+            # Handle guest user session
+            if not user_id and not session_id:
+                session_id = await self._auth_service.create_redis_session(
+                    response, redis, user_id
                 )
-        except CartException as e:
+
+            return await self._service.add_new_item_to_cart(
+                new_cart_item, response, redis, user_id, session_id
+            )
+
+        except (CartException, ProductException) as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def delete_item_from_cart(

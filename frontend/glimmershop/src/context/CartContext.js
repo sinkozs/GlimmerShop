@@ -16,13 +16,14 @@ const cartReducer = (state, action) => {
       );
       if (existingItemIndex > -1) {
         const updatedCart = [...state.cart];
-        const newQuantity = updatedCart[existingItemIndex].quantity + action.payload.quantity;
-        
+        const newQuantity =
+          updatedCart[existingItemIndex].quantity + action.payload.quantity;
+
         // Check if new quantity exceeds stock
         if (newQuantity > state.stockQuantity) {
           return { ...state, showModal: true };
         }
-        
+
         updatedCart[existingItemIndex].quantity = newQuantity;
         return { ...state, cart: updatedCart };
       } else {
@@ -40,7 +41,9 @@ const cartReducer = (state, action) => {
       };
 
     case "INCREASE_QUANTITY":
-      const itemToUpdate = state.cart.find(item => item.id === action.payload.itemId);
+      const itemToUpdate = state.cart.find(
+        (item) => item.id === action.payload.itemId
+      );
       if (itemToUpdate && itemToUpdate.quantity >= state.stockQuantity) {
         return { ...state, showModal: true };
       }
@@ -90,27 +93,23 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = async (item) => {
     try {
-      console.log("Adding to cart, product ID:", item.id);
       const response = await axios.get(
         `${config.BACKEND_BASE_URL}/products/${item.id}`
       );
-      
-      console.log("Product data:", response.data.product);
-      const stockQuantity = response.data.product.stock_quantity;
-      
-      // First update the stock quantity
+
+      const stockQuantity = response.data.stock_quantity;
+
       dispatch({
         type: "SET_STOCK_QUANTITY",
-        payload: stockQuantity
+        payload: stockQuantity,
       });
 
       const newItem = {
         ...item,
-        image_path: response.data.product.image_path,
+        image_path: response.data.image_path,
         quantity: item.quantity,
       };
-      
-      // Then add to cart
+
       dispatch({ type: "ADD_TO_CART", payload: newItem });
     } catch (error) {
       console.error("Failed to add product to cart:", error);

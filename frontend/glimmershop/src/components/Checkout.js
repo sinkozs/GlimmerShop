@@ -41,9 +41,19 @@ const Checkout = ({ userCart, deleteCart }) => {
 
   const handleCheckout = async () => {
     try {
+      const formattedCart = userCart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        category: item.category,
+        quantity: item.quantity,
+        image_path: item.image_path
+        
+      }));
+      console.log(formattedCart)
       const response = await axios.post(
         `${config.BACKEND_BASE_URL}/checkout/create-checkout-session/`,
-        JSON.stringify(userCart),
+        JSON.stringify(formattedCart),
         {
           headers: {
             "Content-Type": "application/json",

@@ -15,19 +15,36 @@ from exceptions.product_exceptions import ProductException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-
 router = APIRouter(
     prefix="/cart", tags=["cart"], responses={404: {"Cart": "Not found"}}
 )
 
 
+def get_cart_service(session: AsyncSession = Depends(get_session)) -> CartService:
+    return CartService(session)
+
+
+def get_auth_service(session: AsyncSession = Depends(get_session)) -> AuthService:
+    return AuthService(session)
+
+
+def get_product_service(session: AsyncSession = Depends(get_session)) -> ProductService:
+    return ProductService(session)
+
+
+def get_cart_controller(
+    cart_service: CartService = Depends(get_cart_service),
+    auth_service: AuthService = Depends(get_auth_service),
+    product_service: ProductService = Depends(get_product_service),
+) -> CartController:
+    return CartController(cart_service, auth_service, product_service)
+
+
 @router.get("")
 async def get_all_cart_item_by_user_id(
     current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    controller: CartController = Depends(get_cart_controller),
 ):
-    service = CartService(session)
-    controller = CartController(service)
     try:
         user_id: UUID = current_user.get("id")
         if not user_id:
@@ -40,13 +57,10 @@ async def get_all_cart_item_by_user_id(
 @router.get("/user-cart")
 async def get_detailed_user_cart(
     request: Request,
-    response: Response,
     current_user: Optional[dict] = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    controller: CartController = Depends(get_cart_controller),
     redis: aioredis.Redis = Depends(get_redis),
 ):
-    service = CartService(session)
-    controller = CartController(service)
     try:
         user_id: Optional[UUID] = current_user.get("id") if current_user else None
 
@@ -69,38 +83,20 @@ async def add_new_item_to_cart(
     request: Request,
     response: Response,
     current_user: Optional[dict] = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    controller: CartController = Depends(get_cart_controller),
     redis: aioredis.Redis = Depends(get_redis),
 ):
-    service = CartService(session)
-    controller = CartController(service)
-    auth_service = AuthService(session)
-    product_service = ProductService(session)
-    try:
-        if not await product_service.product_exists(cart_item.product_id):
-            raise ProductException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Product with id {cart_item.product_id} not fund!",
-            )
-        user_id: Optional[UUID] = current_user.get("id") if current_user else None
-        if user_id:
-            user_id = current_user.get("id")
-            return await controller.add_new_item_to_cart(
-                cart_item, response, redis, user_id
-            )
+    user_id: Optional[UUID] = current_user.get("id") if current_user else None
+    session_id = request.cookies.get("session_id") if not user_id else None
+    print(f"session_id: {session_id}")
 
-        if not user_id:
-            # Get or create session ID for guest users
-            session_id = request.cookies.get("session_id")
-            if not session_id:
-                session_id = await auth_service.create_redis_session(
-                    response, redis, user_id
-                )
-            return await controller.add_new_item_to_cart(
-                cart_item, response, redis, None, session_id
-            )
-    except HTTPException as e:
-        raise e
+    return await controller.add_new_item_to_cart(
+        new_cart_item=cart_item,
+        response=response,
+        redis=redis,
+        user_id=user_id,
+        session_id=session_id,
+    )
 
 
 @router.delete("/delete")

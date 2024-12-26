@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from dependencies import get_session
 from schemas.schemas import CartItemForCheckout
 from services.checkout_service import CheckoutService
@@ -13,25 +13,29 @@ router = APIRouter(
 )
 
 
+def get_checkout_service(
+    session: AsyncSession = Depends(get_session),
+) -> CheckoutService:
+    return CheckoutService(session)
+
+
+def get_checkout_controller(
+    checkout_service: CheckoutService = Depends(get_checkout_service),
+) -> CheckoutController:
+    return CheckoutController(checkout_service)
+
+
 @router.post("/create-checkout-session")
 async def create_checkout_session(
-    cart_items: List[CartItemForCheckout], session: AsyncSession = Depends(get_session)
+    cart_items: List[CartItemForCheckout],
+    controller: CheckoutController = Depends(get_checkout_controller),
 ):
-    service = CheckoutService(session)
-    controller = CheckoutController(service)
-    try:
-        return await controller.create_checkout_session(cart_items)
-    except HTTPException as e:
-        raise e
+    return await controller.create_checkout_session(cart_items)
 
 
 @router.put("/update-stock")
 async def update_stock(
-    cart_items: List[CartItemForCheckout], session: AsyncSession = Depends(get_session)
+    cart_items: List[CartItemForCheckout],
+    controller: CheckoutController = Depends(get_checkout_controller),
 ):
-    service = CheckoutService(session)
-    controller = CheckoutController(service)
-    try:
-        return await controller.update_stock_quantity(cart_items)
-    except HTTPException as e:
-        raise e
+    return await controller.update_stock_quantity(cart_items)

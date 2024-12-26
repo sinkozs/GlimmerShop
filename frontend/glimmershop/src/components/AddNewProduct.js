@@ -87,7 +87,7 @@ function AddNewProduct() {
           withCredentials: true,
         }
       );
-      const productId = response.data;
+      const productId = response.data.product_id;
       setProductId(productId);
 
       if (image1) {

@@ -94,14 +94,13 @@ class ProductService:
 
     async def get_all_products(self) -> List[dict]:
         try:
-            async with self.db.begin():
-                result = await self.db.execute(select(Product))
-                products = result.scalars().all()
-                if products:
-                    product_data = [db_model_to_dict(product) for product in products]
-                    return product_data
-                else:
-                    return []
+            result = await self.db.execute(select(Product))
+            products = result.scalars().all()
+            if products:
+                product_data = [db_model_to_dict(product) for product in products]
+                return product_data
+            else:
+                return []
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise ProductException(
@@ -113,24 +112,23 @@ class ProductService:
         self, category_id: int, price_range: PriceFilter
     ) -> list:
         try:
-            async with self.db.begin():
-                stmt = (
-                    select(Product)
-                    .join(Product.product_category)
-                    .filter(ProductCategory.category_id == category_id)
-                    .filter(
-                        (Product.price >= price_range.min_price)
-                        & (Product.price <= price_range.max_price)
-                    )
+            stmt = (
+                select(Product)
+                .join(Product.product_category)
+                .filter(ProductCategory.category_id == category_id)
+                .filter(
+                    (Product.price >= price_range.min_price)
+                    & (Product.price <= price_range.max_price)
                 )
+            )
 
-                result = await self.db.execute(stmt)
-                products = result.scalars().all()
-                if products:
-                    product_data = [db_model_to_dict(q) for q in products]
-                    return product_data
-                else:
-                    return []
+            result = await self.db.execute(stmt)
+            products = result.scalars().all()
+            if products:
+                product_data = [db_model_to_dict(q) for q in products]
+                return product_data
+            else:
+                return []
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise ProductException(
@@ -142,29 +140,28 @@ class ProductService:
         self, category_id: int, materials: MaterialsFilter
     ) -> list:
         try:
-            async with self.db.begin():
-                extended_materials = set()
-                for material in materials.materials:
-                    words = material.lower().split()
-                    extended_materials.update(words)
-                material_conditions = [
-                    Product.material.ilike(f"%{word}%") for word in extended_materials
-                ]
+            extended_materials = set()
+            for material in materials.materials:
+                words = material.lower().split()
+                extended_materials.update(words)
+            material_conditions = [
+                Product.material.ilike(f"%{word}%") for word in extended_materials
+            ]
 
-                stmt = (
-                    select(Product)
-                    .join(Product.product_category)
-                    .filter(ProductCategory.category_id == category_id)
-                    .filter(or_(*material_conditions))
-                )
+            stmt = (
+                select(Product)
+                .join(Product.product_category)
+                .filter(ProductCategory.category_id == category_id)
+                .filter(or_(*material_conditions))
+            )
 
-                result = await self.db.execute(stmt)
-                products = result.scalars().all()
-                if products:
-                    product_data = [db_model_to_dict(p) for p in products]
-                    return product_data
-                else:
-                    return []
+            result = await self.db.execute(stmt)
+            products = result.scalars().all()
+            if products:
+                product_data = [db_model_to_dict(p) for p in products]
+                return product_data
+            else:
+                return []
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise ProductException(
@@ -174,25 +171,23 @@ class ProductService:
 
     async def check_product_exists(self, product_id: int) -> bool:
         try:
-            async with self.db.begin():
-                stmt = select(func.count()).where(
-                    and_(
-                        Product.id == product_id,
-                    )
+            stmt = select(func.count()).where(
+                and_(
+                    Product.id == product_id,
                 )
-                result = await self.db.execute(stmt)
-                return result.scalar_one() > 0
+            )
+            result = await self.db.execute(stmt)
+            return result.scalar_one() > 0
         except SQLAlchemyError as e:
             print(f"Database access error: {e}")
             raise
 
     async def search_products(self, query: str, seller_id: UUID) -> List[ProductData]:
-        async with self.db.begin():
-            try:
-                query_as_uuid = UUID(query)
-            except ValueError:
-                query_as_uuid = None
-
+        try:
+            query_as_uuid = UUID(query)
+        except ValueError:
+            query_as_uuid = None
+        try:
             stmt = select(Product).where(
                 (Product.seller_id == seller_id)
                 & (
@@ -203,6 +198,9 @@ class ProductService:
             result = await self.db.execute(stmt)
             products = result.scalars().all()
             return [ProductData.model_validate(product) for product in products]
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise
 
     async def add_new_product(self, seller_id: UUID, product: Product) -> int:
         try:
@@ -271,11 +269,10 @@ class ProductService:
             return {"error": str(e)}
 
     async def edit_product(self, product_id: int, edited_product: ProductUpdate):
-        async with self.db.begin():
+        try:
             stmt = select(Product).where(Product.id == product_id)
             result = await self.db.execute(stmt)
             product: Product = result.scalars().first()
-            print(f"Edited product: {edited_product}")
 
             if product is None:
                 raise ProductException(
@@ -300,13 +297,14 @@ class ProductService:
                 product.image_path2 = edited_product.image_path2
 
             self.db.add(product)
-            await self.db.commit()
+        except SQLAlchemyError as e:
+            print(f"Database access error: {e}")
+            raise
 
     async def delete_product(self, product_id: int):
         try:
-            async with self.db.begin():
-                stmt = select(Product).filter(Product.id == product_id)
-                product: Product = await self.db.scalar(stmt)
+            stmt = select(Product).filter(Product.id == product_id)
+            product: Product = await self.db.scalar(stmt)
 
             if product is not None:
                 await self.db.delete(product)

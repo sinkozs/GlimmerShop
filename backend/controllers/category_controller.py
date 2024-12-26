@@ -3,7 +3,7 @@ from typing import List
 from services.category_service import CategoryService
 from schemas.schemas import CategoryUpdate, CategoryQuery
 from exceptions.product_exceptions import ProductException
-from fastapi import HTTPException, Query
+from fastapi import HTTPException, Query, status
 
 
 class CategoryController:
@@ -44,11 +44,16 @@ class CategoryController:
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def add_new_category(self, category_name: str) -> int:
+    async def add_new_category(self, category: CategoryUpdate) -> int:
         try:
+            category_name = category.category_name
             category_exists = await self._service.check_category_exists(category_name)
             if not category_exists.get("is_exist"):
                 return await self._service.add_new_category(category_name)
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Category '{category_name}' already exists",
+            )
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 

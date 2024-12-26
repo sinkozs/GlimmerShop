@@ -129,11 +129,10 @@ class UserService:
             user_email = user_data.email
             user_first_name = user_data.first_name
 
-            async with self.db.begin():
-                self.db.add(user)
-                await self.db.flush()
-                await self.db.refresh(user)
-                user_id = str(user.id)
+            self.db.add(user)
+            await self.db.flush()
+            await self.db.refresh(user)
+            user_id = str(user.id)
 
             try:
                 await send_verification_email(user_first_name, user_email)
@@ -170,31 +169,29 @@ class UserService:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Search query cannot be empty",
             )
-
-        async with self.db.begin():
+        try:
             try:
-                try:
-                    seller_uuid = UUID(query)
-                except ValueError:
-                    seller_uuid = None
+                seller_uuid = UUID(query)
+            except ValueError:
+                seller_uuid = None
 
-                stmt = select(User).where(
-                    or_(
-                        User.first_name.ilike(f"%{query}%"),
-                        User.last_name.ilike(f"%{query}%"),
-                        User.id == seller_uuid,
-                    )
+            stmt = select(User).where(
+                or_(
+                    User.first_name.ilike(f"%{query}%"),
+                    User.last_name.ilike(f"%{query}%"),
+                    User.id == seller_uuid,
                 )
-                result = await self.db.execute(stmt)
-                sellers = result.scalars().all()
+            )
+            result = await self.db.execute(stmt)
+            sellers = result.scalars().all()
 
-                return [db_model_to_dict(seller) for seller in sellers]
+            return [db_model_to_dict(seller) for seller in sellers]
 
-            except SQLAlchemyError as e:
-                raise UserException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="An error occurred when accessing the database",
-                ) from e
+        except SQLAlchemyError as e:
+            raise UserException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database",
+            ) from e
 
     async def update_is_verified_column(self, email: str) -> dict:
         try:
