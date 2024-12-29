@@ -1,7 +1,7 @@
 from typing import List
 
 from services.category_service import CategoryService
-from schemas.schemas import CategoryUpdate, CategoryQuery
+from schemas.schemas import CategoryUpdate, CategoryQuery, CategoryToProductRequest
 from exceptions.product_exceptions import ProductException
 from fastapi import HTTPException, Query, status
 
@@ -13,10 +13,7 @@ class CategoryController:
 
     async def get_category_by_identifier(self, category_identifier) -> dict:
         try:
-            category_exists = await self._service.check_category_exists(
-                category_identifier
-            )
-            return category_exists
+            return await self._service.check_category_exists(category_identifier)
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
@@ -65,12 +62,12 @@ class CategoryController:
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
-    async def add_category_to_product(self, product_id: int, category_id: int):
+    async def add_category_to_product(self, request: CategoryToProductRequest):
         try:
-            category_exists = await self._service.check_category_exists(category_id)
-            if category_exists.get("is_exist"):
+            category = await self._service.check_category_exists(request.category_id)
+            if category:
                 return await self._service.add_category_to_product(
-                    product_id, category_id
+                    request.product_id, request.category_id
                 )
 
         except ProductException as e:

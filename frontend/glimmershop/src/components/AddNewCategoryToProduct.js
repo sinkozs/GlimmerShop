@@ -30,6 +30,7 @@ function AddNewCategoryToProduct() {
           withCredentials: true,
         }
       );
+
       setCurrentCategories(response.data);
     } catch (error) {
       console.error("Failed to fetch categories:", error);

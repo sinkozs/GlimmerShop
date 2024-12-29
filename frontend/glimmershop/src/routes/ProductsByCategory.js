@@ -24,9 +24,8 @@ function ProductsByCategory() {
           `${config.BACKEND_BASE_URL}/categories/category-by-identifier?category_identifier=${category_name}`
         );
         setCategoryData(categoryResponse.data);
-
         const productsResponse = await axios.get(
-          `${config.BACKEND_BASE_URL}/categories/products-by-category/?category_id=${categoryResponse.data.category_record.id}`
+          `${config.BACKEND_BASE_URL}/categories/products-by-category/?category_id=${categoryResponse.data.id}`
         );
         setProducts(productsResponse.data);
       } catch (error) {
@@ -56,10 +55,9 @@ function ProductsByCategory() {
         <h1>
           {category_name.charAt(0).toUpperCase() + category_name.slice(1)}
         </h1>
-        <h3>{categoryData.category_record.category_description}</h3>
 
         <ProductFilters
-          category_id={categoryData.category_record.id}
+          category_id={categoryData.id}
           onProductsFetched={handleProductsFetched}
         />
         {error && (

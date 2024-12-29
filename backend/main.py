@@ -27,16 +27,14 @@ from routers import (
 
 async def initialize_categories(session_factory) -> None:
     """Initialize default categories if they don't exist."""
-    default_categories = ["Necklaces", "Bracelets", "Rings", "Earrings"]
+    default_categories = ["necklaces", "bracelets", "rings", "earrings"]
     async_session = session_factory()
     async with async_session as session:
         async with session.begin():
             result = await session.execute(select(Category))
             categories = result.scalars().all()
-            print(f"categories in DB {categories}")
             if not categories:
                 for category_name in default_categories:
-                    print(f"Save new category: {category_name}")
                     new_category = Category(category_name=category_name)
                     session.add(new_category)
 

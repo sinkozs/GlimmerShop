@@ -47,7 +47,9 @@ async def get_category_by_identifier(
     category_identifier,
     controller: CategoryController = Depends(get_category_controller),
 ):
-    return await controller.get_category_by_identifier(category_identifier)
+    r = await controller.get_category_by_identifier(category_identifier)
+    print(r)
+    return r
 
 
 @router.get("/product-categories")
@@ -77,9 +79,7 @@ async def add_category_to_product(
     request: CategoryToProductRequest,
     controller: CategoryController = Depends(get_category_controller),
 ):
-    return await controller.add_category_to_product(
-        request.product_id, request.category_id
-    )
+    return await controller.add_category_to_product(request)
 
 
 @router.put("/edit")

@@ -148,20 +148,17 @@ class CategoryService:
             # the identifier is the id
             if isinstance(category_identifier, int):
                 condition = Category.id == category_identifier
-                # the identifier is the category name
+            # the identifier is the category name
             elif isinstance(category_identifier, str):
                 condition = Category.category_name == category_identifier
             else:
                 raise ValueError("Invalid category identifier type")
-
             stmt = select(Category).where(condition)
             result = await self.db.execute(stmt)
             category_record = result.scalar_one_or_none()
             if category_record:
-                return {
-                    "is_exist": True,
-                    "category_record": db_model_to_dict(category_record),
-                }
+                return db_model_to_dict(category_record)
+
             else:
                 return {"is_exist": False}
         except SQLAlchemyError as e:
@@ -226,9 +223,11 @@ class CategoryService:
             category = Category()
             category.category_name = category_name.lower()
             self.db.add(category)
+            await self.db.commit()
             await self.db.refresh(instance=category, attribute_names=["id"])
             return category.id
         except SQLAlchemyError as e:
+            await self.db.rollback()
             print(f"Database access error: {e}")
             raise UserException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

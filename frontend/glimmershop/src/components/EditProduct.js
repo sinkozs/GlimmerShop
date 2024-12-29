@@ -24,6 +24,7 @@ function EditProduct() {
 
   const handleAddCategoryClick = () => {
     console.log("edit", product_id);
+
     navigate(`/add-category-to-product/${product_id}`);
   };
   
