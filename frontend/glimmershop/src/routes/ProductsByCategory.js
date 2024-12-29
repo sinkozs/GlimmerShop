@@ -20,12 +20,14 @@ function ProductsByCategory() {
   useEffect(() => {
     const fetchCategoryAndProducts = async () => {
       try {
-        const categoryResponse = await axios.get(
-          `${config.BACKEND_BASE_URL}/categories/category-by-identifier?category_identifier=${category_name}`
+        let categoryRequest = { category_name: category_name };
+        const categoryResponse = await axios.post(
+          `${config.BACKEND_BASE_URL}/categories/category-by-identifier`,
+          categoryRequest
         );
         setCategoryData(categoryResponse.data);
         const productsResponse = await axios.get(
-          `${config.BACKEND_BASE_URL}/categories/products-by-category/?category_id=${categoryResponse.data.id}`
+          `${config.BACKEND_BASE_URL}/categories/products-by-category/${categoryResponse.data.id}`
         );
         setProducts(productsResponse.data);
       } catch (error) {

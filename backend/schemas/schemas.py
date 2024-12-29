@@ -1,6 +1,6 @@
-from typing import Optional, List, Dict
+from typing import Optional, List
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing_extensions import Annotated
 
 
@@ -113,6 +113,19 @@ class CartItemUpdate(BaseModel):
     quantity: Annotated[int, Field(ge=0)]
 
 
+class CategoryIdentifiers(BaseModel):
+    category_id: Optional[int] = None
+    category_name: Optional[str] = None
+
+    # @field_validator('*', mode='after')
+    # @classmethod
+    # def validate_at_least_one_field(cls, _, info):
+    #     values = info.data
+    #     if values.get('category_id') is None and values.get('category_name') is None:
+    #         raise ValueError("At least one of category_id or category_name must be provided")
+    #     return _
+
+
 class CategoryToProductRequest(BaseModel):
     product_id: int
     category_id: int
@@ -122,7 +135,7 @@ class CartItemForCheckout(BaseModel):
     id: int
     name: str
     price: int
-    category: Dict[int, str]
+    category: int
     quantity: int
     image_path: str
 

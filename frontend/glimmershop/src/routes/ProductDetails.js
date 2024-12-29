@@ -41,7 +41,14 @@ function ProductDetails() {
         const category = await axios.get(
           `${config.BACKEND_BASE_URL}/categories/product-categories?product_id=${product_id}`
         );
-        setProductCategory(category.data[0]);
+        console.log("category", category.data)
+        if (category.data[0].length === 1){
+          setProductCategory([category.data[0]]);
+        }
+        else{
+          setProductCategory(category.data[0])
+        }
+
   
         const seller = await axios.get(
           `${config.BACKEND_BASE_URL}/users/${productResponse.seller_id}`
@@ -62,7 +69,6 @@ function ProductDetails() {
 
 
   const handleAddToCart = () => {
-    console.log(productData)
     if (productData && availability) {
       const existingItem = cart.find((item) => item.id === productData.id);
       if (existingItem) {

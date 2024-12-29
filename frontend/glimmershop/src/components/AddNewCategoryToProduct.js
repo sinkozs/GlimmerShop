@@ -118,7 +118,8 @@ function AddNewCategoryToProduct() {
               withCredentials: true,
             }
           );
-          categoryId = newCategoryResponse.data;
+          categoryId = newCategoryResponse.data.id;
+          console.log(categoryId, categoryId)
         } catch (error) {
           setModalTitle("Error");
           setModalText(error.response.data.detail);
