@@ -19,7 +19,7 @@ class Product(Base):
     __tablename__ = "product"
     __table_args__ = {"schema": "public"}
     id = Column(Integer, primary_key=True, index=True)
-    seller_id = Column(UUID(as_uuid=True), ForeignKey("public.user.id"))
+    seller_id = Column(UUID(as_uuid=True), ForeignKey("public.user.id", ondelete="CASCADE"))
     name = Column(String(length=100))
     description = Column(String(length=15000))
     price = Column(Integer)
@@ -30,7 +30,9 @@ class Product(Base):
     image_path2 = Column(String(length=200))
 
     seller = relationship("User", back_populates="product")
-    product_category = relationship("ProductCategory", back_populates="product")
+    product_category = relationship("ProductCategory",
+                                    back_populates="product",
+                                    cascade="all, delete-orphan")
     user_orders = relationship("UserOrder", back_populates="product")
     cart_items = relationship("CartItem", back_populates="product")
 
@@ -39,7 +41,7 @@ class ProductCategory(Base):
     __tablename__ = "product_category"
     __table_args__ = {"schema": "public"}
     id = Column(Integer, primary_key=True, index=True)
-    product_id = Column(Integer, ForeignKey("public.product.id"))
+    product_id = Column(Integer, ForeignKey("public.product.id", ondelete="CASCADE"))
     category_id = Column(Integer, ForeignKey("public.category.id"))
 
     product = relationship("Product", back_populates="product_category")
@@ -64,7 +66,7 @@ class User(Base):
     product = relationship(
         "Product",
         back_populates="seller",
-        uselist=False,
+        uselist=True,
         cascade="all, delete-orphan",
         primaryjoin="and_(User.id==Product.seller_id, User.is_seller==True)",
     )
@@ -73,7 +75,6 @@ class User(Base):
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",
-        lazy="joined",
         primaryjoin="User.id==Cart.user_id",
     )
     user_orders = relationship(
