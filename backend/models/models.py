@@ -19,7 +19,9 @@ class Product(Base):
     __tablename__ = "product"
     __table_args__ = {"schema": "public"}
     id = Column(Integer, primary_key=True, index=True)
-    seller_id = Column(UUID(as_uuid=True), ForeignKey("public.user.id", ondelete="CASCADE"))
+    seller_id = Column(
+        UUID(as_uuid=True), ForeignKey("public.user.id", ondelete="CASCADE")
+    )
     name = Column(String(length=100))
     description = Column(String(length=15000))
     price = Column(Integer)
@@ -30,9 +32,9 @@ class Product(Base):
     image_path2 = Column(String(length=200))
 
     seller = relationship("User", back_populates="product")
-    product_category = relationship("ProductCategory",
-                                    back_populates="product",
-                                    cascade="all, delete-orphan")
+    product_category = relationship(
+        "ProductCategory", back_populates="product", cascade="all, delete-orphan"
+    )
     user_orders = relationship("UserOrder", back_populates="product")
     cart_items = relationship("CartItem", back_populates="product")
 

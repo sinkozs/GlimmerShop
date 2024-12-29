@@ -3,11 +3,11 @@ import os
 from functools import partial
 from typing import Callable
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine
 from fastapi.middleware.cors import CORSMiddleware
 from models.models import Category
 from config.parser import load_config
