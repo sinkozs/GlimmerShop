@@ -129,10 +129,11 @@ class UserService:
             user_email = user_data.email
             user_first_name = user_data.first_name
 
-            self.db.add(user)
-            await self.db.flush()
-            await self.db.refresh(user)
-            user_id = str(user.id)
+            async with self.db.begin():
+                self.db.add(user)
+                await self.db.flush()
+                await self.db.refresh(user)
+                user_id = str(user.id)
 
             try:
                 await send_verification_email(user_first_name, user_email)
