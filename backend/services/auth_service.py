@@ -12,6 +12,8 @@ import string
 from datetime import datetime, timedelta
 from uuid import UUID
 from fastapi.responses import JSONResponse
+
+from config.logger_config import get_logger
 from models.models import User
 from config.auth_config import (
     bcrypt_context,
@@ -30,6 +32,7 @@ class AuthService:
     def __init__(self, session: AsyncSession):
         self.db = session
         self.auth_config = load_config().auth_config
+        self.logger = get_logger(__name__)
 
     def verify_password(self, plain_password, hashed_password) -> bool:
         return bcrypt_context.verify(plain_password, hashed_password)
@@ -108,41 +111,75 @@ class AuthService:
 
     async def authenticate_user(self, email: EmailStr, password: str) -> dict:
         async with self.db.begin():
-            stmt = select(User).filter((User.email == email) & (not User.is_seller))
-            result = await self.db.execute(stmt)
-            user_model = result.scalars().first()
-            if user_model:
+            try:
+                self.logger.info(f"Attempting to authenticate user with email: {email}")
+                stmt = select(User).filter((User.email == email) & (not User.is_seller))
+                result = await self.db.execute(stmt)
+                user_model = result.scalars().first()
+
+                if not user_model:
+                    self.logger.warning(
+                        f"Authentication failed: User not found with email: {email}"
+                    )
+                    raise AuthenticationException(detail="User not found!")
+
+                if not self.verify_password(password, user_model.hashed_password):
+                    self.logger.warning(
+                        f"Authentication failed: Invalid password for user: {email}"
+                    )
+                    raise AuthenticationException(detail="Invalid credentials!")
+
                 user_dict = db_model_to_dict(user_model)
+                user_model.is_active = True
+                user_model.last_login = datetime.now()
+                self.db.add(user_model)
+                await self.db.commit()
 
-            if not user_model:
-                raise AuthenticationException(detail="User not found!")
-            if not self.verify_password(password, user_model.hashed_password):
-                raise AuthenticationException(detail="Invalid credentials!")
+                self.logger.info(f"User successfully authenticated: {email}")
+                return user_dict
 
-            user_model.is_active = True
-            user_model.last_login = datetime.now()
-            self.db.add(user_model)
-            await self.db.commit()
-            return user_dict
+            except SQLAlchemyError as e:
+                self.logger.error(
+                    f"Database error during user authentication: {str(e)}",
+                    extra={"email": email, "error_type": type(e).__name__},
+                )
+                raise AuthenticationException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="An error occurred when accessing the database!",
+                )
 
     async def authenticate_seller(self, email: EmailStr, password: str) -> dict:
         try:
+            self.logger.info(f"Attempting to authenticate seller with email: {email}")
             stmt = select(User).filter((User.email == email) & (User.is_seller))
             result = await self.db.execute(stmt)
             seller_model = result.scalars().first()
-            if seller_model:
-                seller_dict = db_model_to_dict(seller_model)
 
             if not seller_model:
+                self.logger.warning(
+                    f"Authentication failed: Seller not found with email: {email}"
+                )
                 raise AuthenticationException(detail="Seller not found!")
+
             if not self.verify_password(password, seller_model.hashed_password):
+                self.logger.warning(
+                    f"Authentication failed: Invalid password for seller: {email}"
+                )
                 raise AuthenticationException(detail="Invalid credentials!")
 
+            seller_dict = db_model_to_dict(seller_model)
             seller_model.is_active = True
             seller_model.last_login = datetime.now()
             self.db.add(seller_model)
+
+            self.logger.info(f"Seller successfully authenticated: {email}")
             return seller_dict
-        except SQLAlchemyError:
+
+        except SQLAlchemyError as e:
+            self.logger.error(
+                f"Database error during seller authentication: {str(e)}",
+                extra={"email": email, "error_type": type(e).__name__},
+            )
             raise AuthenticationException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -150,18 +187,32 @@ class AuthService:
 
     async def regenerate_forgotten_password(self, email: EmailStr):
         try:
+            self.logger.info(f"Attempting to regenerate password for email: {email}")
             stmt = select(User).filter(User.email == email)
             result = await self.db.execute(stmt)
             user_model = result.scalars().first()
-            if user_model:
-                new_password = self.generate_strong_password()
-                user_model.hashed_password = hash_password(new_password)
-                self.db.add(user_model)
-                await self.db.commit()
-                await send_password_reset_email(email, new_password)
+
             if not user_model:
+                self.logger.warning(
+                    f"Password regeneration failed: User not found with email: {email}"
+                )
                 raise AuthenticationException()
-        except SQLAlchemyError:
+
+            new_password = self.generate_strong_password()
+            user_model.hashed_password = hash_password(new_password)
+            self.db.add(user_model)
+            await self.db.commit()
+
+            await send_password_reset_email(email, new_password)
+            self.logger.info(
+                f"Password successfully regenerated and email sent for user: {email}"
+            )
+
+        except SQLAlchemyError as e:
+            self.logger.error(
+                f"Database error during password regeneration: {str(e)}",
+                extra={"email": email, "error_type": type(e).__name__},
+            )
             raise AuthenticationException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -169,12 +220,24 @@ class AuthService:
 
     async def user_logout(self, user_id: UUID):
         try:
+            self.logger.info(f"Attempting to log out user: {user_id}")
             stmt = select(User).filter(User.id == user_id)
             result = await self.db.execute(stmt)
             user_model = result.scalars().first()
+
             if user_model and user_model.is_active:
                 user_model.is_active = False
-        except SQLAlchemyError:
+                self.logger.info(f"User successfully logged out: {user_id}")
+            else:
+                self.logger.warning(
+                    f"Logout attempted for inactive or non-existent user: {user_id}"
+                )
+
+        except SQLAlchemyError as e:
+            self.logger.error(
+                f"Database error during user logout: {str(e)}",
+                extra={"user_id": str(user_id), "error_type": type(e).__name__},
+            )
             raise AuthenticationException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",

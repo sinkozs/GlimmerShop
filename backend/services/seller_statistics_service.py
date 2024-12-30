@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import HTTPException
 from dependencies import get_first_and_last_day_of_month
 from schemas.schemas import SelectedMonthForSellerStatistics
+from services.category_service import CategoryService
 from config.parser import load_config
 from sqlalchemy.ext.asyncio import AsyncSession
 import stripe
@@ -15,6 +16,7 @@ class SellerStatisticsService:
         self.db = session
         self.key = load_config().auth_config.stripe_secret_key
         self.stripe_api_key = self.key
+        self._category_service = CategoryService(session)
 
     def convert_metadata_to_dict(self, metadata):
         converted_dict = dict()
@@ -28,6 +30,16 @@ class SellerStatisticsService:
         fixed_item = item.translate(str.maketrans("", "", "{}"))
         item_dict = ast.literal_eval("{" + fixed_item + "}")
         return item_dict
+
+    async def get_category_name(self, category_id: str):
+        try:
+            int_category_id = int(category_id)
+            r = await self._category_service.get_category_name_by_id(int_category_id)
+            return r["category_name"]
+        except ValueError:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid category ID format: {category_id}"
+            )
 
     def is_seller_had_transactions(self, seller_id: UUID, charges) -> bool:
         if charges["data"]:
@@ -84,11 +96,15 @@ class SellerStatisticsService:
                                 )
 
                     for item in product_categories_list:
-                        for item_name, category in self.get_dict_from_json_object(
+                        for category_id, quantity in self.get_dict_from_json_object(
                             item
                         ).items():
-                            if item_name not in product_categories:
-                                product_categories[item_name] = category
+
+                            category_name = await self.get_category_name(category_id)
+                            if category_name not in product_categories:
+                                product_categories[category_name] = quantity
+                            else:
+                                product_categories[category_name] += quantity
 
             return {
                 "total_transactions": total_transactions,
@@ -99,7 +115,6 @@ class SellerStatisticsService:
             }
 
         else:
-            print(f"There were no transactions in {selected_date.month}")
             raise HTTPException(
                 status_code=204,
                 detail=f"There were no transactions in {selected_date.month}",

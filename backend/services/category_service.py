@@ -1,19 +1,18 @@
 from typing import List
-
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import status
+
+from config.logger_config import get_logger
 from models.models import Product, Category, ProductCategory
 from sqlalchemy.orm import selectinload
 from sqlalchemy import or_
 
 from exceptions.category_exceptions import CategoryException
 from exceptions.product_exceptions import ProductException
-from exceptions.user_exceptions import UserException
 from dependencies import (
     db_model_to_dict,
-    convert_str_to_int_if_numeric,
     is_valid_update,
 )
 from schemas.schemas import CategoryUpdate, CategoryQuery, CategoryIdentifiers
@@ -23,6 +22,7 @@ class CategoryService:
 
     def __init__(self, session: AsyncSession):
         self.db = session
+        self.logger = get_logger(__name__)
 
     async def get_all_categories(self) -> List[dict]:
         try:
@@ -32,7 +32,7 @@ class CategoryService:
                 return [db_model_to_dict(c) for c in categories]
             return []
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in get_all_categories: {e}")
             raise CategoryException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -49,11 +49,12 @@ class CategoryService:
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Category with id {category_id} not found",
                 )
+            await self.db.commit()
             await self.db.refresh(category)
             return {"category_name": category.category_name}
         except SQLAlchemyError as e:
-            print(f"Database error in get_user_by_id: {e}")
-            raise UserException(
+            self.logger.error(f"Database error in get_category_name_by_id: {e}")
+            raise CategoryException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database",
             )
@@ -79,14 +80,11 @@ class CategoryService:
                     detail=f"Product with id {product_id} not found!",
                 )
             if product.product_category:
-                product_categories = [
-                    pc.id
-                    for pc in product.product_category
-                ]
+                product_categories = [pc.id for pc in product.product_category]
                 return product_categories
             return []
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in get_product_categories: {e}")
             raise CategoryException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -112,7 +110,7 @@ class CategoryService:
                 return []
             return [CategoryQuery.model_validate(category) for category in categories]
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in search_categories: {e}")
             raise CategoryException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -124,8 +122,9 @@ class CategoryService:
                 select(Category)
                 .where(Category.id == category_id)
                 .options(
-                    selectinload(Category.product_category)
-                    .selectinload(ProductCategory.product)
+                    selectinload(Category.product_category).selectinload(
+                        ProductCategory.product
+                    )
                 )
             )
 
@@ -135,7 +134,7 @@ class CategoryService:
             if category is None:
                 raise CategoryException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Category with id {category_id} not found!"
+                    detail=f"Category with id {category_id} not found!",
                 )
 
             return [
@@ -155,19 +154,23 @@ class CategoryService:
             ]
 
         except SQLAlchemyError as e:
-            print(f"Database access error in get_products_by_category: {str(e)}")
+            self.logger.error(f"Database error in get_products_by_category: {e}")
             raise CategoryException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database!"
+                detail="An error occurred when accessing the database!",
             )
 
-    async def check_category_exists(self, category_identifier: CategoryIdentifiers) -> dict:
+    async def check_category_exists(
+        self, category_identifier: CategoryIdentifiers
+    ) -> dict:
         try:
             conditions = []
             if category_identifier.category_id is not None:
                 conditions.append(Category.id == category_identifier.category_id)
             if category_identifier.category_name is not None:
-                conditions.append(Category.category_name == category_identifier.category_name)
+                conditions.append(
+                    Category.category_name == category_identifier.category_name
+                )
 
             if not conditions:
                 raise ValueError("No valid category identifier provided")
@@ -181,10 +184,10 @@ class CategoryService:
                 return db_model_to_dict(category_record)
 
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
-            raise UserException(
+            self.logger.error(f"Database error in check_category_exists: {e}")
+            raise CategoryException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database!"
+                detail="An error occurred when accessing the database!",
             )
 
     async def add_category_to_product(self, product_id: int, category_id: int):
@@ -208,8 +211,8 @@ class CategoryService:
             return {"message": "Category added to the product successfully."}
 
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
-            raise UserException(
+            self.logger.error(f"Database error in add_category_to_product: {e}")
+            raise CategoryException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database.",
             )
@@ -231,8 +234,8 @@ class CategoryService:
             await self.db.delete(product_category)
             await self.db.flush()
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
-            raise UserException(
+            self.logger.error(f"Database error in delete_category_from_product: {e}")
+            raise CategoryException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
             )
@@ -246,9 +249,8 @@ class CategoryService:
             await self.db.refresh(instance=category, attribute_names=["id"])
             return category.id
         except SQLAlchemyError as e:
-            await self.db.rollback()
-            print(f"Database access error: {e}")
-            raise UserException(
+            self.logger.error(f"Database error in add_new_category: {e}")
+            raise CategoryException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
             )
@@ -267,13 +269,13 @@ class CategoryService:
             if is_valid_update(category_update.category_name, category.category_name):
                 category.category_name = category_update.category_name
             if is_valid_update(
-                    category_update.category_description, category.category_description
+                category_update.category_description, category.category_description
             ):
                 category.category_description = category_update.category_description
             self.db.add(category)
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
-            raise UserException(
+            self.logger.error(f"Database error in edit_category: {e}")
+            raise CategoryException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
             )

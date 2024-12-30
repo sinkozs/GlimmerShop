@@ -3,8 +3,10 @@ from uuid import UUID
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from fastapi import status, Response
+from fastapi import status
 import redis.asyncio as aioredis
+
+from config.logger_config import get_logger
 from models.models import User, Cart, CartItem
 from schemas.schemas import CartItemUpdate
 from sqlalchemy.orm import selectinload, joinedload
@@ -20,6 +22,7 @@ class CartService:
 
     def __init__(self, session: AsyncSession):
         self.db = session
+        self.logger = get_logger(__name__)
 
     async def get_user_and_cart_by_user_id(self, user_id: UUID) -> User:
         try:
@@ -36,8 +39,8 @@ class CartService:
                 )
             return user
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
-            raise ProductException(
+            self.logger.error(f"Database error in get_user_and_cart_by_user_id: {e}")
+            raise CartException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
             )
@@ -51,8 +54,8 @@ class CartService:
             return cart_item_result.scalars().one_or_none()
 
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
-            raise ProductException(
+            self.logger.error(f"Database error in get_cart_item: {e}")
+            raise CartException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
             )
@@ -75,8 +78,8 @@ class CartService:
                 )
             return [db_model_to_dict(c) for c in cart_items]
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
-            raise ProductException(
+            self.logger.error(f"Database error in get_all_cart_item_by_user_id: {e}")
+            raise CartException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
             )
@@ -128,7 +131,7 @@ class CartService:
             cart_dict, total_price = self.get_detailed_cart_dict(details)
             return {"cart_dict": cart_dict, "total_price": total_price}
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in get_detailed_cart_from_db: {e}")
             raise ProductException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -154,7 +157,6 @@ class CartService:
     async def add_new_item_to_cart(
         self,
         cart_item: CartItemUpdate,
-        response: Response,
         redis: aioredis.Redis,
         user_id: Optional[UUID] = None,
         session_id: Optional[str] = None,
@@ -162,7 +164,7 @@ class CartService:
         if user_id:
             user = await self.get_user_and_cart_by_user_id(user_id)
             if not user:
-                raise ProductException(
+                raise UserException(
                     status_code=status.HTTP_404_NOT_FOUND, detail="User not found!"
                 )
 
@@ -196,7 +198,6 @@ class CartService:
     async def delete_item_from_cart(
         self,
         cart_item: CartItemUpdate,
-        response: Response,
         redis: aioredis.Redis,
         user_id: Optional[UUID] = None,
         session_id: Optional[str] = None,
@@ -204,9 +205,8 @@ class CartService:
         try:
             if user_id:
                 user = await self.get_user_and_cart_by_user_id(user_id)
-                print(f"User: {db_model_to_dict(user)}")
                 if not user:
-                    raise ProductException(
+                    raise UserException(
                         status_code=status.HTTP_404_NOT_FOUND, detail="User not found!"
                     )
 
@@ -240,27 +240,13 @@ class CartService:
                         )
                     await redis.hset(cart_key, str(cart_item.product_id), new_quantity)
                 else:
-                    raise ProductException(
+                    raise CartException(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail=f"There are no product with id {str(cart_item.product_id)} in the cart!",
                     )
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in delete_item_from_cart: {e}")
             raise ProductException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
             )
-
-    # async def delete_everything_from_user_cart(self, user_id: UUID):
-    #     try:
-    #         user = await self.get_user_and_cart_by_user_id(user_id)
-    #
-    #         if user.cart.:
-    #             existing_cart_item.quantity -= cart_item.quantity
-    #         else:
-    #             raise CartException(status_code=status.HTTP_404_NOT_FOUND,
-    #                                            detail=f"Cart item not found!")
-    #     except SQLAlchemyError as e:
-    #         print(f"Database access error: {e}")
-    #         raise ProductException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #                                detail="An error occurred when accessing the database!")

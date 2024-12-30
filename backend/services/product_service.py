@@ -1,13 +1,15 @@
 import os
 from uuid import UUID
 from typing import List
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 from sqlalchemy.exc import SQLAlchemyError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from fastapi import status, UploadFile, File
+from fastapi import status, UploadFile, File, HTTPException
 from sqlalchemy import func, and_, exists, or_
+
+from config.logger_config import get_logger
 from models.models import Product, Category, ProductCategory
 from schemas.schemas import ProductUpdate, PriceFilter, MaterialsFilter, ProductData
 from .user_service import UserService
@@ -20,6 +22,7 @@ class ProductService:
 
     def __init__(self, session: AsyncSession):
         self.db = session
+        self.logger = get_logger(__name__)
 
     async def get_product_by_id(self, product_id: int) -> dict:
         try:
@@ -34,16 +37,23 @@ class ProductService:
                     detail=f"Product with id {product_id} not found!",
                 )
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in get_product_by_id: {e}")
             raise ProductException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
             )
 
     async def product_exists(self, product_id: int) -> bool:
-        stmt = select(exists().where(Product.id == product_id))
-        result = await self.db.execute(stmt)
-        return result.scalar()
+        try:
+            stmt = select(exists().where(Product.id == product_id))
+            result = await self.db.execute(stmt)
+            return result.scalar()
+        except SQLAlchemyError as e:
+            self.logger.error(f"Database error in product_exists: {e}")
+            raise ProductException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
 
     async def get_all_products_by_seller(self, seller_id: UUID) -> list:
         try:
@@ -62,7 +72,7 @@ class ProductService:
             else:
                 return []
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in get_all_products_by_seller: {e}")
             raise ProductException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -86,7 +96,7 @@ class ProductService:
             else:
                 return []
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in get_all_categories_for_product: {e}")
             raise ProductException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -102,7 +112,7 @@ class ProductService:
             else:
                 return []
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in get_all_products: {e}")
             raise ProductException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -130,7 +140,7 @@ class ProductService:
             else:
                 return []
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in get_products_by_price_range: {e}")
             raise ProductException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -163,7 +173,7 @@ class ProductService:
             else:
                 return []
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in get_products_by_material: {e}")
             raise ProductException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -179,7 +189,7 @@ class ProductService:
             result = await self.db.execute(stmt)
             return result.scalar_one() > 0
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in check_product_exists: {e}")
             raise
 
     async def search_products(self, query: str, seller_id: UUID) -> List[ProductData]:
@@ -199,7 +209,7 @@ class ProductService:
             products = result.scalars().all()
             return [ProductData.model_validate(product) for product in products]
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in search_products: {e}")
             raise
 
     async def add_new_product(self, seller_id: UUID, product: Product) -> int:
@@ -215,7 +225,7 @@ class ProductService:
             await self.db.refresh(instance=product, attribute_names=["id"])
             return product.id
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in add_new_product: {e}")
             raise ProductException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -225,48 +235,109 @@ class ProductService:
         self, product_id: int, image_number: int, image: UploadFile = File(...)
     ):
         try:
-            image_data = await image.read()
-            original_image = Image.open(BytesIO(image_data))
+            product = await self.get_product_by_id(product_id)
+            if not product:
+                raise ProductException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Product with ID {product_id} not found",
+                )
 
-            # Resize the image
-            max_size = (564, 564)
-            original_image.thumbnail(max_size, Image.Resampling.LANCZOS)
+            if image_number not in [1, 2]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Image number must be 1 or 2",
+                )
 
-            # Convert RGBA to RGB if necessary
-            if original_image.mode == "RGBA":
-                original_image = original_image.convert("RGB")
+            if not image.content_type.startswith("image/"):
+                raise HTTPException(
+                    status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                    detail="File must be an image",
+                )
 
-            output_buffer = BytesIO()
-            original_image.save(output_buffer, format="JPEG")
-            output_buffer.seek(0)
+            try:
+                image_data = await image.read()
+                original_image = Image.open(BytesIO(image_data))
+            except UnidentifiedImageError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid image format",
+                )
 
-            filename = image.filename
-            # Ensure the filename has a valid extension
-            if not filename.lower().endswith((".jpg", ".jpeg", ".jfif", ".png")):
-                filename += ".jpg"
+            try:
+                # Resize the image
+                max_size = (564, 564)
+                original_image.thumbnail(max_size, Image.Resampling.LANCZOS)
 
-            save_path = os.path.join(
-                os.path.dirname(__file__), "..", "images", filename
-            )
-            full_path = os.path.abspath(save_path)
+                # Convert RGBA to RGB if necessary
+                if original_image.mode == "RGBA":
+                    original_image = original_image.convert("RGB")
 
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                output_buffer = BytesIO()
+                original_image.save(output_buffer, format="JPEG")
+                output_buffer.seek(0)
 
-            with open(full_path, "wb") as f:
-                f.write(output_buffer.getvalue())
+                filename = image.filename
+                if not filename.lower().endswith((".jpg", ".jpeg", ".jfif", ".png")):
+                    filename += ".jpg"
 
-            original_image.close()
-            output_buffer.close()
+                save_path = os.path.join(
+                    os.path.dirname(__file__), "..", "images", filename
+                )
+                full_path = os.path.abspath(save_path)
 
-            edited_product = ProductUpdate()
-            if image_number == 1:
-                edited_product.image_path = f"images/{filename}"
-            elif image_number == 2:
-                edited_product.image_path2 = f"images/{filename}"
-            await self.edit_product(product_id, edited_product)
-            return {"message": "Image uploaded and resized successfully"}
+                os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+                try:
+                    with open(full_path, "wb") as f:
+                        f.write(output_buffer.getvalue())
+                except IOError as e:
+                    self.logger.error(f"Failed to save image: {str(e)}")
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="Failed to save image to filesystem",
+                    )
+
+                original_image.close()
+                output_buffer.close()
+
+                edited_product = ProductUpdate()
+                if image_number == 1:
+                    edited_product.image_path = f"images/{filename}"
+                else:  # image_number == 2
+                    edited_product.image_path2 = f"images/{filename}"
+
+                try:
+                    await self.edit_product(product_id, edited_product)
+                except Exception as e:
+                    self.logger.error(f"Failed to update product: {str(e)}")
+                    if os.path.exists(full_path):
+                        os.remove(full_path)
+                    raise ProductException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="Failed to update product with new image",
+                    )
+
+                return {
+                    "status_code": status.HTTP_200_OK,
+                    "detail": "Image uploaded and resized successfully",
+                    "path": f"images/{filename}",
+                }
+
+            except Exception as e:
+                self.logger.error(f"Error processing image: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to process image",
+                )
+
+        except (ProductException, HTTPException):
+            raise
         except Exception as e:
-            return {"error": str(e)}
+            self.logger.error(f"Unexpected error during image upload: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An unexpected error occurred while processing the image",
+            )
 
     async def edit_product(self, product_id: int, edited_product: ProductUpdate):
         try:
@@ -298,7 +369,7 @@ class ProductService:
 
             self.db.add(product)
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in edit_product: {e}")
             raise
 
     async def delete_product(self, product_id: int):
@@ -310,13 +381,13 @@ class ProductService:
                 await self.db.delete(product)
 
         except NoResultFound:
-            raise UserException(
+            raise ProductException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Product with {product_id} id not found!",
             )
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
-            raise UserException(
+            self.logger.error(f"Database error in delete_product: {e}")
+            raise ProductException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
             )

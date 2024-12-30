@@ -3,6 +3,8 @@ from typing import List
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
 from sqlalchemy import update
+
+from config.logger_config import get_logger
 from schemas.schemas import CartItemForCheckout
 from config.parser import load_config
 from models.models import Product
@@ -18,6 +20,7 @@ class CheckoutService:
     def __init__(self, session: AsyncSession):
         self.db = session
         self.product_service = ProductService(session)
+        self.logger = get_logger(__name__)
 
     async def update_stock_quantity(self, cart_items: List[CartItemForCheckout]):
         try:
@@ -45,7 +48,7 @@ class CheckoutService:
                 await self.db.execute(update_stmt)
 
         except SQLAlchemyError as e:
-            print(f"Database access error: {e}")
+            self.logger.error(f"Database error in update_stock_quantity: {e}")
             raise ProductException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
@@ -67,10 +70,14 @@ class CheckoutService:
         for item in cart_items:
             product = await self.product_service.get_product_by_id(item.id)
             seller_ids.append(str(product.get("seller_id")))
+            category_id = item.category
+            print(category_id)
             if item.name not in product_quantities:
                 product_quantities[item.name] = item.quantity
-            if item.name not in product_categories:
-                product_categories[item.name] = item.category
+            if item.category not in product_categories.keys():
+                product_categories[item.category] = item.quantity
+            elif item.category in product_categories.keys():
+                product_categories[item.category] += item.quantity
 
         metadata_dict["product_quantities"] = json.dumps(product_quantities)
         metadata_dict["product_categories"] = json.dumps(product_categories)
