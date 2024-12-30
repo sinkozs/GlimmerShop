@@ -2,7 +2,6 @@
 backend/.env
 backend/.env.test
 backend/.idea/
-backend/alembic/versions/
 backend/config/local.ini
 **__pycache__/
 backend/alembic/script.py.mako
