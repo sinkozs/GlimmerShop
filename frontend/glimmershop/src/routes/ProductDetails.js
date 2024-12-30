@@ -37,11 +37,9 @@ function ProductDetails() {
         );
         const productResponse = product.data;
         setProductData(productResponse);
-        
         const category = await axios.get(
-          `${config.BACKEND_BASE_URL}/categories/product-categories?product_id=${product_id}`
+          `${config.BACKEND_BASE_URL}/categories/product-categories/${product_id}`
         );
-        console.log("category", category.data)
         if (category.data[0].length === 1){
           setProductCategory([category.data[0]]);
         }
