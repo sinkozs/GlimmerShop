@@ -142,51 +142,66 @@ function SellerStatistics() {
           );
 
           if (response.status === 204) {
-            setError(`No transactions were found in ${monthRequest.month}/${monthRequest.year}`);
+            setError(
+              `No transactions were found in ${monthRequest.month}/${monthRequest.year}`
+            );
             setNoTransactionsFoundModal(true);
           } else {
             const {
               item_unit_prices = {},
-              product_categories = {},
+              product_categories = {}, // Format: {earrings: 2, rings: 1, bracelets: 1}
               product_quantities = {},
               total_revenue = 0,
               total_transactions = 0,
             } = response.data;
 
-            const productNames = Object.keys(product_quantities);
-            const categoryQuantities = getCategoryQuantities(
-              product_categories,
-              product_quantities
-            );
+            // For Pie Chart
+            const categoryNames = Object.keys(product_categories); // ['earrings', 'rings', 'bracelets']
+            const categoryQuantities = Object.values(product_categories); // [2, 1, 1]
 
+            setPieChartData({
+              series: categoryQuantities, // Just the array of values
+              options: {
+                chart: {
+                  type: "pie",
+                },
+                labels: categoryNames, // Array of category names
+                legend: {
+                  position: "bottom",
+                },
+                dataLabels: {
+                  enabled: true,
+                },
+                tooltip: {
+                  y: {
+                    formatter: (val) => `${val} items`,
+                  },
+                },
+              },
+            });
+
+            // Rest of your code for other charts and data
+            const productNames = Object.keys(product_quantities);
             const productRevenues = getProductRevenues(
               product_quantities,
               item_unit_prices
             );
 
-            const categoryKeys = Object.keys(categoryQuantities);
-            const categoryValues = Object.values(categoryQuantities);
-
-            if (categoryKeys.length && categoryValues.length) {
-              setPieChartData({
-                series: categoryValues,
-                options: {
-                  labels: categoryKeys,
-                },
-              });
-            }
-
             setChartData({
               series: [
                 { name: "Revenue (USD)", data: Object.values(productRevenues) },
               ],
+              options: {
+                xaxis: {
+                  categories: Object.keys(productRevenues),
+                },
+              },
             });
 
             setProductNames(productNames);
             setTotalRevenue(total_revenue);
             setTotalTransactions(total_transactions);
             setBestSeller(getBestSellerProduct(product_quantities));
-            setCategories(Object.values(product_categories));
 
             setDataLoaded(true);
           }
@@ -239,13 +254,7 @@ function SellerStatistics() {
               width="100%"
               height={350}
               series={pieChartData.series}
-              options={{
-                title: {
-                  text: "Products sold by category ",
-                },
-                labels: categories,
-                noData: { text: "Empty Data" },
-              }}
+              options={pieChartData.options}
             />
           </Col>
         )}
