@@ -1,11 +1,9 @@
-import json
-import redis.asyncio as aioredis
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
 from typing import Optional
 from pydantic import EmailStr
-from fastapi import status, Response, Request
+from fastapi import status, Response
 from jose import jwt
 import secrets
 import string
@@ -23,8 +21,6 @@ from config.auth_config import (
 from exceptions.auth_exceptions import AuthenticationException
 from dependencies import db_model_to_dict, send_password_reset_email, hash_password
 from config.parser import load_config
-
-from dependencies import generate_session_id
 
 
 class AuthService:
@@ -71,33 +67,34 @@ class AuthService:
             encode, self.auth_config.secret_key, algorithm=encryption_algorithm
         )
 
-    async def get_redis_session(self, request: Request, response: Response) -> str:
-        session_id = request.cookies.get("session_id")
-        if not session_id:
-            session_id = generate_session_id()
-            response.set_cookie(key="session_id", value=session_id)
-        return session_id
+    # async def get_redis_session(self, request: Request, response: Response) -> str:
+    #     session_id = request.cookies.get("session_id")
+    #     if not session_id:
+    #         session_id = generate_session_id()
+    #         response.set_cookie(key="session_id", value=session_id)
+    #     return session_id
 
-    async def create_redis_session(
-        self, response: Response, redis: aioredis.Redis, user_id: Optional[UUID] = None
-    ) -> str:
-        session_id = generate_session_id()
-        session_data = {"user_id": str(user_id)} if user_id else {}
-        await redis.set(session_id, json.dumps(session_data))
-        response.set_cookie(
-            key="session_id",
-            value=session_id,
-            httponly=True,
-            secure=True,
-            samesite="Lax",
-        )
-        return session_id
+    # async def create_redis_session(
+    #     self, response: Response, redis: aioredis.Redis, user_id: Optional[UUID] = None
+    # ) -> str:
+    #     session_id = generate_session_id()
+    #     session_data = {"user_id": str(user_id)} if user_id else {}
+    #     await redis.set(session_id, json.dumps(session_data))
+    #     response.set_cookie(
+    #         key="session_id",
+    #         value=session_id,
+    #         httponly=True,
+    #         secure=True,
+    #         samesite="Lax",
+    #     )
+    #     return session_id
 
     async def set_response_cookie(
         self, user_id: UUID, email: EmailStr, response: Response
     ):
         access_token = self.create_access_token(user_id=user_id, email=email)
         sign_in_response = JSONResponse(content={"message": "Login successful"})
+        # In this project, I use localhost and HTTP, but for production, set secure=True
         response.set_cookie(
             key=http_only_auth_cookie,
             value=access_token,
@@ -109,23 +106,33 @@ class AuthService:
         )
         return sign_in_response
 
-    async def authenticate_user(self, email: EmailStr, password: str) -> dict:
+    async def authenticate(
+        self, email: EmailStr, password: str, is_seller: bool
+    ) -> dict:
         async with self.db.begin():
             try:
-                self.logger.info(f"Attempting to authenticate user with email: {email}")
-                stmt = select(User).filter((User.email == email) & (not User.is_seller))
+                user_type = "seller" if is_seller else "user"
+                self.logger.info(
+                    f"Attempting to authenticate {user_type} with email: {email}"
+                )
+
+                stmt = select(User).filter(
+                    (User.email == email) & (User.is_seller == is_seller)
+                )
                 result = await self.db.execute(stmt)
                 user_model = result.scalars().first()
 
                 if not user_model:
                     self.logger.warning(
-                        f"Authentication failed: User not found with email: {email}"
+                        f"Authentication failed: {user_type.capitalize()} not found with email: {email}"
                     )
-                    raise AuthenticationException(detail="User not found!")
+                    raise AuthenticationException(
+                        detail=f"{user_type.capitalize()} not found!"
+                    )
 
                 if not self.verify_password(password, user_model.hashed_password):
                     self.logger.warning(
-                        f"Authentication failed: Invalid password for user: {email}"
+                        f"Authentication failed: Invalid password for {user_type}: {email}"
                     )
                     raise AuthenticationException(detail="Invalid credentials!")
 
@@ -135,12 +142,14 @@ class AuthService:
                 self.db.add(user_model)
                 await self.db.commit()
 
-                self.logger.info(f"User successfully authenticated: {email}")
+                self.logger.info(
+                    f"{user_type.capitalize()} successfully authenticated: {email}"
+                )
                 return user_dict
 
             except SQLAlchemyError as e:
                 self.logger.error(
-                    f"Database error during user authentication: {str(e)}",
+                    f"Database error during {user_type} authentication: {str(e)}",
                     extra={"email": email, "error_type": type(e).__name__},
                 )
                 raise AuthenticationException(
@@ -148,42 +157,11 @@ class AuthService:
                     detail="An error occurred when accessing the database!",
                 )
 
+    async def authenticate_user(self, email: EmailStr, password: str) -> dict:
+        return await self.authenticate(email, password, is_seller=False)
+
     async def authenticate_seller(self, email: EmailStr, password: str) -> dict:
-        try:
-            self.logger.info(f"Attempting to authenticate seller with email: {email}")
-            stmt = select(User).filter((User.email == email) & (User.is_seller))
-            result = await self.db.execute(stmt)
-            seller_model = result.scalars().first()
-
-            if not seller_model:
-                self.logger.warning(
-                    f"Authentication failed: Seller not found with email: {email}"
-                )
-                raise AuthenticationException(detail="Seller not found!")
-
-            if not self.verify_password(password, seller_model.hashed_password):
-                self.logger.warning(
-                    f"Authentication failed: Invalid password for seller: {email}"
-                )
-                raise AuthenticationException(detail="Invalid credentials!")
-
-            seller_dict = db_model_to_dict(seller_model)
-            seller_model.is_active = True
-            seller_model.last_login = datetime.now()
-            self.db.add(seller_model)
-
-            self.logger.info(f"Seller successfully authenticated: {email}")
-            return seller_dict
-
-        except SQLAlchemyError as e:
-            self.logger.error(
-                f"Database error during seller authentication: {str(e)}",
-                extra={"email": email, "error_type": type(e).__name__},
-            )
-            raise AuthenticationException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database!",
-            )
+        return await self.authenticate(email, password, is_seller=True)
 
     async def regenerate_forgotten_password(self, email: EmailStr):
         try:

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import { Container, Form, Button, ListGroup, Table } from "react-bootstrap";
 import Modal from "./Modal";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
 import "../styles/LoginAndSignup.css";
 import "../styles/Category.css";
 
@@ -22,8 +21,8 @@ function AddNewCategoryToProduct() {
 
   const fetchProductCategories = async () => {
     try {
-      const response = await axios.get(
-        `${config.BACKEND_BASE_URL}/categories/product-categories`,
+      const response = await apiClient.get(
+        `/categories/product-categories`,
         {
           params: { product_id },
           headers: { "Content-Type": "application/json" },
@@ -48,8 +47,8 @@ function AddNewCategoryToProduct() {
         category_id: categoryId,
       };
 
-      const response = await axios.delete(
-        `${config.BACKEND_BASE_URL}/categories/delete-category-from-product`,
+      const response = await apiClient.delete(
+        `/categories/delete-category-from-product`,
         {
           data: requestData,
           headers: { "Content-Type": "application/json" },
@@ -67,8 +66,8 @@ function AddNewCategoryToProduct() {
 
   const fetchCategories = async (query) => {
     try {
-      const response = await axios.get(
-        `${config.BACKEND_BASE_URL}/categories/search`,
+      const response = await apiClient.get(
+        `/categories/search`,
         { params: { query } }
       );
       setCategories(response.data);
@@ -110,8 +109,8 @@ function AddNewCategoryToProduct() {
         if (newCategoryName !== "")
           newCategoryRequest.category_name = newCategoryName;
         try {
-          const newCategoryResponse = await axios.post(
-            `${config.BACKEND_BASE_URL}/categories/new`,
+          const newCategoryResponse = await apiClient.post(
+            `/categories/new`,
             newCategoryRequest,
             {
               headers: { "Content-Type": "application/json" },
@@ -128,8 +127,8 @@ function AddNewCategoryToProduct() {
         }
       }
 
-      const response = await axios.post(
-        `${config.BACKEND_BASE_URL}/categories/add-category-to-product`,
+      const response = await apiClient.post(
+        `/categories/add-category-to-product`,
         {
           product_id: product_id,
           category_id: categoryId,

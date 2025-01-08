@@ -1,20 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import Modal from "./Modal";
 import "../styles/ProductsByCategory.css";
 import "../App.css";
 import "../styles/Home.css";
 import "../styles/TrendingJewelry.css";
 import "../styles/Modal.css";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
 
 function ProductsGrid({ products, isAuthenticated }) {
   const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
+
   const [error, setError] = useState(null);
 
   const handleCardClick = (productId) => {
@@ -35,20 +35,17 @@ function ProductsGrid({ products, isAuthenticated }) {
     setShowSuccessModal(false);
     setTimeout(() => {
       window.location.reload();
-    }, 100); 
+    }, 100);
   };
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(
-        `${config.BACKEND_BASE_URL}/products/delete/${productToDelete}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
+      await apiClient.delete(`/products/delete/${productToDelete}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
 
       setShowDeleteModal(false);
       setShowSuccessModal(true);
@@ -57,10 +54,6 @@ function ProductsGrid({ products, isAuthenticated }) {
       setError("Failed to delete the product.");
     }
   };
-
-  if (!products || products.length === 0) {
-    return <Container> No products available </Container>;
-  }
 
   return (
     <Container fluid className="category-products-wrapper">
@@ -76,12 +69,12 @@ function ProductsGrid({ products, isAuthenticated }) {
                 <Card.Img
                   variant="top"
                   className="trending-card-image"
-                  src={`${config.BACKEND_BASE_URL}/${product.image_path}`}
+                  src={`${apiClient.defaults.baseURL}/${product.image_path}`}
                 />
                 <Card.Img
                   variant="top"
                   className="trending-card-hover"
-                  src={`${config.BACKEND_BASE_URL}/${product.image_path2}`}
+                  src={`${apiClient.defaults.baseURL}/${product.image_path2}`}
                 />
               </Container>
             </Card.Body>
@@ -116,6 +109,7 @@ function ProductsGrid({ products, isAuthenticated }) {
           </Card>
         ))}
       </Container>
+
 
       <Modal show={showDeleteModal} onClose={closeModal} title="Warning!">
         <section>Are you sure you want to delete this product?</section>

@@ -1,17 +1,18 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
 import { Container, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-
+import Modal from "./Modal";
 import "../App.css";
 import "../styles/Home.css";
 import "../styles/TrendingJewelry.css";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
+
 
 function TrendingJewelry() {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState(null);
   const scrollRef = useRef(null);
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,7 +21,7 @@ function TrendingJewelry() {
 
   const getTopProducts = async () => {
     try {
-      const response = await axios.get(`${config.BACKEND_BASE_URL}/products`);
+      const response = await apiClient.get(`/products`);
 
       setProducts(response.data);
     } catch (error) {
@@ -51,6 +52,7 @@ function TrendingJewelry() {
     navigate(`/products/${productId}`);
   };
 
+
   return (
     <Container fluid className="trending-section-wrapper">
       {error && (
@@ -73,12 +75,12 @@ function TrendingJewelry() {
                   <Card.Img
                     variant="top"
                     className="trending-card-image"
-                    src={`${config.BACKEND_BASE_URL}/${product.image_path}`}
+                    src={`${apiClient.defaults.baseURL}/${product.image_path}`}
                   />
                   <Card.Img
                     variant="top"
                     className="trending-card-hover"
-                    src={`${config.BACKEND_BASE_URL}/${product.image_path2}`}
+                    src={`${apiClient.defaults.baseURL}/${product.image_path2}`}
                   />
                 </Container>
               </Card.Body>

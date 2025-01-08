@@ -16,6 +16,7 @@ import SellerStatistics from "./components/SellerStatistics";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { Container } from "react-bootstrap";
+import './utils/apiConfig';
 
 const ProductDetails = lazy(() => import("./routes/ProductDetails"));
 const ProductsByCategory = lazy(() => import("./routes/ProductsByCategory"));
@@ -30,7 +31,7 @@ function App() {
             <Container className="content-container">
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/sign-in" element={<LoginAndSignup />} />
+                <Route path="/login" element={<LoginAndSignup />} />
                 <Route
                   path="/products/new"
                   element={

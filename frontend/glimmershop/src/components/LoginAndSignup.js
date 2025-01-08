@@ -1,12 +1,11 @@
 import React, { useState, useContext } from "react";
-import axios from "axios";
 import "../App.css";
 import "../styles/LoginAndSignup.css";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Container, Form, Button } from "react-bootstrap";
 import Modal from "./Modal";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
 
 function LoginAndSignup() {
   const { login } = useContext(AuthContext);
@@ -45,8 +44,8 @@ function LoginAndSignup() {
     formData.append("password", password);
 
     try {
-      const response = await axios.post(
-        `${config.BACKEND_BASE_URL}/auth/login?is_seller=true`,
+      const response = await apiClient.post(
+        `/auth/login?is_seller=true`,
         formData,
         {
           headers: {
@@ -83,8 +82,8 @@ function LoginAndSignup() {
     const encodedEmail = encodeURIComponent(email);
 
     try {
-      await axios.post(
-        `${config.BACKEND_BASE_URL}/auth/forgotten-password?email=${encodedEmail}`
+      await apiClient.post(
+        `/auth/forgotten-password?email=${encodedEmail}`
       );
       setEmail("");
       setError(null);
@@ -111,8 +110,8 @@ function LoginAndSignup() {
     };
 
     try {
-      const response = await axios.post(
-        `${config.BACKEND_BASE_URL}/users/create`,
+      const response = await apiClient.post(
+        `/users/create`,
         formData
       );
       setFirstName("");

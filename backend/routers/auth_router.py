@@ -42,7 +42,7 @@ async def login(
         raise e
 
 
-@router.get("/tests")
+@router.get("/test")
 async def test_cookie_jwt(request: Request):
     token = request.cookies.get(http_only_auth_cookie)
 

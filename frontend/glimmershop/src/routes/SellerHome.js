@@ -2,12 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Container, Form, Button } from "react-bootstrap";
 import Modal from "../components/Modal";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import ProductsGrid from "../components/ProductsGrid";
 import "../App.css";
 import "../styles/Home.css";
 import "../styles/SellerHome.css";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
 
 function SellerHome() {
   const [products, setProducts] = useState(null);
@@ -22,17 +21,11 @@ function SellerHome() {
   useEffect(() => {
     const fetchSellerDataAndProducts = async () => {
       try {
-        const seller = await axios.get(
-          `${config.BACKEND_BASE_URL}/users/${seller_id}`
-        );
+        const seller = await apiClient.get(`/users/${seller_id}`);
         setSellerData(seller.data);
-
-        const sellerProducts = await axios.get(
-          `${config.BACKEND_BASE_URL}/products/products-by-seller`,
-          {
-            params: { seller_id: seller_id },
-          }
-        );
+        const sellerProducts = await apiClient.get('/products/seller-dashboard', {
+          params: { seller_id: seller_id }
+        });
         if (sellerProducts.data.length === 0) {
           setShowNoProductsModal(true);
         }
@@ -51,12 +44,9 @@ function SellerHome() {
   const handleSearch = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.get(
-        `${config.BACKEND_BASE_URL}/products/search/`,
-        {
-          params: { query: searchQuery, seller_id: seller_id },
-        }
-      );
+      const response = await apiClient.get('/products/search/', {
+        params: { query: searchQuery, seller_id: seller_id }
+      });
       setProducts(response.data);
     } catch (error) {
       console.error("Error searching products:", error);

@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import "../App.css";
 import "../styles/LoginAndSignup.css";
 import "././AddNewCategoryToProduct";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
 import { v4 as uuidv4 } from "uuid";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
 
 function AddNewProduct() {
   const [name, setName] = useState("");
@@ -29,8 +28,8 @@ function AddNewProduct() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(
-          `${config.BACKEND_BASE_URL}/categories`,
+        const response = await apiClient.get(
+          `/categories`,
           {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
@@ -77,10 +76,9 @@ function AddNewProduct() {
       image_path: null,
       image_path2: null
     };
-    console.log(productData)
     try {
-      const response = await axios.post(
-        `${config.BACKEND_BASE_URL}/products/new`,
+      const response = await apiClient.post(
+        `/products/new`,
         productData,
         {
           headers: { "Content-Type": "application/json" },
@@ -93,8 +91,8 @@ function AddNewProduct() {
       if (image1) {
         const formData1 = new FormData();
         formData1.append("image", image1, generateUniqueFileName(image1));
-        await axios.post(
-          `${config.BACKEND_BASE_URL}/products/upload-image?product_id=${productId}&image_number=1`,
+        await apiClient.post(
+          `/products/upload-image?product_id=${productId}&image_number=1`,
           formData1,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -106,8 +104,8 @@ function AddNewProduct() {
       if (image2) {
         const formData2 = new FormData();
         formData2.append("image", image2, generateUniqueFileName(image2));
-        await axios.post(
-          `${config.BACKEND_BASE_URL}/products/upload-image?product_id=${productId}&image_number=2`,
+        await apiClient.post(
+          `/products/upload-image?product_id=${productId}&image_number=2`,
           formData2,
           {
             headers: { "Content-Type": "multipart/form-data" },

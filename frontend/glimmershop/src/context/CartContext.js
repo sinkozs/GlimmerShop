@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from "react";
-import axios from "axios";
 import Modal from "../components/Modal";
 import { Container } from "react-bootstrap";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
 
 const CartContext = createContext();
 
@@ -93,8 +92,8 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = async (item) => {
     try {
-      const response = await axios.get(
-        `${config.BACKEND_BASE_URL}/products/${item.id}`
+      const response = await apiClient.get(
+        `/products/${item.id}`
       );
 
       const stockQuantity = response.data.stock_quantity;

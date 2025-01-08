@@ -54,6 +54,20 @@ async def get_products_by_seller(
     return await product_controller.get_all_products_by_seller(seller_id)
 
 
+@router.get("/seller-dashboard")
+async def get_seller_products_dashboard(
+    seller_id: UUID,
+    current_user: dict = Depends(get_current_user),
+    product_controller: ProductController = Depends(get_product_controller),
+) -> list:
+    # Authorization check
+    if UUID(current_user["user_id"]) != seller_id:
+        raise HTTPException(
+            status_code=403, detail="Not authorized to access this seller dashboard"
+        )
+    return await product_controller.get_all_products_by_seller(seller_id)
+
+
 @router.get("/{product_id}")
 async def get_product_by_id(
     product_id: int,
@@ -71,7 +85,7 @@ async def search_products(
     return await product_controller.search_products(query, seller_id)
 
 
-@router.post("/filter_by_price")
+@router.post("/filter-by-price")
 async def get_products_by_price_range(
     category_id: int,
     price_range: PriceFilter,
@@ -82,7 +96,7 @@ async def get_products_by_price_range(
     )
 
 
-@router.post("/filter_by_material")
+@router.post("/filter-by-material")
 async def get_products_by_material(
     category_id: int,
     materials: MaterialsFilter,
@@ -91,7 +105,7 @@ async def get_products_by_material(
     return await product_controller.get_products_by_material(category_id, materials)
 
 
-@router.post("/filter_by_material_price_and_seller")
+@router.post("/filter-by-material-price-and-seller")
 async def filter_products_by_material_and_price(
     filters: ProductFilterRequest,
     product_controller: ProductController = Depends(get_product_controller),

@@ -1,10 +1,9 @@
 import React, { useState, useContext } from "react";
-import axios from "axios";
 import "../App.css";
 import "../styles/LoginAndSignup.css";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -20,8 +19,8 @@ function DeleteUser() {
 
     try {
       if (confirmDeletion && confirmDeletion === "delete profile") {
-        const response = await axios.delete(
-          `${config.BACKEND_BASE_URL}/users/delete`,
+        const response = await apiClient.delete(
+          `/users/delete`,
           { withCredentials: true }
         );
         if (response.status === 200) {

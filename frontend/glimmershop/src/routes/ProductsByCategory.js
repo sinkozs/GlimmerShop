@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 
 import "../App.css";
 import "../styles/Home.css";
@@ -9,7 +8,7 @@ import "../styles/ProductsByCategory.css";
 import "../styles/TrendingJewelry.css";
 import ProductFilters from "../components/ProductFilters";
 import ProductsGrid from "../components/ProductsGrid";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
 
 function ProductsByCategory() {
   const [products, setProducts] = useState([]);
@@ -21,13 +20,13 @@ function ProductsByCategory() {
     const fetchCategoryAndProducts = async () => {
       try {
         let categoryRequest = { category_name: category_name };
-        const categoryResponse = await axios.post(
-          `${config.BACKEND_BASE_URL}/categories/category-by-identifier`,
+        const categoryResponse = await apiClient.post(
+          `/categories/category-by-identifier`,
           categoryRequest
         );
         setCategoryData(categoryResponse.data);
-        const productsResponse = await axios.get(
-          `${config.BACKEND_BASE_URL}/categories/products-by-category/${categoryResponse.data.id}`
+        const productsResponse = await apiClient.get(
+          `/categories/products-by-category/${categoryResponse.data.id}`
         );
         setProducts(productsResponse.data);
       } catch (error) {

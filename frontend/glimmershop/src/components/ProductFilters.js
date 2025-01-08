@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4, validate as isUuid } from "uuid";
-import axios from "axios";
 import FilterByPrice from "./FilterByPrice";
 import FilterByMaterial from "./FilterByMaterial";
 import FilterBySeller from "./FilterBySeller";
 import { Button, Container } from "react-bootstrap";
 import "../styles/ProductFilters.css";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
+import Modal from "./Modal";
 
 function ProductFilters({ category_id, onProductsFetched }) {
   const [selectedMaterials, setSelectedMaterials] = useState([]);
@@ -18,6 +18,7 @@ function ProductFilters({ category_id, onProductsFetched }) {
   const [shouldFetch, setShouldFetch] = useState(false);
   const [resetFilter, setResetFilter] = useState(false);
   const [showAllFilters, setShowAllFilters] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   useEffect(() => {
     if (shouldFetch) {
@@ -43,16 +44,18 @@ function ProductFilters({ category_id, onProductsFetched }) {
           };
 
           console.log(postData);
-          const response = await axios.post(
-            `${config.BACKEND_BASE_URL}/products/filter_by_material_price_and_seller`,
+          const response = await apiClient.post(
+            `/products/filter-by-material-price-and-seller`,
             postData,
             {
               headers: { "Content-Type": "application/json" },
             }
           );
 
-          console.log(response);
           onProductsFetched(response.data);
+          if (response.data.length === 0) {
+            setShowFilterModal(true);
+          }
         } catch (error) {
           console.error("Error fetching filtered products:", error);
           onProductsFetched([]);
@@ -75,10 +78,14 @@ function ProductFilters({ category_id, onProductsFetched }) {
     setSelectedSellerId(sellerId);
   };
 
+  const closeFilterModal = () => {
+    setShowFilterModal(false);
+  };
+
   const fetchAllProducts = async () => {
     try {
-      const response = await axios.get(
-        `${config.BACKEND_BASE_URL}/categories/products-by-category?category_id=${category_id}`
+      const response = await apiClient.get(
+        `/categories/products-by-category/${category_id}`
       );
 
       onProductsFetched(response.data);
@@ -157,6 +164,19 @@ function ProductFilters({ category_id, onProductsFetched }) {
           </>
         )}
       </Container>
+
+      <Modal
+        show={showFilterModal}
+        onClose={closeFilterModal}
+        title="No Products"
+      >
+        <section>No products found matching your criteria.</section>
+        <Container className="modal-footer">
+          <button className="modal-btn" onClick={closeFilterModal}>
+            OK
+          </button>
+        </Container>
+      </Modal>
     </Container>
   );
 }

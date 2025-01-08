@@ -1,85 +1,58 @@
 import React, { useEffect, useRef } from "react";
 import { Button } from "react-bootstrap";
-import axios from "axios";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import config from "../config";
+import apiClient from "../utils/apiConfig";
 
 const Checkout = ({ userCart, deleteCart }) => {
-  const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
-  const effectRan = useRef(false);
+ const stripePromise = loadStripe(config.STRIPE_PUBLIC_KEY);
+ const effectRan = useRef(false);
 
-  useEffect(() => {
-    if (effectRan.current) return;
+ useEffect(() => {
+   if (effectRan.current) return;
+   const query = new URLSearchParams(window.location.search);
+   if (query.get("success") === "true") {
+     handleSuccessfulPayment();
+   }
+   effectRan.current = true;
+ }, []);
 
-    const query = new URLSearchParams(window.location.search);
-    if (query.get("success") === "true") {
-      handleSuccessfulPayment();
-    }
+ const handleSuccessfulPayment = async () => {
+   try {
+     await apiClient.put('/checkout/update-stock/', userCart);
+     deleteCart();
+   } catch (error) {
+     console.error("Failed to update stock and delete cart:", error);
+   }
+ };
 
-    effectRan.current = true;
-  }, []);
+ const handleCheckout = async () => {
+   try {
+     const formattedCart = userCart.map(({ id, name, price, category, quantity, image_path }) => ({
+       id, name, price, category, quantity, image_path
+     }));
 
-  const handleSuccessfulPayment = async () => {
-    try {
-      await axios.put(
-        `${config.BACKEND_BASE_URL}/checkout/update-stock/`,
-        JSON.stringify(userCart),
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
+     const { data: { session_id } } = await apiClient.post(
+       '/checkout/create-checkout-session/',
+       formattedCart
+     );
 
-      deleteCart();
-    } catch (error) {
-      console.error("Failed to update stock and delete cart:", error);
-    }
-  };
+     const stripe = await stripePromise;
+     await stripe.redirectToCheckout({ sessionId: session_id });
+     window.location.href = `${config.FRONTEND_BASE_URL}/?success=true`;
+   } catch (error) {
+     console.error("Failed to start checkout:", error);
+   }
+ };
 
-  const handleCheckout = async () => {
-    try {
-      const formattedCart = userCart.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        category: item.category,
-        quantity: item.quantity,
-        image_path: item.image_path
-        
-      }));
-      console.log(formattedCart)
-      const response = await axios.post(
-        `${config.BACKEND_BASE_URL}/checkout/create-checkout-session/`,
-        JSON.stringify(formattedCart),
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
-      const session_id = response.data.session_id;
-      const stripe = await stripePromise;
-
-      await stripe.redirectToCheckout({ sessionId: session_id });
-      window.location.href = `${config.FRONTEND_BASE_URL}/?success=true`;
-    } catch (error) {
-      console.error("Failed to start checkout:", error);
-    }
-  };
-
-  return (
-    <>
-      <Elements stripe={stripePromise}>
-        <Button className="add-to-bag-btn" onClick={handleCheckout}>
-          CHECKOUT
-        </Button>
-      </Elements>
-    </>
-  );
+ return (
+   <Elements stripe={stripePromise}>
+     <Button className="add-to-bag-btn" onClick={handleCheckout}>
+       CHECKOUT
+     </Button>
+   </Elements>
+ );
 };
 
 export default Checkout;

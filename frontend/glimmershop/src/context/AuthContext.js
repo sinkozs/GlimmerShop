@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import apiClient from "../apiConfig";
+import apiClient from "../utils/apiConfig";
 
 export const AuthContext = createContext();
 
@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    navigate("/sign-in");
+    navigate("/login");
   };
 
   const login = () => {
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await apiClient.post("/auth/logout", {});
       setIsAuthenticated(false);
-      navigate("/sign-in");
+      navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error.response?.data || error.message);
     }

@@ -130,7 +130,7 @@ function Header() {
       <Container className="menu-icons">
         {!isAuthenticated ? (
           <>
-            <NavLink className="nav-link" to="/sign-in">
+            <NavLink className="nav-link" to="/login">
               <FaUser className="fa-icon" />
             </NavLink>
             <Container className="nav-link cart-container">

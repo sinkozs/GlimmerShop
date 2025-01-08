@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import "../App.css";
 import "../styles/LoginAndSignup.css";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
+
 import { useNavigate } from "react-router-dom";
 
 function EditProduct() {
@@ -23,8 +23,6 @@ function EditProduct() {
   const navigate = useNavigate();
 
   const handleAddCategoryClick = () => {
-    console.log("edit", product_id);
-
     navigate(`/add-category-to-product/${product_id}`);
   };
   
@@ -32,8 +30,8 @@ function EditProduct() {
   useEffect(() => {
     const fetchProductData = async () => {
       try {
-        const product = await axios.get(
-          `${config.BACKEND_BASE_URL}/products/${product_id}`
+        const product = await apiClient.get(
+          `/products/${product_id}`
         );
         setName(product.data.name);
         setPrice(product.data.price);
@@ -64,8 +62,8 @@ function EditProduct() {
     if (color !== "") productData.color = color;
 
     try {
-      const response = await axios.put(
-        `${config.BACKEND_BASE_URL}/products/edit?product_id=${product_id}`,
+      const response = await apiClient.put(
+        `/products/edit?product_id=${product_id}`,
         productData,
         {
           headers: {

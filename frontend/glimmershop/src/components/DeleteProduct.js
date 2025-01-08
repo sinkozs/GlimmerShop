@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import "../App.css";
 import "../styles/LoginAndSignup.css";
 import Modal from "./Modal";
 import { Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
-import config from "./config";
+import apiClient from "../utils/apiConfig";
 
 function DeleteProduct() {
   const [showModal, setShowModal] = useState(false);
@@ -15,8 +14,8 @@ function DeleteProduct() {
   useEffect(() => {
     const deleteProduct = async () => {
       try {
-        await axios.delete(
-          `${config.BACKEND_BASE_URL}/products/delete/${product_id}`,
+        await apiClient.delete(
+          `/products/delete/${product_id}`,
           { withCredentials: true }
         );
       } catch (error) {

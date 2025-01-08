@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-
-import axios from "axios";
+import { Container, Button } from "react-bootstrap";
+import { useParams } from "react-router-dom";
+import { FaTruck, FaRecycle, FaHandshake } from "react-icons/fa";
 import "../App.css";
 import "../styles/Home.css";
 import "../styles/ProductDetails.css";
 import TrendingJewelry from "../components/TrendingJewelry";
 import Modal from "../components/Modal";
 import "../styles/TrendingJewelry.css";
-import { Container, Button } from "react-bootstrap";
-import { useParams } from "react-router-dom";
-import { FaTruck, FaRecycle, FaHandshake } from "react-icons/fa";
+
 import { useCart } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
-import config from "../config";
+import apiClient from "../utils/apiConfig";
 
 function ProductDetails() {
   const { product_id } = useParams();
@@ -32,39 +31,33 @@ function ProductDetails() {
   useEffect(() => {
     const fetchProductData = async () => {
       try {
-        const product = await axios.get(
-          `${config.BACKEND_BASE_URL}/products/${product_id}`
-        );
+        const product = await apiClient.get(`/products/${product_id}`);
         const productResponse = product.data;
         setProductData(productResponse);
-        const category = await axios.get(
-          `${config.BACKEND_BASE_URL}/categories/product-categories/${product_id}`
+        const category = await apiClient.get(
+          `/categories/product-categories/${product_id}`
         );
-        if (category.data[0].length === 1){
+        if (category.data[0].length === 1) {
           setProductCategory([category.data[0]]);
-        }
-        else{
-          setProductCategory(category.data[0])
+        } else {
+          setProductCategory(category.data[0]);
         }
 
-  
-        const seller = await axios.get(
-          `${config.BACKEND_BASE_URL}/users/${productResponse.seller_id}`
+        const seller = await apiClient.get(
+          `/users/${productResponse.seller_id}`
         );
         setSellerData(seller.data);
         setAvailability(productResponse.stock_quantity > 0);
-        
       } catch (error) {
         console.error("Error fetching product details:", error);
         setError("Failed to fetch product details. Please try again later.");
       }
     };
-  
+
     if (product_id) {
       fetchProductData();
     }
   }, [product_id]);
-
 
   const handleAddToCart = () => {
     if (productData && availability) {
@@ -118,14 +111,14 @@ function ProductDetails() {
           <Container fluid className="product-grid">
             <Container className="image-section" onClick={handleImageClick}>
               <img
-                src={`${config.BACKEND_BASE_URL}/${productData.image_path}`}
+                src={`${apiClient.defaults.baseURL}/${productData.image_path}`}
                 alt={productData.name}
                 className={`image-col-1 product-image ${
                   currentImage === 1 ? "" : "hide-on-mobile"
                 }`}
               />
               <img
-                src={`${config.BACKEND_BASE_URL}/${productData.image_path2}`}
+                src={`${apiClient.defaults.baseURL}/${productData.image_path2}`}
                 alt={productData.name}
                 className={`image-col-2 product-image ${
                   currentImage === 2 ? "" : "hide-on-mobile"

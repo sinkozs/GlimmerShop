@@ -1,33 +1,16 @@
 import React, { useState, useEffect } from "react";
 import Chart from "react-apexcharts";
-import axios from "axios";
 import { Container, Col } from "react-bootstrap";
 import "./SelectMonthForStatistics.js";
 import "../styles/SellerStatistics.css";
 import SelectMonthForStatistics from "./SelectMonthForStatistics.js";
 import Modal from "./Modal";
-import config from "../config.js";
+import apiClient from "../utils/apiConfig";
 
 function formatNumber(num) {
   return num ? num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.") : "0";
 }
 
-function getCategoryQuantities(productCategories, productQuantities) {
-  const categoryQuantities = {};
-
-  for (const productName in productQuantities) {
-    if (productQuantities.hasOwnProperty(productName)) {
-      const quantity = productQuantities[productName];
-      const category = productCategories[productName];
-
-      if (category) {
-        categoryQuantities[category] = quantity;
-      }
-    }
-  }
-
-  return categoryQuantities;
-}
 
 function getBestSellerProduct(productQuantities) {
   let bestSeller = null;
@@ -74,7 +57,6 @@ function SellerStatistics() {
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [productNames, setProductNames] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [bestSeller, setBestSeller] = useState({});
   const [dataLoaded, setDataLoaded] = useState(false);
   const [error, setError] = useState(null);
@@ -130,8 +112,8 @@ function SellerStatistics() {
             month: `${selectedMonth.padStart(2, "0")}`,
           };
 
-          const response = await axios.post(
-            `${config.BACKEND_BASE_URL}/seller-statistics/get-monthly-transactions`,
+          const response = await apiClient.post(
+            `/seller-statistics/get-monthly-transactions`,
             monthRequest,
             {
               headers: {
@@ -155,17 +137,16 @@ function SellerStatistics() {
               total_transactions = 0,
             } = response.data;
 
-            // For Pie Chart
-            const categoryNames = Object.keys(product_categories); // ['earrings', 'rings', 'bracelets']
-            const categoryQuantities = Object.values(product_categories); // [2, 1, 1]
+            const categoryNames = Object.keys(product_categories);
+            const categoryQuantities = Object.values(product_categories);
 
             setPieChartData({
-              series: categoryQuantities, // Just the array of values
+              series: categoryQuantities,
               options: {
                 chart: {
                   type: "pie",
                 },
-                labels: categoryNames, // Array of category names
+                labels: categoryNames,
                 legend: {
                   position: "bottom",
                 },
@@ -180,7 +161,6 @@ function SellerStatistics() {
               },
             });
 
-            // Rest of your code for other charts and data
             const productNames = Object.keys(product_quantities);
             const productRevenues = getProductRevenues(
               product_quantities,

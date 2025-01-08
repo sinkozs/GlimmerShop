@@ -11,7 +11,13 @@ from sqlalchemy import func, and_, exists, or_
 
 from config.logger_config import get_logger
 from models.models import Product, Category, ProductCategory
-from schemas.schemas import ProductUpdate, PriceFilter, MaterialsFilter, ProductData
+from schemas.schemas import (
+    ProductUpdate,
+    PriceFilter,
+    MaterialsFilter,
+    ProductData,
+    ProductFilterRequest,
+)
 from .user_service import UserService
 from exceptions.product_exceptions import ProductException
 from exceptions.user_exceptions import UserException
@@ -178,6 +184,60 @@ class ProductService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An error occurred when accessing the database!",
             )
+
+    async def get_filtered_products(self, filters: ProductFilterRequest) -> list:
+        try:
+            stmt = (
+                select(Product)
+                .join(Product.product_category)
+                .filter(ProductCategory.category_id == filters.category_id)
+            )
+
+            if filters.materials:
+                material_conditions = [
+                    Product.material.ilike(f"%{word}%")
+                    for material in filters.materials.materials
+                    for word in material.lower().split()
+                ]
+                stmt = stmt.filter(or_(*material_conditions))
+            if filters.price_range:
+                stmt = stmt.filter(
+                    Product.price.between(
+                        filters.price_range.min_price, filters.price_range.max_price
+                    )
+                )
+            if filters.seller.seller_id:
+                stmt = stmt.filter(Product.seller_id == filters.seller.seller_id)
+
+            result = await self.db.execute(stmt)
+            products = result.scalars().all()
+            return [db_model_to_dict(p) for p in products] if products else []
+        except SQLAlchemyError as e:
+            self.logger.error(f"Database error in get_products_by_material: {e}")
+            raise ProductException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An error occurred when accessing the database!",
+            )
+
+    def get_common_products(
+        self, products_by_material, products_by_price_range, products_by_seller
+    ):
+        id_sets = []
+
+        if products_by_material:
+            id_sets.append({p["id"] for p in products_by_material})
+        if products_by_price_range:
+            id_sets.append({p["id"] for p in products_by_price_range})
+        if products_by_seller:
+            id_sets.append({p["id"] for p in products_by_seller})
+
+        common_ids = set.intersection(*id_sets) if id_sets else set()
+
+        all_products = {
+            p["id"]: p
+            for p in products_by_material + products_by_price_range + products_by_seller
+        }
+        return [all_products[pid] for pid in common_ids]
 
     async def check_product_exists(self, product_id: int) -> bool:
         try:
