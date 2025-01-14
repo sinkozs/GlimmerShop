@@ -1,14 +1,14 @@
 import uuid
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, Date, ForeignKey
-from sqlalchemy.orm import relationship, validates
+from sqlalchemy import Boolean, Column, Integer, Float, String, DateTime, Date, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
-
 from .database import Base
 
 
 class Category(Base):
     __tablename__ = "category"
     __table_args__ = {"schema": "public"}
+
     id = Column(Integer, primary_key=True, index=True)
     category_name = Column(String(length=200))
 
@@ -18,10 +18,9 @@ class Category(Base):
 class Product(Base):
     __tablename__ = "product"
     __table_args__ = {"schema": "public"}
+
     id = Column(Integer, primary_key=True, index=True)
-    seller_id = Column(
-        UUID(as_uuid=True), ForeignKey("public.user.id", ondelete="CASCADE")
-    )
+    seller_id = Column(UUID(as_uuid=True), ForeignKey("public.user.id", ondelete="CASCADE"))
     name = Column(String(length=100))
     description = Column(String(length=15000))
     price = Column(Integer)
@@ -32,16 +31,14 @@ class Product(Base):
     image_path2 = Column(String(length=200))
 
     seller = relationship("User", back_populates="product")
-    product_category = relationship(
-        "ProductCategory", back_populates="product", cascade="all, delete-orphan"
-    )
-    user_orders = relationship("UserOrder", back_populates="product")
-    cart_items = relationship("CartItem", back_populates="product")
+    product_category = relationship("ProductCategory", back_populates="product", cascade="all, delete-orphan")
+    order_items = relationship("OrderItem", back_populates="product")
 
 
 class ProductCategory(Base):
     __tablename__ = "product_category"
     __table_args__ = {"schema": "public"}
+
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey("public.product.id", ondelete="CASCADE"))
     category_id = Column(Integer, ForeignKey("public.category.id"))
@@ -53,6 +50,7 @@ class ProductCategory(Base):
 class User(Base):
     __tablename__ = "user"
     __table_args__ = {"schema": "public"}
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     first_name = Column(String(50))
     last_name = Column(String(55))
@@ -65,63 +63,43 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
     registration_date = Column(Date, nullable=False)
 
-    product = relationship(
+    products = relationship(
         "Product",
         back_populates="seller",
         uselist=True,
         cascade="all, delete-orphan",
         primaryjoin="and_(User.id==Product.seller_id, User.is_seller==True)",
     )
-    cart = relationship(
-        "Cart",
-        back_populates="user",
-        uselist=False,
-        cascade="all, delete-orphan",
-        primaryjoin="User.id==Cart.user_id",
-    )
-    user_orders = relationship(
-        "UserOrder", back_populates="user", primaryjoin="User.id==UserOrder.user_id"
+    orders = relationship(
+        "Order",
+        back_populates="user"
     )
 
 
-class Cart(Base):
-    __tablename__ = "cart"
+class Order(Base):
+    __tablename__ = "order"
     __table_args__ = {"schema": "public"}
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("public.user.id", ondelete="CASCADE"),
-        nullable=False,
-    )
 
-    user = relationship("User", back_populates="cart")
-    cart_item = relationship("CartItem", back_populates="cart")
-
-
-class CartItem(Base):
-    __tablename__ = "cart_item"
-    __table_args__ = {"schema": "public"}
-    id = Column(Integer, primary_key=True, index=True)
-    cart_id = Column(Integer, ForeignKey("public.cart.id"))
-    product_id = Column(Integer, ForeignKey("public.product.id"))
-    quantity = Column(Integer)
-
-    cart = relationship("Cart", back_populates="cart_item")
-    product = relationship("Product", back_populates="cart_items")
-
-    @validates("quantity")
-    def validate_quantity(self, key, value):
-        if value < 0:
-            raise ValueError(f"{key.capitalize()} cannot be negative")
-        return value
-
-
-class UserOrder(Base):
-    __tablename__ = "user_order"
-    __table_args__ = {"schema": "public"}
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("public.user.id"))
-    product_id = Column(Integer, ForeignKey("public.product.id"))
+    created_at = Column(DateTime, nullable=False)
+    status = Column(String, default="completed", nullable=False)
+    shipping_address = Column(String, nullable=True)
+    tracking_number = Column(String, nullable=True)
 
-    user = relationship("User", back_populates="user_orders")
-    product = relationship("Product", back_populates="user_orders")
+    user = relationship("User", back_populates="orders")
+    items = relationship("OrderItem", back_populates="order")
+
+
+class OrderItem(Base):
+    __tablename__ = "order_item"
+    __table_args__ = {"schema": "public"}
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("public.order.id"))
+    product_id = Column(Integer, ForeignKey("public.product.id"))
+    price_at_purchase = Column(Float)
+    quantity = Column(Integer)
+
+    order = relationship("Order", back_populates="items")
+    product = relationship("Product", back_populates="order_items")
