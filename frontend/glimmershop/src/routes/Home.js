@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "../App.css";
 import "../styles/Home.css";
 import HeroSection from "../components/HeroSection";
@@ -9,22 +9,43 @@ import Modal from "../components/Modal";
 import TrendingJewelry from "../components/TrendingJewelry";
 import "../styles/TrendingJewelry.css";
 import { Container } from "react-bootstrap";
+import apiClient from "../utils/apiConfig";
 
 function Home() {
   const [showModal, setShowModal] = useState(false);
+  const hasProcessedRef = useRef(false);
 
   useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    if (query.get('success') === 'true') {
-      setShowModal(true);
-    }
+    const handleSuccess = async () => {
+      const query = new URLSearchParams(window.location.search);
+      if (query.get("success") === "true" && !hasProcessedRef.current) {
+        try {
+          const checkoutData = JSON.parse(localStorage.getItem("checkoutData"));
+          if (checkoutData) {
+            console.log("call post checkout");
+            await apiClient.post("/checkout/post-checkout", {
+              orders: checkoutData.orders,
+              guest_user_info: checkoutData.guest_user_info,
+            });
+            hasProcessedRef.current = true;
+            localStorage.removeItem("checkoutData");
+            setShowModal(true);
+          }
+        } catch (error) {
+          console.error("Post-checkout error:", error);
+        }
+      }
+    };
+
+    handleSuccess();
   }, []);
 
   const closeModal = () => {
     setShowModal(false);
     const url = new URL(window.location);
-    url.searchParams.delete('success');
+    url.searchParams.delete("success");
     window.history.replaceState({}, document.title, url);
+    hasProcessedRef.current = false;
   };
 
   return (

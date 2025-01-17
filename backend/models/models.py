@@ -23,14 +23,14 @@ class Product(Base):
     seller_id = Column(UUID(as_uuid=True), ForeignKey("public.user.id", ondelete="CASCADE"))
     name = Column(String(length=100))
     description = Column(String(length=15000))
-    price = Column(Integer)
+    price = Column(Float)
     stock_quantity = Column(Integer)
     material = Column(String(length=100))
     color = Column(String(length=100))
     image_path = Column(String(length=200))
     image_path2 = Column(String(length=200))
 
-    seller = relationship("User", back_populates="product")
+    seller = relationship("User", back_populates="products")
     product_category = relationship("ProductCategory", back_populates="product", cascade="all, delete-orphan")
     order_items = relationship("OrderItem", back_populates="product")
 
@@ -81,11 +81,15 @@ class Order(Base):
     __table_args__ = {"schema": "public"}
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("public.user.id"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("public.user.id"), nullable=True)
+    email = Column(String, nullable=False)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    shipping_address = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
     created_at = Column(DateTime, nullable=False)
-    status = Column(String, default="completed", nullable=False)
-    shipping_address = Column(String, nullable=True)
-    tracking_number = Column(String, nullable=True)
+    status = Column(String, nullable=False)
+    tracking_number = Column(String, nullable=False)
 
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")

@@ -19,7 +19,7 @@ from routers import (
     user_router,
     product_router,
     category_router,
-    cart_router,
+    order_router,
     checkout_router,
     seller_statistics_router,
 )
@@ -66,9 +66,9 @@ def resolve_dependencies(app: FastAPI, config: Config) -> FastAPI:
 def _register_routers(app: FastAPI):
     app.include_router(auth_router.router)
     app.include_router(user_router.router)
+    app.include_router(order_router.router)
     app.include_router(product_router.router)
     app.include_router(category_router.router)
-    app.include_router(cart_router.router)
     app.include_router(checkout_router.router)
     app.include_router(seller_statistics_router.router)
 

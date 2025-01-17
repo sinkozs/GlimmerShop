@@ -8,7 +8,7 @@ from sqlalchemy.future import select
 from fastapi import status
 
 from config.logger_config import get_logger
-from models.models import User, Cart
+from models.models import User, Order
 from exceptions.user_exceptions import UserException
 from dependencies import db_model_to_dict
 from dependencies import send_verification_email, verify_code, hash_password
@@ -123,7 +123,7 @@ class UserService:
             )
 
             if not user_data.is_seller:
-                user.cart = Cart(user=user)
+                user.order = Order(user=user)
 
             user_email = user_data.email
             user_first_name = user_data.first_name

@@ -167,3 +167,18 @@ class ProductFilterRequest(BaseModel):
 class SelectedMonthForSellerStatistics(BaseModel):
     year: str
     month: str
+
+
+class OrderData(BaseModel):
+    product_id: int
+    price: float
+    quantity: int
+
+
+class GuestUserInfo(BaseModel):
+    user_id: Optional[UUID] = None
+    first_name: str
+    last_name: str
+    email: EmailStr
+    phone: str
+    shipping_address: str

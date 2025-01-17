@@ -244,3 +244,7 @@ async def send_password_reset_email(user_email: EmailStr, new_password: str):
         await send_email_via_smtp(user_email, message)
     except Exception as e:
         print(f"Failed to send email. Error: {e}")
+
+
+def generate_random_12_digit_number() -> str:
+    return ''.join([str(random.randint(0, 9)) for _ in range(12)])
