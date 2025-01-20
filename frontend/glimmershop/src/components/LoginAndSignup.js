@@ -58,22 +58,25 @@ function LoginAndSignup() {
       const sellerId = response.data.seller_id;
       localStorage.setItem("seller_id", sellerId);
 
-      setEmail("");
-      setPassword("");
-
       login();
-      navigate(`/seller/${sellerId}`, { state: { sellerId } });
+      const loginResult = await login(sellerId);
+
+      if (loginResult.success) {
+        setEmail("");
+        setPassword("");
+      } else {
+        setError(loginResult.error);
+        setShowModal(true);
+      }
     } catch (error) {
       if (error.response) {
         setError(error.response.data.detail);
-        setShowModal(true);
       } else if (error.request) {
         setError("No response from server. Please try again.");
-        setShowModal(true);
       } else {
         setError("An unexpected error occurred. Please try again.");
-        setShowModal(true);
       }
+      setShowModal(true);
     }
   };
 
@@ -82,9 +85,7 @@ function LoginAndSignup() {
     const encodedEmail = encodeURIComponent(email);
 
     try {
-      await apiClient.post(
-        `/auth/forgotten-password?email=${encodedEmail}`
-      );
+      await apiClient.post(`/auth/forgotten-password?email=${encodedEmail}`);
       setEmail("");
       setError(null);
       setShowPasswordReminderModal(true);
@@ -110,10 +111,7 @@ function LoginAndSignup() {
     };
 
     try {
-      const response = await apiClient.post(
-        `/users/create`,
-        formData
-      );
+      const response = await apiClient.post(`/users/create`, formData);
       setFirstName("");
       setLastName("");
       setEmail("");
@@ -141,6 +139,7 @@ function LoginAndSignup() {
 
   const closeModal = () => {
     setShowModal(false);
+    setError(null);
   };
 
   return (
@@ -151,10 +150,16 @@ function LoginAndSignup() {
             <>
               <h1 className="login-form-h1">Forgot Your Password?</h1>
               <section>
-                We’ll send instructions to reset your password to the email
+                We'll send instructions to reset your password to the email
                 below.
               </section>
-              <Form onSubmit={handleForgotPasswordSubmit} className="form">
+              <Form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleForgotPasswordSubmit(e);
+                }}
+                className="form"
+              >
                 <Form.Group controlId="formEmail" className="form-group">
                   <Form.Control
                     type="text"
@@ -189,7 +194,13 @@ function LoginAndSignup() {
           ) : isSignup ? (
             <>
               <h1 className="login-form-h1">SIGN UP</h1>
-              <Form onSubmit={handleSignUpSubmit} className="form">
+              <Form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSignUpSubmit(e);
+                }}
+                className="form"
+              >
                 <Form.Group controlId="formFirstName" className="form-group">
                   <Form.Control
                     type="text"
@@ -261,7 +272,13 @@ function LoginAndSignup() {
           ) : (
             <>
               <h1 className="login-form-h1">WELCOME BACK</h1>
-              <Form onSubmit={handleSubmit} className="form">
+              <Form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }}
+                className="form"
+              >
                 <Form.Group controlId="formEmail" className="form-group">
                   <Form.Control
                     type="email"

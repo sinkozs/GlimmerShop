@@ -114,13 +114,7 @@ function SellerStatistics() {
 
           const response = await apiClient.post(
             `/seller-statistics/get-monthly-transactions`,
-            monthRequest,
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-              withCredentials: true,
-            }
+            monthRequest
           );
 
           if (response.status === 204) {

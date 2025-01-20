@@ -16,7 +16,7 @@ import SellerStatistics from "./components/SellerStatistics";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { Container } from "react-bootstrap";
-import './utils/apiConfig';
+import "./utils/apiConfig";
 
 const ProductDetails = lazy(() => import("./routes/ProductDetails"));
 const ProductsByCategory = lazy(() => import("./routes/ProductsByCategory"));
@@ -40,7 +40,9 @@ function App() {
                         isAuthenticated ? (
                           <Suspense
                             fallback={
-                              <Container>Loading Add new product page...</Container>
+                              <Container>
+                                Loading Add new product page...
+                              </Container>
                             }
                           >
                             <AddNewProduct />
@@ -79,7 +81,9 @@ function App() {
                       {({ isAuthenticated }) =>
                         isAuthenticated ? (
                           <Suspense
-                            fallback={<Container>Loading your profile...</Container>}
+                            fallback={
+                              <Container>Loading your profile...</Container>
+                            }
                           >
                             <EditUser />
                           </Suspense>
@@ -90,14 +94,16 @@ function App() {
                     </AuthContext.Consumer>
                   }
                 />
-                                <Route
+                <Route
                   path="/profile/delete"
                   element={
                     <AuthContext.Consumer>
                       {({ isAuthenticated }) =>
                         isAuthenticated ? (
                           <Suspense
-                            fallback={<Container>Loading your profile...</Container>}
+                            fallback={
+                              <Container>Loading your profile...</Container>
+                            }
                           >
                             <DeleteUser />
                           </Suspense>
@@ -112,7 +118,9 @@ function App() {
                   path="/seller/:seller_id"
                   element={
                     <Suspense
-                      fallback={<Container>Loading Seller Admin page...</Container>}
+                      fallback={
+                        <Container>Loading Seller Admin page...</Container>
+                      }
                     >
                       <SellerHome />
                     </Suspense>
@@ -121,7 +129,11 @@ function App() {
                 <Route
                   path="/products/:product_id"
                   element={
-                    <Suspense fallback={<Container>Loading Product Details...</Container>}>
+                    <Suspense
+                      fallback={
+                        <Container>Loading Product Details...</Container>
+                      }
+                    >
                       <ProductDetails />
                     </Suspense>
                   }
@@ -133,7 +145,9 @@ function App() {
                       {({ isAuthenticated }) =>
                         isAuthenticated ? (
                           <Suspense
-                            fallback={<Container>Loading product details...</Container>}
+                            fallback={
+                              <Container>Loading product details...</Container>
+                            }
                           >
                             <EditProduct />
                           </Suspense>
@@ -145,14 +159,16 @@ function App() {
                   }
                 />
 
-<Route
+                <Route
                   path="/add-category-to-product/:product_id"
                   element={
                     <AuthContext.Consumer>
                       {({ isAuthenticated }) =>
                         isAuthenticated ? (
                           <Suspense
-                            fallback={<Container>Loading product details...</Container>}
+                            fallback={
+                              <Container>Loading product details...</Container>
+                            }
                           >
                             <AddNewCategoryToProduct />
                           </Suspense>
@@ -167,7 +183,9 @@ function App() {
                 <Route
                   path="categories/:category_name"
                   element={
-                    <Suspense fallback={<Container>Loading Products...</Container>}>
+                    <Suspense
+                      fallback={<Container>Loading Products...</Container>}
+                    >
                       <ProductsByCategory />
                     </Suspense>
                   }

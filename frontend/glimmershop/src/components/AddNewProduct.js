@@ -29,11 +29,7 @@ function AddNewProduct() {
     const fetchCategories = async () => {
       try {
         const response = await apiClient.get(
-          `/categories`,
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          }
+          `/categories`
         );
         const categories = response.data;
         setCategoryList(categories);
@@ -79,11 +75,7 @@ function AddNewProduct() {
     try {
       const response = await apiClient.post(
         `/products/new`,
-        productData,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
+        productData
       );
       const productId = response.data.product_id;
       setProductId(productId);

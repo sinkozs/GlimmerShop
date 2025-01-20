@@ -40,12 +40,7 @@ function ProductsGrid({ products, isAuthenticated }) {
 
   const confirmDelete = async () => {
     try {
-      await apiClient.delete(`/products/delete/${productToDelete}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      });
+      await apiClient.delete(`/products/delete/${productToDelete}`);
 
       setShowDeleteModal(false);
       setShowSuccessModal(true);

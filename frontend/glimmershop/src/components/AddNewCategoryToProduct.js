@@ -24,9 +24,7 @@ function AddNewCategoryToProduct() {
       const response = await apiClient.get(
         `/categories/product-categories`,
         {
-          params: { product_id },
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
+          params: { product_id }
         }
       );
 
@@ -50,9 +48,7 @@ function AddNewCategoryToProduct() {
       const response = await apiClient.delete(
         `/categories/delete-category-from-product`,
         {
-          data: requestData,
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
+          data: requestData
         }
       );
 
@@ -111,11 +107,7 @@ function AddNewCategoryToProduct() {
         try {
           const newCategoryResponse = await apiClient.post(
             `/categories/new`,
-            newCategoryRequest,
-            {
-              headers: { "Content-Type": "application/json" },
-              withCredentials: true,
-            }
+            newCategoryRequest
           );
           categoryId = newCategoryResponse.data.id;
           console.log(categoryId, categoryId)
@@ -132,10 +124,6 @@ function AddNewCategoryToProduct() {
         {
           product_id: product_id,
           category_id: categoryId,
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
         }
       );
 

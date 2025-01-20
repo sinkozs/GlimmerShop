@@ -15,8 +15,7 @@ function DeleteProduct() {
     const deleteProduct = async () => {
       try {
         await apiClient.delete(
-          `/products/delete/${product_id}`,
-          { withCredentials: true }
+          `/products/delete/${product_id}`
         );
       } catch (error) {
         console.error("Error when deleting product:", error);

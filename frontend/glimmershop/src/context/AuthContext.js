@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../utils/apiConfig";
 
@@ -8,47 +8,58 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
-  // Periodically check for authentication status to handle session expiration
-  useEffect(() => {
-    const interval = setInterval(checkAuth, 20 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
-      await apiClient.get("/auth/test");
+      const response = await apiClient.get("/auth/test");
       setIsAuthenticated(true);
     } catch (error) {
-      if (error.response?.status === 403) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
         setIsAuthenticated(false);
-        handleLogout();
+        navigate("/login");
       }
     }
-  };
+  }, [navigate]);
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    navigate("/login");
-  };
+  
+  const login = useCallback(
+    async (sellerId) => {
+      try {
+        setIsAuthenticated(true);
+        if (sellerId) {
+          navigate(`/seller/${sellerId}`, { state: { sellerId } });
+        }
+        return { success: true };
+      } catch (error) {
+        setIsAuthenticated(false);
+        return {
+          success: false,
+          error: error.message || "Login failed",
+        };
+      }
+    },
+    [navigate]
+  );
 
-  const login = () => {
-    setIsAuthenticated(true);
-  };
-
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
-      await apiClient.post("/auth/logout", {});
+      await apiClient.post("/auth/logout");
       setIsAuthenticated(false);
-      navigate("/login");
+      navigate("/login", { replace: true });
     } catch (error) {
       console.error("Logout failed:", error.response?.data || error.message);
+      setIsAuthenticated(false);
+      navigate("/login", { replace: true });
     }
+  }, [navigate]);
+
+  const value = {
+    isAuthenticated,
+    login,
+    logout,
+    checkAuth,
   };
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, checkAuth }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export default AuthProvider;

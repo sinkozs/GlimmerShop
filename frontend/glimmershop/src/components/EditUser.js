@@ -22,8 +22,7 @@ function EditUser() {
       const sellerId = localStorage.getItem("seller_id");
       try {
         const response = await axios.get(
-          `${config.BACKEND_BASE_URL}/users/${sellerId}`,
-          { withCredentials: true }
+          `${config.BACKEND_BASE_URL}/users/${sellerId}`
         );
         const seller = response.data
         setFirstName(seller.first_name);
@@ -54,12 +53,7 @@ function EditUser() {
     if (password) formData.password = password;
 
     await axios
-      .put(`${config.BACKEND_BASE_URL}/users/edit`, formData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      })
+      .put(`${config.BACKEND_BASE_URL}/users/edit`, formData)
       .then((response) => {
         setFirstName("");
         setLastName("");

@@ -64,13 +64,7 @@ function EditProduct() {
     try {
       const response = await apiClient.put(
         `/products/edit?product_id=${product_id}`,
-        productData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
+        productData
       );
 
       if (response.status === 200) {

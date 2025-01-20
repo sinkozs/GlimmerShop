@@ -9,7 +9,7 @@ import "../styles/SellerHome.css";
 import apiClient from "../utils/apiConfig";
 
 function SellerHome() {
-  const [products, setProducts] = useState(null);
+  const [products, setProducts] = useState([]);
   const [sellerData, setSellerData] = useState(null);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,9 +23,12 @@ function SellerHome() {
       try {
         const seller = await apiClient.get(`/users/${seller_id}`);
         setSellerData(seller.data);
-        const sellerProducts = await apiClient.get('/products/seller-dashboard', {
-          params: { seller_id: seller_id }
-        });
+        const sellerProducts = await apiClient.get(
+          "/products/seller-dashboard",
+          {
+            params: { seller_id: seller_id }
+          }
+        );
         if (sellerProducts.data.length === 0) {
           setShowNoProductsModal(true);
         }
@@ -44,8 +47,8 @@ function SellerHome() {
   const handleSearch = async (event) => {
     event.preventDefault();
     try {
-      const response = await apiClient.get('/products/search/', {
-        params: { query: searchQuery, seller_id: seller_id }
+      const response = await apiClient.get("/products/search/", {
+        params: { query: searchQuery, seller_id: seller_id },
       });
       setProducts(response.data);
     } catch (error) {
@@ -82,13 +85,20 @@ function SellerHome() {
         >
           <section> You haven't added any products yet.</section>
 
-          <Button onClick={() => navigate("/products/new")} className="back-to-login-btn">
+          <Button
+            onClick={() => navigate("/products/new")}
+            className="back-to-login-btn"
+          >
             Add Your First Product
           </Button>
         </Modal>
       </Container>
 
-      <ProductsGrid products={products} isAuthenticated={true} />
+      {products && products.length > 0 ? (
+        <ProductsGrid products={products} isAuthenticated={true} />
+      ) : (
+        <section>No products to display</section>
+      )}
     </Container>
   );
 }
