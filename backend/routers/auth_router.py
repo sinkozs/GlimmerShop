@@ -1,8 +1,8 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
-
+from fastapi.responses import JSONResponse
 from config.parser import load_config
-from config.auth_config import http_only_auth_cookie
+from config.auth_config import http_only_auth_cookie, jwt_algorithm
 from controllers.auth_controller import AuthController
 from pydantic import EmailStr
 from services.auth_service import AuthService
@@ -27,16 +27,15 @@ def verify_password(password1, password2, session: AsyncSession = Depends(get_se
 
 @router.post("/login")
 async def login(
-    is_seller: bool,
-    response: Response,
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    session: AsyncSession = Depends(get_session),
+        is_seller: bool,
+        form_data: OAuth2PasswordRequestForm = Depends(),
+        session: AsyncSession = Depends(get_session),
 ):
     service = AuthService(session)
     auth_controller = AuthController(service)
     try:
         return await auth_controller.login_for_access_token(
-            is_seller, response, form_data
+            is_seller, form_data
         )
     except HTTPException as e:
         raise e
@@ -51,7 +50,10 @@ async def test_cookie_jwt(request: Request):
 
     try:
         auth_config = load_config().auth_config
-        payload = jwt.decode(token, auth_config.secret_key, algorithms=["HS256"])
+        public_key = auth_config.load_public_key().decode('utf-8')
+        payload = jwt.decode(
+            token=token, key=public_key, algorithms=[jwt_algorithm]
+        )
         return {"token_payload": payload}
     except JWTError:
         raise HTTPException(status_code=403, detail="Invalid token")
@@ -64,9 +66,9 @@ async def check_if_user_authenticated(current_user: dict = Depends(get_current_u
 
 @router.post("/logout")
 async def user_logout(
-    response: Response,
-    current_user: dict = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+        response: Response,
+        current_user: dict = Depends(get_current_user),
+        session: AsyncSession = Depends(get_session),
 ):
     service = AuthService(session)
     auth_controller = AuthController(service)
@@ -75,22 +77,29 @@ async def user_logout(
         raise HTTPException(status_code=403, detail="Not authenticated")
 
     try:
-        response.delete_cookie(key=http_only_auth_cookie, httponly=True)
-
         user_id: UUID = current_user.get("user_id")
         if not user_id:
             raise HTTPException(status_code=400, detail="Missing user ID")
 
         await auth_controller.user_logout(user_id)
+        json_response = JSONResponse(content={"message": "Logout successful"})
 
-        return {"message": "Logout successful"}
+        json_response.delete_cookie(
+            key=http_only_auth_cookie,
+            httponly=True,
+            samesite="lax",
+            secure=False,
+        )
+
+        return json_response
+
     except HTTPException as e:
         raise e
 
 
 @router.post("/forgotten-password")
 async def regenerate_forgotten_password(
-    email: EmailStr, session: AsyncSession = Depends(get_session)
+        email: EmailStr, session: AsyncSession = Depends(get_session)
 ):
     service = AuthService(session)
     auth_controller = AuthController(service)

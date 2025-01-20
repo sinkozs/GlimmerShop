@@ -61,6 +61,8 @@ async def get_seller_products_dashboard(
     product_controller: ProductController = Depends(get_product_controller),
 ) -> list:
     # Authorization check
+    print(f'current user UUID: {UUID(current_user["user_id"])}')
+    print(f'seller_id: {seller_id}, {type(seller_id)}')
     if UUID(current_user["user_id"]) != seller_id:
         raise HTTPException(
             status_code=403, detail="Not authorized to access this seller dashboard"

@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from uuid import UUID
 from fastapi.responses import JSONResponse
 
+import config
 from config.logger_config import get_logger
 from models.models import User
 from config.auth_config import (
@@ -43,17 +44,17 @@ class AuthService:
                 for i in range(self.auth_config.min_password_length)
             )
             if (
-                any(c.islower() for c in password)
-                and any(c.isupper() for c in password)
-                and any(c.isdigit() for c in password)
-                and any(c in string.punctuation for c in password)
+                    any(c.islower() for c in password)
+                    and any(c.isupper() for c in password)
+                    and any(c.isdigit() for c in password)
+                    and any(c in string.punctuation for c in password)
             ):
                 break
 
         return password
 
     def create_access_token(
-        self, user_id: UUID, email: EmailStr, expires_delta: Optional[timedelta] = None
+            self, user_id: UUID, email: EmailStr, expires_delta: Optional[timedelta] = None
     ) -> str:
         encode = {"id": str(user_id), "email": str(email)}
         if expires_delta:
@@ -92,24 +93,27 @@ class AuthService:
     #     return session_id
 
     async def set_response_cookie(
-        self, user_id: UUID, email: EmailStr, response: Response
-    ):
+            self,
+            user_id: UUID,
+            email: EmailStr,
+            response: Response
+    ) -> Response:
         access_token = self.create_access_token(user_id=user_id, email=email)
-        sign_in_response = JSONResponse(content={"message": "Login successful"})
-        # In this project, I use localhost and HTTP, but for production, set secure=True
+
         response.set_cookie(
             key=http_only_auth_cookie,
             value=access_token,
             httponly=True,
-            max_age=3600,
-            expires=3600,
+            max_age=config.auth_config.token_expiry_minutes * 60,
+            expires=config.auth_config.token_expiry_minutes * 60,
             samesite="lax",
-            secure=False,
+            secure=False
         )
-        return sign_in_response
+
+        return response
 
     async def authenticate(
-        self, email: EmailStr, password: str, is_seller: bool
+            self, email: EmailStr, password: str, is_seller: bool
     ) -> dict:
         async with self.db.begin():
             try:

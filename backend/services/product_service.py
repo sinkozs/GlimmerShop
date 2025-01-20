@@ -62,27 +62,20 @@ class ProductService:
             )
 
     async def get_all_products_by_seller(self, seller_id: UUID) -> list:
-        try:
-            user_service = UserService(self.db)
-            if not await user_service.check_seller_exists(seller_id):
-                raise UserException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"No seller found with id {seller_id}",
-                )
-
-            stmt = select(Product).filter(Product.seller_id == seller_id)
-            result = await self.db.execute(stmt)
-            products = result.scalars().all()
-            if products:
-                return [db_model_to_dict(product) for product in products]
-            else:
-                return []
-        except SQLAlchemyError as e:
-            self.logger.error(f"Database error in get_all_products_by_seller: {e}")
-            raise ProductException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database!",
+        user_service = UserService(self.db)
+        if not await user_service.check_seller_exists(seller_id):
+            raise UserException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No seller found with id {seller_id}",
             )
+
+        stmt = select(Product).filter(Product.seller_id == seller_id)
+        result = await self.db.execute(stmt)
+        products = result.scalars().all()
+        if products:
+            return [db_model_to_dict(product) for product in products]
+        else:
+            return []
 
     async def get_all_categories_for_product(self, product_id: int) -> List[dict]:
         try:
@@ -125,7 +118,7 @@ class ProductService:
             )
 
     async def get_products_by_price_range(
-        self, category_id: int, price_range: PriceFilter
+            self, category_id: int, price_range: PriceFilter
     ) -> list:
         try:
             stmt = (
@@ -153,7 +146,7 @@ class ProductService:
             )
 
     async def get_products_by_material(
-        self, category_id: int, materials: MaterialsFilter
+            self, category_id: int, materials: MaterialsFilter
     ) -> list:
         try:
             extended_materials = set()
@@ -220,7 +213,7 @@ class ProductService:
             )
 
     def get_common_products(
-        self, products_by_material, products_by_price_range, products_by_seller
+            self, products_by_material, products_by_price_range, products_by_seller
     ):
         id_sets = []
 
@@ -261,8 +254,8 @@ class ProductService:
             stmt = select(Product).where(
                 (Product.seller_id == seller_id)
                 & (
-                    Product.name.ilike(f"%{query}%")
-                    | (Product.id == query_as_uuid if query_as_uuid else False)
+                        Product.name.ilike(f"%{query}%")
+                        | (Product.id == query_as_uuid if query_as_uuid else False)
                 )
             )
             result = await self.db.execute(stmt)
@@ -292,7 +285,7 @@ class ProductService:
             )
 
     async def upload_image(
-        self, product_id: int, image_number: int, image: UploadFile = File(...)
+            self, product_id: int, image_number: int, image: UploadFile = File(...)
     ):
         try:
             product = await self.get_product_by_id(product_id)

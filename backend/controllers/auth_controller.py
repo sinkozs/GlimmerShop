@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, Response, status
+from fastapi.responses import JSONResponse
 from exceptions.auth_exceptions import AuthenticationException
 from pydantic import EmailStr
 from services.auth_service import AuthService
@@ -14,9 +15,8 @@ class AuthController:
     async def login_for_access_token(
         self,
         is_seller: bool,
-        response: Response,
         form_data: OAuth2PasswordRequestForm = Depends(),
-    ) -> dict:
+    ) -> Response:
         email = form_data.username
         password = form_data.password
 
@@ -34,11 +34,17 @@ class AuthController:
                     detail="Invalid credentials",
                 )
 
-            response = await self._service.set_response_cookie(
-                seller["id"], seller["email"], response
+            response = JSONResponse(
+                content={"message": "Login successful", "seller_id": seller["id"]}
             )
 
-            return {"response": response, "seller_id": seller["id"]}
+            response = await self._service.set_response_cookie(
+                seller["id"],
+                seller["email"],
+                response
+            )
+
+            return response
 
         except AuthenticationException as e:
             raise HTTPException(
