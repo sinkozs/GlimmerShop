@@ -60,11 +60,20 @@ class SMTPConfig:
 
 @dataclass
 class AuthConfig:
-    secret_key: str
+    private_key_path: str
+    public_key_path: str
     token_expiry_minutes: int
     min_password_length: int
     http_session_secret: str
     stripe_secret_key: str
+
+    def load_private_key(self) -> bytes:
+        with open(self.private_key_path, 'rb') as f:
+            return f.read()
+
+    def load_public_key(self) -> bytes:
+        with open(self.public_key_path, 'rb') as f:
+            return f.read()
 
 
 @dataclass

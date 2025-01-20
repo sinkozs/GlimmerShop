@@ -62,7 +62,8 @@ def load_config(
         ),
     )
     auth_config = AuthConfig(
-        secret_key=os.getenv("SECRET_KEY"),
+        private_key_path=os.path.join(parser.get("auth", "RSAKeyPath"), "private.pem"),
+        public_key_path=os.path.join(parser.get("auth", "RSAKeyPath"), "public.pem"),
         token_expiry_minutes=int(os.getenv("TOKEN_EXPIRY_MINUTES")),
         min_password_length=int(parser.get("auth", "MinPasswordLength")),
         http_session_secret=os.getenv("HTTP_SESSION_SECRET"),

@@ -15,7 +15,7 @@ from config.logger_config import get_logger
 from models.models import User
 from config.auth_config import (
     bcrypt_context,
-    encryption_algorithm,
+    jwt_algorithm,
     http_only_auth_cookie,
 )
 from exceptions.auth_exceptions import AuthenticationException
@@ -63,8 +63,10 @@ class AuthService:
                 minutes=self.auth_config.token_expiry_minutes
             )
         encode.update({"exp": expire})
+        auth_config = load_config().auth_config
+        private_key = auth_config.load_private_key().decode('utf-8')
         return jwt.encode(
-            encode, self.auth_config.secret_key, algorithm=encryption_algorithm
+            claims=encode, key=private_key, algorithm=jwt_algorithm
         )
 
     # async def get_redis_session(self, request: Request, response: Response) -> str:

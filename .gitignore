@@ -9,5 +9,6 @@ backend/alembic/alembic/README
 frontend/glimmershop/src/images/
 frontend/glimmershop/src/.env
 backend/images/
+backend/certs
 
 

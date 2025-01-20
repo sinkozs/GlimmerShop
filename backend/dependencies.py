@@ -9,7 +9,7 @@ from pydantic import EmailStr
 from jose import jwt
 
 from config.auth_config import (
-    encryption_algorithm,
+    jwt_algorithm,
     bcrypt_context,
     http_only_auth_cookie,
 )
@@ -110,8 +110,9 @@ async def get_current_user(request: Request) -> dict:
         )
     try:
         auth_config = load_config().auth_config
+        public_key = auth_config.load_public_key().decode('utf-8')
         payload = jwt.decode(
-            token, auth_config.secret_key, algorithms=[encryption_algorithm]
+            token=token, key=public_key, algorithms=[jwt_algorithm]
         )
         email: EmailStr = payload.get("email")
         user_id: UUID = payload.get("id")
