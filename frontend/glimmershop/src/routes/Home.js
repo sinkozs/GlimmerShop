@@ -16,28 +16,40 @@ function Home() {
   const hasProcessedRef = useRef(false);
 
   useEffect(() => {
-    const handleSuccess = async () => {
-      const query = new URLSearchParams(window.location.search);
-      if (query.get("success") === "true" && !hasProcessedRef.current) {
-        try {
-          const checkoutData = JSON.parse(localStorage.getItem("checkoutData"));
-          if (checkoutData) {
-            console.log("call post checkout");
-            await apiClient.post("/checkout/post-checkout", {
-              orders: checkoutData.orders,
-              guest_user_info: checkoutData.guest_user_info,
-            });
-            hasProcessedRef.current = true;
-            localStorage.removeItem("checkoutData");
-            setShowModal(true);
-          }
-        } catch (error) {
-          console.error("Post-checkout error:", error);
-        }
+    async function processCheckout(checkoutData) {
+      try {
+        const processed = localStorage.getItem('checkoutProcessed');
+        if (processed) return;
+        
+        localStorage.setItem('checkoutProcessed', 'true');
+        
+        await apiClient.post("/checkout/post-checkout", {
+          orders: checkoutData.orders,
+          guest_user_info: checkoutData.guest_user_info,
+        });
+        
+        localStorage.removeItem("checkoutData");
+        setShowModal(true);
+      } catch (error) {
+        console.error("Post-checkout error:", error);
+        localStorage.removeItem('checkoutProcessed');
       }
-    };
+    }
 
-    handleSuccess();
+    const query = new URLSearchParams(window.location.search);
+    try {
+      const checkoutData = localStorage.getItem("checkoutData");
+      if (query.get("success") === "true" && checkoutData) {
+        const parsedData = JSON.parse(checkoutData);
+        processCheckout(parsedData);
+      }
+    } catch (error) {
+      console.error("Error parsing checkout data:", error);
+    }
+
+    return () => {
+      hasProcessedRef.current = false;
+    };
   }, []);
 
   const closeModal = () => {
@@ -45,6 +57,7 @@ function Home() {
     const url = new URL(window.location);
     url.searchParams.delete("success");
     window.history.replaceState({}, document.title, url);
+    localStorage.removeItem('checkoutProcessed');
     hasProcessedRef.current = false;
   };
 

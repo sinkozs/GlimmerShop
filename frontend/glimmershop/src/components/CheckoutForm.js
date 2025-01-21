@@ -85,7 +85,7 @@ const CheckoutForm = ({ userCart }) => {
       };
 
       let response = await apiClient.post(
-        "/checkout/create-checkout-session/",
+        "/checkout/create-checkout-session",
         cart_items
       );
 
