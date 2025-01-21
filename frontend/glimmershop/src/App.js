@@ -1,4 +1,3 @@
-import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import React, { useContext, useEffect, Suspense, lazy } from "react";
 import Header from "./components/Header";
@@ -12,11 +11,13 @@ import AddNewProduct from "./components/AddNewProduct";
 import AddNewCategoryToProduct from "./components/AddNewCategoryToProduct";
 import EditProduct from "./components/EditProduct";
 import SellerStatistics from "./components/SellerStatistics";
+import CheckoutPage from "./routes/CheckoutPage";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { Container } from "react-bootstrap";
 import "./utils/apiConfig";
 import { setLogoutHandler } from "./utils/apiConfig";
+import "./App.css";
 
 const ProductDetails = lazy(() => import("./routes/ProductDetails"));
 const ProductsByCategory = lazy(() => import("./routes/ProductsByCategory"));
@@ -43,6 +44,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<LoginAndSignup />} />
+                <Route path="/checkout" element={<CheckoutPage />} />  
                 <Route
                   path="/products/new"
                   element={

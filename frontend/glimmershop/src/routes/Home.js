@@ -10,10 +10,12 @@ import TrendingJewelry from "../components/TrendingJewelry";
 import "../styles/TrendingJewelry.css";
 import { Container } from "react-bootstrap";
 import apiClient from "../utils/apiConfig";
+import { useCart } from "../context/CartContext";
 
 function Home() {
   const [showModal, setShowModal] = useState(false);
   const hasProcessedRef = useRef(false);
+  const { deleteCart } = useCart(); 
 
   useEffect(() => {
     async function processCheckout(checkoutData) {
@@ -30,6 +32,7 @@ function Home() {
         });
         
         localStorage.removeItem("checkoutData");
+        deleteCart();
         setShowModal(true);
       } catch (error) {
         console.error("Post-checkout error:", error);

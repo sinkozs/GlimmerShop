@@ -3,7 +3,7 @@ import Modal from "../components/Modal";
 import { Container } from "react-bootstrap";
 import apiClient from "../utils/apiConfig";
 
-const CartContext = createContext();
+export const CartContext = createContext();
 
 export const useCart = () => useContext(CartContext);
 

@@ -8,7 +8,7 @@ import "../styles/Header.css";
 import "../styles/Cart.css";
 import "../styles/ProductFilters.css";
 import "../styles/ProductDetails.css";
-import Checkout from "./Checkout";
+import Checkout from "./CheckoutButton";
 import config from "../config";
 
 function Header() {
