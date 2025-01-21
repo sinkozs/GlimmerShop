@@ -18,6 +18,7 @@ function Home() {
   useEffect(() => {
     async function processCheckout(checkoutData) {
       try {
+        // The useEffect hook runs multiple times in development mode, so this flag was added to prevent multiple API calls
         const processed = localStorage.getItem('checkoutProcessed');
         if (processed) return;
         

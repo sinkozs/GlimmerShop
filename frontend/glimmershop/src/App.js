@@ -1,7 +1,6 @@
-import React, { Suspense, lazy } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+import React, { useContext, useEffect, Suspense, lazy } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./routes/Home";
@@ -17,15 +16,27 @@ import { CartProvider } from "./context/CartContext";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { Container } from "react-bootstrap";
 import "./utils/apiConfig";
+import { setLogoutHandler } from "./utils/apiConfig";
 
 const ProductDetails = lazy(() => import("./routes/ProductDetails"));
 const ProductsByCategory = lazy(() => import("./routes/ProductsByCategory"));
+
+function LogoutHandler() {
+  const { logout } = useContext(AuthContext);
+
+  useEffect(() => {
+    setLogoutHandler(logout);
+  }, [logout]);
+
+  return null;
+}
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
+          <LogoutHandler />
           <Container className="app-container">
             <Header />
             <Container className="content-container">

@@ -50,15 +50,13 @@ function LoginAndSignup() {
         {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-          },
-          withCredentials: true,
+          }
         }
       );
 
       const sellerId = response.data.seller_id;
       localStorage.setItem("seller_id", sellerId);
 
-      login();
       const loginResult = await login(sellerId);
 
       if (loginResult.success) {
@@ -77,6 +75,7 @@ function LoginAndSignup() {
         setError("An unexpected error occurred. Please try again.");
       }
       setShowModal(true);
+      return false;
     }
   };
 
@@ -276,6 +275,7 @@ function LoginAndSignup() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleSubmit(e);
+                  return false; 
                 }}
                 className="form"
               >
