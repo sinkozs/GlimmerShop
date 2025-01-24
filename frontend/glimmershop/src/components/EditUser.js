@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../App.css";
-import "../styles/LoginAndSignup.css";
+import "../styles/Form.css";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -76,9 +76,9 @@ function EditUser() {
 
   return (
     <Container fluid className="page-wrapper">
-      <Container fluid className="login-form-container">
-        <Container fluid className="login-form-content">
-          <h1 className="login-form-h1">EDIT YOUR PROFILE</h1>
+      <Container fluid className="form-container">
+        <Container fluid className="form-content">
+          <h1 className="form-h1">EDIT YOUR PROFILE</h1>
           <Form onSubmit={handleSubmit} className="form">
             <Form.Group controlId="formFirstName" className="form-group">
               <Form.Control

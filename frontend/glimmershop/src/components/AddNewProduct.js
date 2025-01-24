@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../App.css";
-import "../styles/LoginAndSignup.css";
+import "../styles/Form.css";
 import "././AddNewCategoryToProduct";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
@@ -131,9 +131,9 @@ function AddNewProduct() {
 
   return (
     <Container fluid className="page-wrapper">
-      <Container fluid className="login-form-container">
-        <Container fluid className="login-form-content">
-          <h1 className="login-form-h1">ADD NEW PRODUCT</h1>
+      <Container fluid className="form-container">
+        <Container fluid className="form-content">
+          <h1 className="form-h1">ADD NEW PRODUCT</h1>
           <Form onSubmit={handleSubmit} className="form">
             <Form.Group controlId="productName" className="form-group">
               <Form.Control

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../App.css";
-import "../styles/LoginAndSignup.css";
+import "../styles/Form.css";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
@@ -99,10 +99,10 @@ function EditProduct() {
 
   return (
     <Container fluid className="page-wrapper">
-      <Container fluid className="login-form-container">
-        <Container fluid className="login-form-content">
+      <Container fluid className="form-container">
+        <Container fluid className="form-content">
           <>
-            <h1 className="login-form-h1">EDIT PRODUCT</h1>
+            <h1 className="form-h1">EDIT PRODUCT</h1>
             <Form onSubmit={handleSubmit} className="form">
               <Form.Group controlId="productName" className="form-group">
                 <Form.Control

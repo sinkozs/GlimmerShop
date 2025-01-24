@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import "../App.css";
-import "../styles/LoginAndSignup.css";
+import "../styles/Form.css";
 import Modal from "./Modal";
 import { Container, Form, Button } from "react-bootstrap";
 import apiClient from "../utils/apiConfig";
@@ -45,9 +45,9 @@ function DeleteUser() {
 
   return (
     <Container fluid className="page-wrapper">
-      <Container fluid className="login-form-container">
-        <Container fluid className="login-form-content">
-          <h1 className="login-form-h1">DELETE YOUR PROFILE</h1>
+      <Container fluid className="form-container">
+        <Container fluid className="form-content">
+          <h1 className="form-h1">DELETE YOUR PROFILE</h1>
           <Form onSubmit={handleSubmit} className="form">
             <p>
               To confirm the deletion of your profile, please type 'delete

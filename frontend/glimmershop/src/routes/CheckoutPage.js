@@ -1,9 +1,11 @@
 import React, { useState, useContext } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
+import { Container, Form, Button } from "react-bootstrap";
 import apiClient from "../utils/apiConfig";
 import config from "../config";
 import { useCart } from "../context/CartContext";
+import "../styles/Form.css";
 
 const CheckoutPage = () => {
   const { cart: userCart } = useCart();
@@ -118,147 +120,107 @@ const CheckoutPage = () => {
 
   return (
     <Elements stripe={stripePromise}>
-      <div className="max-w-2xl mx-auto p-6">
-        <h2 className="text-2xl font-semibold mb-6">Shipping Information</h2>
-        <form onSubmit={handleCheckout} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                First Name
-              </label>
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              {errors.firstName && (
-                <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
-              )}
-            </div>
+      <Container fluid className="page-wrapper">
+        <Container fluid className="form-container">
+          <Container fluid className="form-content">
+            <h1 className="form-h1">BILLING INFORMATION</h1>
+            <Form onSubmit={handleCheckout} className="form" autoComplete="on">
+              <Form.Group controlId="formFirstName" className="form-group">
+                <Form.Control
+                  type="text"
+                  placeholder="First Name"
+                  name="firstName"
+                  autoComplete="given-name"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </Form.Group>
+              <Form.Group controlId="formLastName" className="form-group">
+                <Form.Control
+                  type="text"
+                  placeholder="Last Name"
+                  name="lastName"
+                  autoComplete="family-name"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </Form.Group>
+              <Form.Group controlId="formEmail" className="form-group">
+                <Form.Control
+                  type="email"
+                  placeholder="Email address"
+                  name="email"
+                  autoComplete="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </Form.Group>
+              <Form.Group controlId="formPassword" className="form-group">
+                <Form.Control
+                  type="tel"
+                  placeholder="Phone"
+                  name="phone"
+                  autoComplete="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </Form.Group>
+              <Form.Group controlId="formAddress" className="form-group">
+                <Form.Control
+                  type="text"
+                  placeholder="Street Address"
+                  name="address"
+                  autoComplete="street-address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </Form.Group>
+              <Form.Group controlId="formCity" className="form-group">
+                <Form.Control
+                  type="text"
+                  placeholder="City"
+                  name="city"
+                  autoComplete="address-level2"
+                  value={formData.city}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </Form.Group>
+              <Form.Group controlId="formState" className="form-group">
+                <Form.Control
+                  type="text"
+                  placeholder="State"
+                  name="state"
+                  autoComplete="address-level1"
+                  value={formData.state}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </Form.Group>
+              <Form.Group controlId="formZIP" className="form-group">
+                <Form.Control
+                  type="text"
+                  placeholder="ZIP Code"
+                  name="zipCode"
+                  autoComplete="postal-code"
+                  value={formData.zipCode}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </Form.Group>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Last Name
-              </label>
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              {errors.lastName && (
-                <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Phone</label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              {errors.phone && (
-                <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-              )}
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1">
-                Street Address
-              </label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              {errors.address && (
-                <p className="text-red-500 text-sm mt-1">{errors.address}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">City</label>
-              <input
-                type="text"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              {errors.city && (
-                <p className="text-red-500 text-sm mt-1">{errors.city}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">State</label>
-              <input
-                type="text"
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              {errors.state && (
-                <p className="text-red-500 text-sm mt-1">{errors.state}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">ZIP Code</label>
-              <input
-                type="text"
-                name="zipCode"
-                value={formData.zipCode}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              {errors.zipCode && (
-                <p className="text-red-500 text-sm mt-1">{errors.zipCode}</p>
-              )}
-            </div>
-          </div>
-
-          {errors.submit && (
-            <div className="text-red-500 text-center mt-4">{errors.submit}</div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-2 px-4 rounded-md transition-colors mt-6 
-              ${
-                isLoading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 text-white"
-              }`}
-          >
-            {isLoading ? "Processing..." : "Proceed to Payment"}
-          </button>
-        </form>
-      </div>
+              <Button variant="primary" type="submit" className="login-btn">
+                Proceed to Payment
+              </Button>
+            </Form>
+          </Container>
+        </Container>
+      </Container>
     </Elements>
   );
 };

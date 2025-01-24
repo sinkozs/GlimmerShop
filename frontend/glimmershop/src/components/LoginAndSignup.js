@@ -1,8 +1,7 @@
 import React, { useState, useContext } from "react";
 import "../App.css";
-import "../styles/LoginAndSignup.css";
+import "../styles/Form.css";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { Container, Form, Button } from "react-bootstrap";
 import Modal from "./Modal";
 import apiClient from "../utils/apiConfig";
@@ -23,8 +22,6 @@ function LoginAndSignup() {
     useState(false);
   const [showPasswordReminderModal, setShowPasswordReminderModal] =
     useState(false);
-
-  const navigate = useNavigate();
 
   const handleForgotPassword = () => {
     setIsForgotPassword(true);
@@ -143,11 +140,11 @@ function LoginAndSignup() {
 
   return (
     <Container fluid className="page-wrapper">
-      <Container fluid className="login-form-container">
-        <Container fluid className="login-form-content">
+      <Container fluid className="form-container">
+        <Container fluid className="form-content">
           {isForgotPassword ? (
             <>
-              <h1 className="login-form-h1">Forgot Your Password?</h1>
+              <h1 className="form-h1">Forgot Your Password?</h1>
               <section>
                 We'll send instructions to reset your password to the email
                 below.
@@ -173,7 +170,7 @@ function LoginAndSignup() {
                   RESET PASSWORD
                 </Button>
               </Form>
-              <Button onClick={handleBackToLogin} className="back-to-login-btn">
+              <Button onClick={handleBackToLogin} className="back-btn">
                 Back to Login
               </Button>
               <Modal show={showModal} onClose={closeModal} title="Error">
@@ -192,7 +189,7 @@ function LoginAndSignup() {
             </>
           ) : isSignup ? (
             <>
-              <h1 className="login-form-h1">SIGN UP</h1>
+              <h1 className="form-h1">SIGN UP</h1>
               <Form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -264,13 +261,13 @@ function LoginAndSignup() {
                 </section>
               </Modal>
 
-              <Button onClick={handleBackToLogin} className="back-to-login-btn">
+              <Button onClick={handleBackToLogin} className="back-btn">
                 Back to Login
               </Button>
             </>
           ) : (
             <>
-              <h1 className="login-form-h1">WELCOME BACK</h1>
+              <h1 className="form-h1">WELCOME BACK</h1>
               <Form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -307,7 +304,7 @@ function LoginAndSignup() {
               <Modal show={showModal} onClose={closeModal} title="Login Error">
                 <section>{error}</section>
               </Modal>
-              <Container fluid className="login-form-footer">
+              <Container fluid className="form-footer">
                 <Button
                   onClick={() => setIsSignup(true)}
                   className="sign-up-btn"

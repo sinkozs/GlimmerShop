@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Container, Form, Button, ListGroup, Table } from "react-bootstrap";
 import Modal from "./Modal";
 import apiClient from "../utils/apiConfig";
-import "../styles/LoginAndSignup.css";
+import "../styles/Form.css";
 import "../styles/Category.css";
 
 function AddNewCategoryToProduct() {
@@ -144,8 +144,8 @@ function AddNewCategoryToProduct() {
 
   return (
     <Container fluid className="page-wrapper">
-      <Container fluid className="login-form-container">
-        <h1 className="login-form-h1">PRODUCT CATEGORIES</h1>
+      <Container fluid className="form-container">
+        <h1 className="form-h1">PRODUCT CATEGORIES</h1>
         <h3 className="category-h3">Current Categories</h3>
         {currentCategories.length > 0 ? (
           <Table className="category-table">

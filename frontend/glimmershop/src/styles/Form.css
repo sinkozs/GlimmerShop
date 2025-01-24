@@ -8,7 +8,7 @@
   background-color: #ddd;
 }
 
-.login-form-container {
+.form-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -20,7 +20,7 @@
   padding-bottom: 15px;
 }
 
-.login-form-content {
+.form-content {
   display: flex;
   flex-direction: column;
   width: 90% !important;
@@ -29,13 +29,13 @@
   align-items: center;
 }
 
-.login-form-content h1 {
+.form-content h1 {
   font-family: "Poppins", sans-serif;
   font-weight: 700;
   font-size: 32px;
 }
 
-.login-form-content p {
+.form-content p {
   font-family: "Poppins", sans-serif;
   font-weight: 500;
   font-size: 12px;
@@ -77,7 +77,7 @@
   opacity: 0.8;
 }
 
-.login-form-footer {
+.form-footer {
   display: flex;
   width: 90%;
   margin-top: 30px;
@@ -95,7 +95,7 @@
   margin-top: 1rem;
 }
 
-.back-to-login-btn {
+.back-btn {
   font-family: "Poppins", sans-serif;
   font-weight: 500;
   font-size: 12px;
@@ -108,7 +108,7 @@
 
 /* Media query adjustments for mobile screens */
 @media (max-width: 745px) {
-  .login-form-container {
+  .form-container {
     width: 95%;
   }
 }
