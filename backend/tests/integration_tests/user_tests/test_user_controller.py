@@ -362,7 +362,7 @@ class TestUserController:
 
     class TestCreateNewUser:
         @pytest.mark.asyncio
-        async def test_create_new_user_success(self, controller, mock_service):
+        async def test_create_new_user_success(self, controller, mock_service, mocker):
             user_data = UserCreate(
                 email="tests@example.com",
                 password="Password123!",
@@ -373,6 +373,11 @@ class TestUserController:
             test_user_id = "123e4567-e89b-12d3-a456-426614174000"
             mock_service.create_new_user.return_value = test_user_id
 
+            # Mock send_verification_email
+            mock_send_email = mocker.patch(
+                "dependencies.send_verification_email", return_value=True
+            )
+
             response = await controller.create_new_user(user_data)
 
             assert isinstance(response, dict)
@@ -381,6 +386,10 @@ class TestUserController:
             assert response["user_id"] == test_user_id
 
             mock_service.create_new_user.assert_awaited_once_with(user_data)
+
+            mock_send_email.assert_called_once_with(
+                user_data.first_name, user_data.email
+            )
 
         @pytest.mark.asyncio
         async def test_create_new_user_duplicate_email(self, controller, mock_service):

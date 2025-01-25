@@ -32,10 +32,10 @@ class UserController:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def get_users_by_type(
-            self,
-            is_seller: bool = Query(
-                ..., description="True for sellers, False for customers"
-            ),
+        self,
+        is_seller: bool = Query(
+            ..., description="True for sellers, False for customers"
+        ),
     ) -> list[dict]:
         try:
             users = await self._service.get_users_by_type(is_seller)
@@ -77,7 +77,9 @@ class UserController:
             user_id = await self._service.create_new_user(user_data)
             if user_id:
                 try:
-                    await dependencies.send_verification_email(user_data.first_name, user_data.email)
+                    await dependencies.send_verification_email(
+                        user_data.first_name, user_data.email
+                    )
                 except Exception as e:
                     self.logger.error(f"Failed to send verification email: {e}")
             return {"user_id": user_id}
@@ -135,7 +137,7 @@ class UserController:
 
             if user_update.password:
                 if not bcrypt_context.verify(
-                        user_update.password, current_user["hashed_password"]
+                    user_update.password, current_user["hashed_password"]
                 ):
                     update_data["hashed_password"] = hash_password(user_update.password)
 

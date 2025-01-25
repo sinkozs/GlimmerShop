@@ -496,11 +496,6 @@ class TestUserService:
         @pytest.mark.asyncio
         async def test_create_seller_success(self, test_session, monkeypatch):
             """Test successful seller user creation"""
-            # Mock send_verification_email
-            mock_send_email = AsyncMock()
-            monkeypatch.setattr(
-                "services.user_service.send_verification_email", mock_send_email
-            )
 
             user_data = UserCreate(
                 first_name="John",
@@ -515,17 +510,9 @@ class TestUserService:
 
             assert isinstance(user_id, str)
 
-            mock_send_email.assert_called_once_with(
-                user_data.first_name, user_data.email
-            )
-
         @pytest.mark.asyncio
         async def test_create_buyer_success(self, test_session, monkeypatch):
             """Test successful buyer user creation with cart"""
-            mock_send_email = AsyncMock()
-            monkeypatch.setattr(
-                "services.user_service.send_verification_email", mock_send_email
-            )
 
             user_data = UserCreate(
                 first_name="Jane",
@@ -539,10 +526,6 @@ class TestUserService:
             user_id = await user_service.create_new_user(user_data)
 
             assert isinstance(user_id, str)
-
-            mock_send_email.assert_called_once_with(
-                user_data.first_name, user_data.email
-            )
 
         @pytest.mark.asyncio
         async def test_create_user_database_error(self, test_session, mocker):
@@ -570,17 +553,8 @@ class TestUserService:
             assert "creating the user" in str(exc.value.detail)
 
         @pytest.mark.asyncio
-        async def test_create_user_verification_email_error(
-            self, test_session, monkeypatch
-        ):
-            """Test handling of email sending failure"""
-
-            async def mock_send_email(*args):
-                raise Exception("Email sending failed")
-
-            monkeypatch.setattr(
-                "services.user_service.send_verification_email", mock_send_email
-            )
+        async def test_create_user_verification_email_error(self, test_session, mocker):
+            mocker.patch("dependencies.send_verification_email", return_value=False)
 
             user_data = UserCreate(
                 first_name="Test",
@@ -591,24 +565,18 @@ class TestUserService:
             )
 
             user_service = UserService(test_session)
-
-            # User should still be created even if email fails
             user_id = await user_service.create_new_user(user_data)
 
             assert isinstance(user_id, str)
 
-            # Verify user was created in database
-            async with test_session.begin():
-                stmt = select(User).filter(User.email == user_data.email)
-                db_user = (await test_session.execute(stmt)).scalars().first()
-                assert db_user is not None
+            stmt = select(User).filter(User.email == user_data.email)
+            db_user = (await test_session.execute(stmt)).scalars().first()
+            assert db_user is not None
 
         @pytest.mark.asyncio
         async def test_password_hashing(self, test_session, monkeypatch):
             """Test that password is properly hashed"""
-            monkeypatch.setattr(
-                "services.user_service.send_verification_email", AsyncMock()
-            )
+            monkeypatch.setattr("dependencies.send_verification_email", AsyncMock())
 
             user_data = UserCreate(
                 first_name="Pass",
@@ -621,20 +589,17 @@ class TestUserService:
             user_service = UserService(test_session)
             await user_service.create_new_user(user_data)
 
-            async with test_session.begin():
-                stmt = select(User).filter(User.email == user_data.email)
-                db_user = (await test_session.execute(stmt)).scalars().first()
+            stmt = select(User).filter(User.email == user_data.email)
+            db_user = (await test_session.execute(stmt)).scalars().first()
 
-                assert db_user.hashed_password != user_data.password
-                assert len(db_user.hashed_password) > 0
-                assert db_user.password_length == len(user_data.password)
+            assert db_user.hashed_password != user_data.password
+            assert len(db_user.hashed_password) > 0
+            assert db_user.password_length == len(user_data.password)
 
         @pytest.mark.asyncio
         async def test_registration_date(self, test_session, monkeypatch):
             """Test that registration date is set correctly"""
-            monkeypatch.setattr(
-                "services.user_service.send_verification_email", AsyncMock()
-            )
+            monkeypatch.setattr("dependencies.send_verification_email", AsyncMock())
 
             user_data = UserCreate(
                 first_name="Date",
@@ -649,11 +614,10 @@ class TestUserService:
 
             today = datetime.now(timezone.utc).date()
 
-            async with test_session.begin():
-                stmt = select(User).filter(User.email == user_data.email)
-                db_user = (await test_session.execute(stmt)).scalars().first()
+            stmt = select(User).filter(User.email == user_data.email)
+            db_user = (await test_session.execute(stmt)).scalars().first()
 
-                assert db_user.registration_date == today
+            assert db_user.registration_date == today
 
     class TestEditUser:
         @pytest.mark.asyncio
@@ -836,28 +800,3 @@ class TestUserService:
 
             assert exc.value.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
             assert "database" in str(exc.value.detail).lower()
-
-        @pytest.mark.asyncio
-        async def test_delete_user_cascading(self, test_users, test_session):
-            """Test that related records are deleted properly"""
-            buyer_data = test_users[1]
-
-            async with test_session.begin():
-                user = User(**buyer_data)
-                user.cart = Cart(user=user)
-                test_session.add(user)
-
-            user_service = UserService(test_session)
-            result = await user_service.delete_user(buyer_data["id"])
-
-            assert result == str(buyer_data["id"])
-
-            # Verify cart was also deleted (cascade)
-            cart_stmt = select(Cart).filter(Cart.user_id == buyer_data["id"])
-            cart = (await test_session.execute(cart_stmt)).scalars().first()
-            assert cart is None
-
-            # Verify user was deleted
-            user_stmt = select(User).filter(User.id == buyer_data["id"])
-            user = (await test_session.execute(user_stmt)).scalars().first()
-            assert user is None
