@@ -8,12 +8,14 @@ from schemas.schemas import UserCreate, UserUpdate, UserVerification
 from schemas.response_schemas import UserResponse
 from exceptions.user_exceptions import UserException
 from fastapi import HTTPException, Query, status
+from config.logger_config import get_logger
 
 
 class UserController:
 
     def __init__(self, user_service: UserService):
         self._service = user_service
+        self.logger = get_logger(__name__)
 
     async def get_user_by_id(self, user_id: str) -> dict:
         try:
@@ -30,10 +32,10 @@ class UserController:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 
     async def get_users_by_type(
-        self,
-        is_seller: bool = Query(
-            ..., description="True for sellers, False for customers"
-        ),
+            self,
+            is_seller: bool = Query(
+                ..., description="True for sellers, False for customers"
+            ),
     ) -> list[dict]:
         try:
             users = await self._service.get_users_by_type(is_seller)
@@ -73,6 +75,11 @@ class UserController:
     async def create_new_user(self, user_data: UserCreate) -> dict[str, str]:
         try:
             user_id = await self._service.create_new_user(user_data)
+            if user_id:
+                try:
+                    await dependencies.send_verification_email(user_data.first_name, user_data.email)
+                except Exception as e:
+                    self.logger.error(f"Failed to send verification email: {e}")
             return {"user_id": user_id}
         except UserException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
@@ -128,7 +135,7 @@ class UserController:
 
             if user_update.password:
                 if not bcrypt_context.verify(
-                    user_update.password, current_user["hashed_password"]
+                        user_update.password, current_user["hashed_password"]
                 ):
                     update_data["hashed_password"] = hash_password(user_update.password)
 

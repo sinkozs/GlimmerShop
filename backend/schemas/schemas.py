@@ -108,11 +108,6 @@ class CategoryQuery(BaseModel):
         arbitrary_types_allowed = True
 
 
-class CartItemUpdate(BaseModel):
-    product_id: int
-    quantity: Annotated[int, Field(ge=0)]
-
-
 class CategoryIdentifiers(BaseModel):
     category_id: Optional[int] = None
     category_name: Optional[str] = None

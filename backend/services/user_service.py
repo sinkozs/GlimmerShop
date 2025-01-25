@@ -8,10 +8,10 @@ from sqlalchemy.future import select
 from fastapi import status
 
 from config.logger_config import get_logger
-from models.models import User, Order
+from models.models import User
 from exceptions.user_exceptions import UserException
 from dependencies import db_model_to_dict
-from dependencies import send_verification_email, verify_code, hash_password
+from dependencies import verify_code, hash_password
 from schemas.schemas import UserCreate
 
 
@@ -122,23 +122,11 @@ class UserService:
                 password_length=len(user_data.password),
             )
 
-            if not user_data.is_seller:
-                user.order = Order(user=user)
+            self.db.add(user)
+            await self.db.flush()
+            await self.db.refresh(user)
 
-            user_email = user_data.email
-            user_first_name = user_data.first_name
-
-            async with self.db.begin():
-                self.db.add(user)
-                await self.db.flush()
-                await self.db.refresh(user)
-                user_id = str(user.id)
-
-            try:
-                await send_verification_email(user_first_name, user_email)
-            except Exception as e:
-                self.logger.error(f"Failed to send verification email: {e}")
-            return user_id
+            return str(user.id)
 
         except SQLAlchemyError as e:
             self.logger.error(f"Database error in create_new_user: {e}")

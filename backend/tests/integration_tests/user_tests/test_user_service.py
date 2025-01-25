@@ -14,7 +14,7 @@ from tests.integration_tests.user_tests.helper import (
     assert_user_dicts,
     assert_user_field_types,
 )
-from models.models import User, Cart
+from models.models import User
 
 
 class TestUserService:

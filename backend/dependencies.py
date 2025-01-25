@@ -21,8 +21,10 @@ import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from functools import lru_cache
+from config.logger_config import get_logger
 
 verification_storage = dict()
+logger = get_logger(__name__)
 
 
 @lru_cache
@@ -191,10 +193,10 @@ async def send_email_via_smtp(user_email: EmailStr, message: MIMEMultipart):
         # send email
         server.sendmail(smtp_config.sender_email, user_email, message.as_string())
     except Exception as e:
-        print(f"Failed to send email. Error: {e}")
+        logger.error(f"Failed to send email. Error: {e}")
 
     finally:
-        print("Email sent successfully!")
+        logger.info("Email sent successfully!")
         server.quit()
 
 
@@ -225,7 +227,7 @@ async def send_verification_email(first_name: str, user_email: EmailStr) -> bool
         }
         return True
     except Exception as e:
-        print(f"Failed to send email. Error: {e}")
+        logger.error(f"Failed to send email. Error: {e}")
 
 
 async def send_password_reset_email(user_email: EmailStr, new_password: str):
@@ -242,7 +244,7 @@ async def send_password_reset_email(user_email: EmailStr, new_password: str):
     try:
         await send_email_via_smtp(user_email, message)
     except Exception as e:
-        print(f"Failed to send email. Error: {e}")
+        logger.error(f"Failed to send email. Error: {e}")
 
 
 def generate_random_12_digit_number() -> str:
