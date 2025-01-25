@@ -9,7 +9,6 @@ import secrets
 import string
 from datetime import datetime, timedelta
 from uuid import UUID
-from fastapi.responses import JSONResponse
 
 import config
 from config.logger_config import get_logger
@@ -44,17 +43,17 @@ class AuthService:
                 for i in range(self.auth_config.min_password_length)
             )
             if (
-                    any(c.islower() for c in password)
-                    and any(c.isupper() for c in password)
-                    and any(c.isdigit() for c in password)
-                    and any(c in string.punctuation for c in password)
+                any(c.islower() for c in password)
+                and any(c.isupper() for c in password)
+                and any(c.isdigit() for c in password)
+                and any(c in string.punctuation for c in password)
             ):
                 break
 
         return password
 
     def create_access_token(
-            self, user_id: UUID, email: EmailStr, expires_delta: Optional[timedelta] = None
+        self, user_id: UUID, email: EmailStr, expires_delta: Optional[timedelta] = None
     ) -> str:
         encode = {"id": str(user_id), "email": str(email)}
         if expires_delta:
@@ -65,10 +64,8 @@ class AuthService:
             )
         encode.update({"exp": expire})
         auth_config = load_config().auth_config
-        private_key = auth_config.load_private_key().decode('utf-8')
-        return jwt.encode(
-            claims=encode, key=private_key, algorithm=jwt_algorithm
-        )
+        private_key = auth_config.load_private_key().decode("utf-8")
+        return jwt.encode(claims=encode, key=private_key, algorithm=jwt_algorithm)
 
     # async def get_redis_session(self, request: Request, response: Response) -> str:
     #     session_id = request.cookies.get("session_id")
@@ -93,10 +90,7 @@ class AuthService:
     #     return session_id
 
     async def set_response_cookie(
-            self,
-            user_id: UUID,
-            email: EmailStr,
-            response: Response
+        self, user_id: UUID, email: EmailStr, response: Response
     ) -> Response:
         access_token = self.create_access_token(user_id=user_id, email=email)
 
@@ -107,13 +101,13 @@ class AuthService:
             max_age=config.auth_config.token_expiry_minutes * 60,
             expires=config.auth_config.token_expiry_minutes * 60,
             samesite="lax",
-            secure=False
+            secure=False,
         )
 
         return response
 
     async def authenticate(
-            self, email: EmailStr, password: str, is_seller: bool
+        self, email: EmailStr, password: str, is_seller: bool
     ) -> dict:
         async with self.db.begin():
             try:

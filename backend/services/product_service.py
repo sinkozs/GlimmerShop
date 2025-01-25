@@ -118,7 +118,7 @@ class ProductService:
             )
 
     async def get_products_by_price_range(
-            self, category_id: int, price_range: PriceFilter
+        self, category_id: int, price_range: PriceFilter
     ) -> list:
         try:
             stmt = (
@@ -146,7 +146,7 @@ class ProductService:
             )
 
     async def get_products_by_material(
-            self, category_id: int, materials: MaterialsFilter
+        self, category_id: int, materials: MaterialsFilter
     ) -> list:
         try:
             extended_materials = set()
@@ -213,7 +213,7 @@ class ProductService:
             )
 
     def get_common_products(
-            self, products_by_material, products_by_price_range, products_by_seller
+        self, products_by_material, products_by_price_range, products_by_seller
     ):
         id_sets = []
 
@@ -254,8 +254,8 @@ class ProductService:
             stmt = select(Product).where(
                 (Product.seller_id == seller_id)
                 & (
-                        Product.name.ilike(f"%{query}%")
-                        | (Product.id == query_as_uuid if query_as_uuid else False)
+                    Product.name.ilike(f"%{query}%")
+                    | (Product.id == query_as_uuid if query_as_uuid else False)
                 )
             )
             result = await self.db.execute(stmt)
@@ -285,7 +285,7 @@ class ProductService:
             )
 
     async def upload_image(
-            self, product_id: int, image_number: int, image: UploadFile = File(...)
+        self, product_id: int, image_number: int, image: UploadFile = File(...)
     ):
         try:
             product = await self.get_product_by_id(product_id)

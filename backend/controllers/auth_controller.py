@@ -39,9 +39,7 @@ class AuthController:
             )
 
             response = await self._service.set_response_cookie(
-                seller["id"],
-                seller["email"],
-                response
+                seller["id"], seller["email"], response
             )
 
             return response

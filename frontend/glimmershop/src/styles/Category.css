@@ -2,7 +2,7 @@
   font-family: "Poppins", sans-serif;
   font-weight: 500;
   font-size: 16px;
-  margin: 1rem, 0;
+  margin: 1rem 0;
   padding: 0;
   text-align: left;
   display: block;
@@ -39,4 +39,86 @@
 .category-table td {
   border: 1px solid lightgray;
   padding: 8px;
+}
+
+/* Mobile devices */
+@media (max-width: 768px) {
+  .category-h3 {
+    font-size: 14px;
+    margin: 0.75rem 0;
+  }
+
+  .search-dropdown {
+    font-size: 11px;
+  }
+
+  .admin-btn {
+    font-size: 11px;
+  }
+
+  .category-table {
+    font-size: 11px;
+    width: 100%;
+  }
+
+  .category-table th,
+  .category-table td {
+    padding: 6px;
+  }
+
+  .form-container {
+    padding: 1rem;
+  }
+
+  .form-h1 {
+    font-size: 20px;
+    padding: 1rem 0;
+  }
+}
+
+/* Tablets and smaller desktops */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .category-h3 {
+    font-size: 15px;
+  }
+
+  .category-table {
+    width: 95%;
+  }
+
+  .form-container {
+    padding: 1.5rem;
+  }
+
+  .form-h1 {
+    font-size: 24px;
+    padding: 1.5rem 0;
+  }
+}
+
+/* Large desktops */
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .form-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .form-h1 {
+    font-size: 26px;
+    padding: 1.5rem 0;
+  }
+}
+
+/* Extra large screens */
+@media (min-width: 1441px) {
+  .form-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2.5rem;
+  }
+
+  .category-table {
+    width: 80%;
+  }
 }

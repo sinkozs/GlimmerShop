@@ -110,10 +110,8 @@ async def get_current_user(request: Request) -> dict:
         )
     try:
         auth_config = load_config().auth_config
-        public_key = auth_config.load_public_key().decode('utf-8')
-        payload = jwt.decode(
-            token=token, key=public_key, algorithms=[jwt_algorithm]
-        )
+        public_key = auth_config.load_public_key().decode("utf-8")
+        payload = jwt.decode(token=token, key=public_key, algorithms=[jwt_algorithm])
         email: EmailStr = payload.get("email")
         user_id: UUID = payload.get("id")
         if not email or not user_id:
@@ -248,4 +246,4 @@ async def send_password_reset_email(user_email: EmailStr, new_password: str):
 
 
 def generate_random_12_digit_number() -> str:
-    return ''.join([str(random.randint(0, 9)) for _ in range(12)])
+    return "".join([str(random.randint(0, 9)) for _ in range(12)])

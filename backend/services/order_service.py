@@ -1,6 +1,5 @@
 from datetime import datetime
-from typing import List, Dict, Optional
-from uuid import UUID
+from typing import List
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,12 +9,10 @@ from fastapi import status
 from config.logger_config import get_logger
 from dependencies import db_model_to_dict, generate_random_12_digit_number
 from exceptions.order_exceptions import OrderException
-from exceptions.user_exceptions import UserException
-from models.models import User, Order, OrderItem
+from models.models import Order, OrderItem
 from sqlalchemy.orm import joinedload
 
 from schemas.schemas import OrderData, GuestUserInfo
-from services.user_service import UserService
 
 
 class OrderService:
@@ -51,9 +48,8 @@ class OrderService:
             )
 
     async def add_new_order(
-            self,
-            orders: List[OrderData],
-            guest_user_info: GuestUserInfo) -> int:
+        self, orders: List[OrderData], guest_user_info: GuestUserInfo
+    ) -> int:
         try:
             current_time = datetime.now()
             tracking_number = generate_random_12_digit_number()
@@ -67,7 +63,7 @@ class OrderService:
                 phone=guest_user_info.phone,
                 status="confirmed",
                 created_at=current_time,
-                tracking_number=tracking_number
+                tracking_number=tracking_number,
             )
             self.db.add(new_order)
             await self.db.flush()
@@ -77,7 +73,7 @@ class OrderService:
                     order_id=new_order.id,
                     product_id=order.product_id,
                     quantity=order.quantity,
-                    price_at_purchase=order.price
+                    price_at_purchase=order.price,
                 )
                 for order in orders
             ]
@@ -90,5 +86,5 @@ class OrderService:
             self.logger.error(f"Database error in add_new_order: {e}")
             raise OrderException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An error occurred when accessing the database!"
+                detail="An error occurred when accessing the database!",
             )

@@ -34,8 +34,7 @@ class SellerStatisticsService:
     async def get_category_name(self, category_id: str):
         try:
             int_category_id = int(category_id)
-            r = await self._category_service.get_category_name_by_id(int_category_id)
-            return r["category_name"]
+            return await self._category_service.get_category_by_id(int_category_id)
         except ValueError:
             raise HTTPException(
                 status_code=400, detail=f"Invalid category ID format: {category_id}"

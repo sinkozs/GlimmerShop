@@ -68,11 +68,11 @@ class AuthConfig:
     stripe_secret_key: str
 
     def load_private_key(self) -> bytes:
-        with open(self.private_key_path, 'rb') as f:
+        with open(self.private_key_path, "rb") as f:
             return f.read()
 
     def load_public_key(self) -> bytes:
-        with open(self.public_key_path, 'rb') as f:
+        with open(self.public_key_path, "rb") as f:
             return f.read()
 
 

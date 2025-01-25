@@ -1,5 +1,14 @@
 import uuid
-from sqlalchemy import Boolean, Column, Integer, Float, String, DateTime, Date, ForeignKey
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Integer,
+    Float,
+    String,
+    DateTime,
+    Date,
+    ForeignKey,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from .database import Base
@@ -20,7 +29,9 @@ class Product(Base):
     __table_args__ = {"schema": "public"}
 
     id = Column(Integer, primary_key=True, index=True)
-    seller_id = Column(UUID(as_uuid=True), ForeignKey("public.user.id", ondelete="CASCADE"))
+    seller_id = Column(
+        UUID(as_uuid=True), ForeignKey("public.user.id", ondelete="CASCADE")
+    )
     name = Column(String(length=100))
     description = Column(String(length=15000))
     price = Column(Float)
@@ -31,7 +42,9 @@ class Product(Base):
     image_path2 = Column(String(length=200))
 
     seller = relationship("User", back_populates="products")
-    product_category = relationship("ProductCategory", back_populates="product", cascade="all, delete-orphan")
+    product_category = relationship(
+        "ProductCategory", back_populates="product", cascade="all, delete-orphan"
+    )
     order_items = relationship("OrderItem", back_populates="product")
 
 
@@ -70,10 +83,7 @@ class User(Base):
         cascade="all, delete-orphan",
         primaryjoin="and_(User.id==Product.seller_id, User.is_seller==True)",
     )
-    orders = relationship(
-        "Order",
-        back_populates="user"
-    )
+    orders = relationship("Order", back_populates="user")
 
 
 class Order(Base):

@@ -1,17 +1,11 @@
-from uuid import UUID
-
 from exceptions.order_exceptions import OrderException
 from services.order_service import OrderService
-from typing import Optional, List
-from fastapi import HTTPException, Response, status
+from fastapi import HTTPException
 
 
 class OrderController:
 
-    def __init__(
-        self,
-        service: OrderService
-    ):
+    def __init__(self, service: OrderService):
         self._service = service
 
     async def get_order_by_id(self, order_id: int) -> dict:

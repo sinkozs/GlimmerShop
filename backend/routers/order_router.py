@@ -1,4 +1,3 @@
-from typing import List
 from fastapi import APIRouter, Depends
 from dependencies import get_session
 from services.order_service import OrderService

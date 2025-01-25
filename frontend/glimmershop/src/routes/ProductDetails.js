@@ -34,13 +34,19 @@ function ProductDetails() {
         const product = await apiClient.get(`/products/${product_id}`);
         const productResponse = product.data;
         setProductData(productResponse);
+        console.log("product_id:", product_id, "type:", typeof product_id);
         const category = await apiClient.get(
           `/categories/product-categories/${product_id}`
         );
-        if (category.data[0].length === 1) {
-          setProductCategory([category.data[0]]);
+        console.log(category.data);
+
+        // Get array of [id, name] pairs
+        const categoryEntries = Object.entries(category.data);
+
+        if (categoryEntries.length === 1) {
+          setProductCategory([categoryEntries[0][0]]);
         } else {
-          setProductCategory(category.data[0]);
+          setProductCategory(categoryEntries.map((entry) => entry[0]));
         }
 
         const seller = await apiClient.get(
