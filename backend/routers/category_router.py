@@ -47,7 +47,7 @@ async def get_category_name_by_id(
 
 
 @router.get("/search/", response_model=List[CategoryQuery])
-async def search_products(
+async def search_categories(
     query: str = Query(...),
     controller: CategoryController = Depends(get_category_controller),
 ):
@@ -65,7 +65,7 @@ async def get_category_by_identifier(
 @router.get("/product-categories/{product_id}")
 async def get_product_categories(
     product_id: int, controller: CategoryController = Depends(get_category_controller)
-) -> list:
+) -> dict:
     return await controller.get_product_categories(product_id)
 
 
@@ -89,6 +89,7 @@ async def add_category_to_product(
     request: CategoryToProductRequest,
     controller: CategoryController = Depends(get_category_controller),
 ):
+    print(request)
     return await controller.add_category_to_product(request)
 
 
