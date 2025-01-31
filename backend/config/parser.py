@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from config.models import (
     DatabaseConfig,
     ServerConfig,
-    RedisConfig,
     AuthConfig,
     SMTPConfig,
     Config,
@@ -39,11 +38,7 @@ def load_config(
         port=int(parser.get("server", "Port")),
         frontend_port=int(parser.get("server", "DefaultFrontendPort")),
     )
-    redis_config = RedisConfig(
-        host=os.getenv("REDIS_HOST"),
-        port=int(os.getenv("REDIS_PORT")),
-        password=os.getenv("REDIS_PASSWORD"),
-    )
+
     smtp_config = SMTPConfig(
         smtp_server="smtp.gmail.com",
         smtp_port=587,
@@ -73,7 +68,6 @@ def load_config(
         db_config=db_config,
         test_db_config=test_db_config,
         server_config=server_config,
-        redis_config=redis_config,
         smtp_config=smtp_config,
         auth_config=auth_config,
     )

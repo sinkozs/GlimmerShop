@@ -28,11 +28,3 @@ services:
       - .env
     ports:
       - "8888:80"
-
-  redis:
-    container_name: glimmershop_redis_container
-    image: redis:latest
-    restart: always
-    ports:
-      - "6379:6379"
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]

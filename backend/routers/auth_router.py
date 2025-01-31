@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, Response, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from config.parser import load_config
 from config.auth_config import http_only_auth_cookie, jwt_algorithm
@@ -62,7 +62,6 @@ async def check_if_user_authenticated(current_user: dict = Depends(get_current_u
 
 @router.post("/logout")
 async def user_logout(
-    response: Response,
     current_user: dict = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):

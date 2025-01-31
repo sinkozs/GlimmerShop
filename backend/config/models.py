@@ -31,19 +31,6 @@ class ServerConfig:
 
 
 @dataclass
-class RedisConfig:
-    host: str
-    port: int
-    password: str
-    connector: str = "redis"
-
-    @property
-    def url(self) -> str:
-        url = f"{self.connector}://:{self.password}@{self.host}:{self.port}"
-        return url
-
-
-@dataclass
 class SMTPConfig:
     smtp_server: str
     smtp_port: int
@@ -51,6 +38,7 @@ class SMTPConfig:
     smtp_password: str
     sender_email: str
     verification_email_subject: str
+    verification_email_message: str
     verification_email_message: str
     verification_code_expiration_minutes: int
     password_reset_email_subject: str
@@ -81,6 +69,5 @@ class Config:
     db_config: DatabaseConfig
     test_db_config: DatabaseConfig
     server_config: ServerConfig
-    redis_config: RedisConfig
     smtp_config: SMTPConfig
     auth_config: AuthConfig
