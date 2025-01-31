@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../App.css";
 import "../styles/Form.css";
-import Modal from "./Modal";
+import Modal from "../components/Modal";
 import { Container, Form, Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import apiClient from "../utils/apiConfig";

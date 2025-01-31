@@ -21,13 +21,19 @@ class DatabaseConfig:
 class ServerConfig:
     host: str
     port: int
-    frontend_port: int
+    customer_frontend_port: int
+    seller_frontend_port: int
     connector: str = "http"
 
     @property
-    def frontend_domain(self) -> str:
-        frontend_domain = f"{self.connector}://{self.host}:{self.frontend_port}"
-        return frontend_domain
+    def customer_frontend_domain(self) -> str:
+        customer_frontend_domain = f"{self.connector}://{self.host}:{self.customer_frontend_port}"
+        return customer_frontend_domain
+
+    @property
+    def seller_frontend_domain(self) -> str:
+        seller_frontend_domain = f"{self.connector}://{self.host}:{self.seller_frontend_port}"
+        return seller_frontend_domain
 
 
 @dataclass

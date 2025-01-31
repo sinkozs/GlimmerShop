@@ -3,7 +3,7 @@ import "../App.css";
 import "../styles/Form.css";
 import { AuthContext } from "../context/AuthContext";
 import { Container, Form, Button } from "react-bootstrap";
-import Modal from "./Modal";
+import Modal from "../components/Modal";
 import apiClient from "../utils/apiConfig";
 
 function LoginAndSignup() {

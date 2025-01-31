@@ -36,7 +36,8 @@ def load_config(
     server_config = ServerConfig(
         host=parser.get("server", "Host"),
         port=int(parser.get("server", "Port")),
-        frontend_port=int(parser.get("server", "DefaultFrontendPort")),
+        customer_frontend_port=int(parser.get("server", "CustomerFrontendPort")),
+        seller_frontend_port=int(parser.get("server", "SellerFrontendPort")),
     )
 
     smtp_config = SMTPConfig(

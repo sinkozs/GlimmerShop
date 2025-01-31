@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../App.css";
 import "../styles/LoginAndSignup.css";
-import Modal from "./Modal";
+import Modal from "../components/Modal";
 import { Button } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import apiClient from "../utils/apiConfig";

@@ -5,16 +5,11 @@ import { FaTruck, FaRecycle, FaHandshake } from "react-icons/fa";
 import "../App.css";
 import "../styles/Home.css";
 import "../styles/ProductDetails.css";
-import TrendingJewelry from "../components/TrendingJewelry";
 import Modal from "../components/Modal";
-import "../styles/TrendingJewelry.css";
-
-import { useCart } from "../context/CartContext";
 import apiClient from "../utils/apiConfig";
 
 function ProductDetails() {
   const { product_id } = useParams();
-  const { cart, addToCart, increaseQuantity } = useCart();
   const [productData, setProductData] = useState(null);
   const [productCategory, setProductCategory] = useState(null);
   const [sellerData, setSellerData] = useState(null);
@@ -63,24 +58,6 @@ function ProductDetails() {
     }
   }, [product_id]);
 
-  const handleAddToCart = () => {
-    if (productData && availability) {
-      const existingItem = cart.find((item) => item.id === productData.id);
-      if (existingItem) {
-        increaseQuantity(productData.id);
-      } else {
-        addToCart({
-          id: productData.id,
-          name: productData.name,
-          price: productData.price,
-          category: productCategory,
-          quantity: 1,
-        });
-      }
-    } else if (!availability) {
-      setShowModal(true);
-    }
-  };
 
   const closeModal = () => {
     setShowModal(false);
@@ -156,10 +133,6 @@ function ProductDetails() {
                 </section>
               </Container>
 
-              <Button onClick={handleAddToCart} className="add-to-bag-btn">
-                ADD TO BAG
-              </Button>
-
               <Modal show={showModal} onClose={closeModal} title="Sorry!">
                 <section>This product is currently out of stock.</section>
               </Modal>
@@ -209,7 +182,6 @@ function ProductDetails() {
           <h1 className="h1-section-title">YOU MIGHT ALSO LIKE</h1>
         </Container>
       </Container>
-      <TrendingJewelry />
     </>
   );
 }

@@ -4,7 +4,6 @@ import Modal from "../components/Modal";
 import { useParams, useNavigate } from "react-router-dom";
 import ProductsGrid from "../components/ProductsGrid";
 import "../App.css";
-import "../styles/Home.css";
 import "../styles/SellerHome.css";
 import apiClient from "../utils/apiConfig";
 

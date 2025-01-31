@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "../App.css";
 import "../styles/Form.css";
 import "././AddNewCategoryToProduct";
-import Modal from "./Modal";
+import Modal from "../components/Modal";
 import { Container, Form, Button } from "react-bootstrap";
 import { v4 as uuidv4 } from "uuid";
 import apiClient from "../utils/apiConfig";

@@ -4,7 +4,7 @@ import { Container, Col } from "react-bootstrap";
 import "./SelectMonthForStatistics.js";
 import "../styles/SellerStatistics.css";
 import SelectMonthForStatistics from "./SelectMonthForStatistics.js";
-import Modal from "./Modal";
+import Modal from "../components/Modal";
 import apiClient from "../utils/apiConfig";
 
 function formatNumber(num) {

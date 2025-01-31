@@ -48,11 +48,11 @@ const login = useCallback(
     try {
       await apiClient.post("/auth/logout");
       setIsAuthenticated(false);
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     } catch (error) {
       console.error("Logout failed:", error.response?.data || error.message);
       setIsAuthenticated(false);
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     }
   }, [navigate]);
 

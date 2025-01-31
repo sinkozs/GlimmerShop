@@ -8,7 +8,7 @@ import {
   Table,
   Spinner,
 } from "react-bootstrap";
-import Modal from "./Modal";
+import Modal from "../components/Modal";
 import apiClient from "../utils/apiConfig";
 import "../styles/Form.css";
 import "../styles/Category.css";
