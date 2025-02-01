@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import "../styles/SellerStatistics.css";
 
@@ -8,6 +8,9 @@ function SelectMonthForStatistics({
   defaultMonth,
   defaultYear,
 }) {
+  const [currentSelectedMonth, setCurrentSelectedMonth] = useState(defaultMonth);
+  const [currentSelectedYear, setCurrentSelectedYear] = useState(defaultYear);
+
   const months = [
     { name: "January", value: "01" },
     { name: "February", value: "02" },
@@ -31,14 +34,20 @@ function SelectMonthForStatistics({
   );
 
   const handleMonthChange = (event) => {
-    setSelectedMonth(event.target.value);
+    const newMonth = event.target.value;
+    setCurrentSelectedMonth(newMonth);
+    setSelectedMonth(newMonth);
   };
 
   const handleYearChange = (event) => {
-    setSelectedYear(event.target.value);
+    const newYear = event.target.value;
+    setCurrentSelectedYear(newYear);
+    setSelectedYear(newYear);
   };
 
   useEffect(() => {
+    setCurrentSelectedMonth(defaultMonth);
+    setCurrentSelectedYear(defaultYear);
     setSelectedMonth(defaultMonth);
     setSelectedYear(defaultYear);
   }, [defaultMonth, defaultYear, setSelectedMonth, setSelectedYear]);
@@ -47,7 +56,7 @@ function SelectMonthForStatistics({
     <Container className="select-date-form">
       <label>
         Month: 
-        <select value={defaultMonth} onChange={handleMonthChange}>
+        <select value={currentSelectedMonth} onChange={handleMonthChange}>
           {months.map((m) => (
             <option key={m.value} value={m.value}>
               {m.name}
@@ -58,7 +67,7 @@ function SelectMonthForStatistics({
 
       <label>
         Year:
-        <select value={defaultYear} onChange={handleYearChange}>
+        <select value={currentSelectedYear} onChange={handleYearChange}>
           {years.map((y) => (
             <option key={y} value={y}>
               {y}

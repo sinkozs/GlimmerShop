@@ -93,14 +93,14 @@ class SellerStatisticsService:
                                 item_unit_prices[item_name] = (
                                     charge["amount"] / quantity / 100
                                 )
-
                     for item in product_categories_list:
                         for category_id, quantity in self.get_dict_from_json_object(
                             item
                         ).items():
 
-                            category_name = await self.get_category_name(category_id)
-                            if category_name not in product_categories:
+                            category_data = await self.get_category_name(category_id)
+                            category_name = category_data['category_name']
+                            if category_name not in product_categories.keys():
                                 product_categories[category_name] = quantity
                             else:
                                 product_categories[category_name] += quantity
