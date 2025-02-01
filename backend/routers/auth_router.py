@@ -77,16 +77,18 @@ async def user_logout(
             raise HTTPException(status_code=400, detail="Missing user ID")
 
         await auth_controller.user_logout(user_id)
-        json_response = JSONResponse(content={"message": "Logout successful"})
+        response = JSONResponse(content={"message": "Logout successful"})
 
-        json_response.delete_cookie(
+        response.delete_cookie(
             key=http_only_auth_cookie,
+            path="/",
+            domain=None,
             httponly=True,
             samesite="lax",
-            secure=False,
+            secure=False,  # Should be True in production
         )
 
-        return json_response
+        return response
 
     except HTTPException as e:
         raise e

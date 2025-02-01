@@ -99,7 +99,7 @@ class SellerStatisticsService:
                         ).items():
 
                             category_data = await self.get_category_name(category_id)
-                            category_name = category_data['category_name']
+                            category_name = category_data["category_name"]
                             if category_name not in product_categories.keys():
                                 product_categories[category_name] = quantity
                             else:

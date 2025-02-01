@@ -27,12 +27,16 @@ class ServerConfig:
 
     @property
     def customer_frontend_domain(self) -> str:
-        customer_frontend_domain = f"{self.connector}://{self.host}:{self.customer_frontend_port}"
+        customer_frontend_domain = (
+            f"{self.connector}://{self.host}:{self.customer_frontend_port}"
+        )
         return customer_frontend_domain
 
     @property
     def seller_frontend_domain(self) -> str:
-        seller_frontend_domain = f"{self.connector}://{self.host}:{self.seller_frontend_port}"
+        seller_frontend_domain = (
+            f"{self.connector}://{self.host}:{self.seller_frontend_port}"
+        )
         return seller_frontend_domain
 
 
