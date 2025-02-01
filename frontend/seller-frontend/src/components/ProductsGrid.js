@@ -7,6 +7,7 @@ import "../App.css";
 import "../styles/Home.css";
 import "../styles/Modal.css";
 import apiClient from "../utils/apiConfig";
+import "../styles/ProductCard.css";
 
 function ProductsGrid({ products, isAuthenticated }) {
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, Form, Button } from "react-bootstrap";
-import Modal from "../components/Modal";
 import { useParams, useNavigate } from "react-router-dom";
+import Modal from "../components/Modal";
 import ProductsGrid from "../components/ProductsGrid";
 import "../App.css";
 import "../styles/SellerHome.css";
@@ -25,7 +25,7 @@ function SellerHome() {
         const sellerProducts = await apiClient.get(
           "/products/seller-dashboard",
           {
-            params: { seller_id: seller_id }
+            params: { seller_id: seller_id },
           }
         );
         if (sellerProducts.data.length === 0) {
@@ -56,6 +56,10 @@ function SellerHome() {
     }
   };
 
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
+
   const closeNoProductsModal = () => {
     setShowNoProductsModal(false);
   };
@@ -75,6 +79,13 @@ function SellerHome() {
           />
           <Button type="submit" className="submit-search-btn">
             Search
+          </Button>
+          <Button
+            type="submit"
+            className="submit-search-btn clear-search-btn"
+            onClick={clearSearch}
+          >
+            Clear
           </Button>
         </Form>
         <Modal
