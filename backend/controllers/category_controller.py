@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 
 from services.category_service import CategoryService
 from schemas.schemas import (
@@ -17,7 +18,7 @@ class CategoryController:
         self._service = service
 
     async def get_category_by_identifier(
-        self, category_identifier: CategoryIdentifiers
+            self, category_identifier: CategoryIdentifiers
     ) -> dict:
         try:
             if category_identifier.category_id:
@@ -56,6 +57,16 @@ class CategoryController:
     async def get_product_categories(self, product_id: int) -> dict:
         try:
             return await self._service.get_product_categories(product_id)
+        except ProductException as e:
+            raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
+
+    async def get_seller_products_by_category(self, category_id: int, seller_id: UUID) -> list:
+        try:
+            product_list = await self._service.get_products_by_category(category_id)
+            seller_products = []
+            [seller_products.append(product) for product in product_list if product.get("seller_id") == seller_id]
+            return seller_products
+
         except ProductException as e:
             raise HTTPException(status_code=e.status_code, detail=str(e.detail)) from e
 

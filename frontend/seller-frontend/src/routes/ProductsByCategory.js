@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import "../App.css";
 import "../styles/Home.css";
 import "../styles/ProductsByCategory.css";
+
 import ProductsGrid from "../components/ProductsGrid";
 import apiClient from "../utils/apiConfig";
 
