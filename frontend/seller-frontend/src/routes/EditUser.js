@@ -6,8 +6,10 @@ import Modal from "../components/Modal";
 import { Container, Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import config from "../config";
+import apiClient from "../utils/apiConfig";
 
 function EditUser() {
+  const [sellerId, setSellerId] = useState("");
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -20,11 +22,11 @@ function EditUser() {
   useEffect(() => {
     const fetchUserData = async () => {
       const sellerId = localStorage.getItem("seller_id");
+      console.log(sellerId);
+      setSellerId(sellerId);
       try {
-        const response = await axios.get(
-          `${config.BACKEND_BASE_URL}/users/${sellerId}`
-        );
-        const seller = response.data
+        const response = await apiClient.get(`/users/${sellerId}`);
+        const seller = response.data;
         setFirstName(seller.first_name);
         setLastName(seller.last_name);
         setEmail(seller.email);
@@ -39,6 +41,7 @@ function EditUser() {
   }, []);
 
   const handleDeleteProfile = () => {
+    console.log("delete")
     navigate(`/profile/delete`);
   };
 
@@ -51,9 +54,10 @@ function EditUser() {
     if (lastName) formData.last_name = lastName;
     if (email) formData.email = email;
     if (password) formData.password = password;
+    console.log(sellerId);
 
-    await axios
-      .put(`${config.BACKEND_BASE_URL}/users/edit`, formData)
+    await apiClient
+      .put("/users/me", formData)
       .then((response) => {
         setFirstName("");
         setLastName("");

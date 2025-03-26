@@ -24,19 +24,10 @@ apiClient.interceptors.response.use(
       }
 
       const isAuthenticated = localStorage.getItem('seller_id');
-      
-      if (isAuthenticated) {
+      const isLoginAttempt = error.config.url.includes('/auth/login');
+
+      if (isAuthenticated && !isLoginAttempt) {
           switch (error.response.status) {
-              case 401:
-                  // Unauthorized - log out
-                  if (!window.location.pathname.includes('login')) {
-                      if (logoutHandler) logoutHandler();
-                  }
-                  break;
-              case 403:
-                  // Forbidden - log out
-                  if (logoutHandler) logoutHandler();
-                  break;
               case 404:
                   console.error('Resource not found');
                   break;

@@ -20,7 +20,7 @@ function DeleteUser() {
     try {
       if (confirmDeletion && confirmDeletion === "delete profile") {
         const response = await apiClient.delete(
-          `/users/delete`
+          `/users/me`
         );
         if (response.status === 200) {
           setShowModal(true);

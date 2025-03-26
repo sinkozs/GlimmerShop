@@ -68,7 +68,7 @@ class User(Base):
     first_name = Column(String(50))
     last_name = Column(String(55))
     email = Column(String(100), nullable=False, unique=True, index=True)
-    hashed_password = Column(String(64), nullable=False)
+    hashed_password = Column(String(128), nullable=False)
     password_length = Column(Integer)
     is_seller = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
@@ -103,7 +103,6 @@ class Order(Base):
 
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
-
 
 class OrderItem(Base):
     __tablename__ = "order_item"

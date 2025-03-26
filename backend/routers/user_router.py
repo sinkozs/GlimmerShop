@@ -32,7 +32,7 @@ async def get_all_users(
 
 @router.get("/by-type")
 async def get_users_by_type(
-    is_seller: bool, user_controller: UserController = Depends(get_user_controller)
+    is_seller: bool = Query(...), user_controller: UserController = Depends(get_user_controller)
 ) -> list:
     return await user_controller.get_users_by_type(is_seller)
 
@@ -59,14 +59,14 @@ async def get_seller(
     return await user_controller.check_seller_exists(seller_id)
 
 
-@router.post("/create")
+@router.post("")
 async def create_new_user(
     user: UserCreate, user_controller: UserController = Depends(get_user_controller)
 ) -> dict:
     return await user_controller.create_new_user(user)
 
 
-@router.post("/verify")
+@router.post("/verification")
 async def verify_user(
     verification: UserVerification,
     user_controller: UserController = Depends(get_user_controller),
@@ -74,24 +74,25 @@ async def verify_user(
     return await user_controller.verify_user(verification)
 
 
-@router.post("/verify/resend")
+@router.post("/verification/resend")
 async def resend_verification(
     email: EmailStr, user_controller: UserController = Depends(get_user_controller)
 ) -> dict:
     return await user_controller.resend_verification_email(email)
 
 
-@router.put("/edit")
+@router.put("/me")
 async def edit_user(
     user_update: UserUpdate,
     current_user: dict = Depends(get_current_user),
     user_controller: UserController = Depends(get_user_controller),
 ) -> dict:
     user_id: UUID = current_user["user_id"]
+    print(user_id)
     return await user_controller.edit_user(user_id, user_update)
 
 
-@router.delete("/delete")
+@router.delete("/me")
 async def delete_user(
     current_user: dict = Depends(get_current_user),
     user_controller: UserController = Depends(get_user_controller),

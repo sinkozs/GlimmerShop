@@ -107,7 +107,7 @@ function LoginAndSignup() {
     };
 
     try {
-      const response = await apiClient.post(`/users/create`, formData);
+      const response = await apiClient.post(`/users`, formData);
       setFirstName("");
       setLastName("");
       setEmail("");
