@@ -44,7 +44,7 @@ def generate_session_id():
 
 def is_valid_update(field_value, original_value):
     return (
-            field_value is not None and field_value != "" and field_value != original_value
+        field_value is not None and field_value != "" and field_value != original_value
     )
 
 
@@ -107,16 +107,14 @@ async def get_optional_token_from_cookie(request: Request):
 
 
 async def get_current_user(
-        cookie_token: str = Depends(cookie_scheme)  # This will extract the cookie
+    cookie_token: str = Depends(cookie_scheme),  # This will extract the cookie
 ) -> dict:
     try:
         auth_config = load_config().auth_config
         public_key = auth_config.load_public_key().decode("utf-8")
 
         payload = jwt.decode(
-            token=cookie_token,
-            key=public_key,
-            algorithms=[jwt_algorithm]
+            token=cookie_token, key=public_key, algorithms=[jwt_algorithm]
         )
 
         email: EmailStr = payload.get("email")
@@ -124,21 +122,18 @@ async def get_current_user(
 
         if not email or not user_id:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token payload"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
             )
 
         return {"email": email, "user_id": user_id}
 
     except ExpiredSignatureError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
         )
     except JWTError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
         )
 
 
@@ -152,7 +147,7 @@ def hash_password(password: str) -> str:
 
 
 async def verify_code(
-        email: EmailStr, code: str, storage: Optional[Dict[str, Any]] = None
+    email: EmailStr, code: str, storage: Optional[Dict[str, Any]] = None
 ) -> Tuple[bool, str]:
     """
     Verify email verification code
@@ -176,7 +171,7 @@ async def verify_code(
         return False, "Invalid verification code"
 
     if datetime.now() - storage[email]["timestamp"] > timedelta(
-            minutes=get_config().smtp_config.verification_code_expiration_minutes
+        minutes=get_config().smtp_config.verification_code_expiration_minutes
     ):
         return False, "Verification code expired"
 
@@ -215,10 +210,10 @@ async def send_verification_email(first_name: str, user_email: EmailStr) -> bool
     subject = smtp_config.verification_email_subject
     verification_code = generate_random_verification_code()
     body = (
-            f"Hey {first_name}! \n \n "
-            + smtp_config.verification_email_message
-            + " \n \n"
-            + verification_code
+        f"Hey {first_name}! \n \n "
+        + smtp_config.verification_email_message
+        + " \n \n"
+        + verification_code
     )
 
     message = MIMEMultipart()

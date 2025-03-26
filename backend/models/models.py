@@ -104,6 +104,7 @@ class Order(Base):
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
 
+
 class OrderItem(Base):
     __tablename__ = "order_item"
     __table_args__ = {"schema": "public"}

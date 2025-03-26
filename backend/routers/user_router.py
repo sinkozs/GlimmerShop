@@ -32,7 +32,8 @@ async def get_all_users(
 
 @router.get("/by-type")
 async def get_users_by_type(
-    is_seller: bool = Query(...), user_controller: UserController = Depends(get_user_controller)
+    is_seller: bool = Query(...),
+    user_controller: UserController = Depends(get_user_controller),
 ) -> list:
     return await user_controller.get_users_by_type(is_seller)
 

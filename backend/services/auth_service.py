@@ -32,9 +32,9 @@ class AuthService:
 
     def verify_password(self, hashed_password: str, password: str) -> bool:
         try:
-            print(hashed_password, password)
             return password_hasher.verify(hash=hashed_password, password=password)
-        except:
+        except Exception as e:
+            self.logger.error(f"Error when veryfing user password: {e}")
             return False
 
     def generate_strong_password(self) -> str:
@@ -47,17 +47,17 @@ class AuthService:
                 for i in range(self.auth_config.min_password_length)
             )
             if (
-                    any(c.islower() for c in password)
-                    and any(c.isupper() for c in password)
-                    and any(c.isdigit() for c in password)
-                    and any(c in string.punctuation for c in password)
+                any(c.islower() for c in password)
+                and any(c.isupper() for c in password)
+                and any(c.isdigit() for c in password)
+                and any(c in string.punctuation for c in password)
             ):
                 break
 
         return password
 
     def create_access_token(
-            self, user_id: UUID, email: EmailStr, expires_delta: Optional[timedelta] = None
+        self, user_id: UUID, email: EmailStr, expires_delta: Optional[timedelta] = None
     ) -> str:
         encode = {"id": str(user_id), "email": str(email)}
         if expires_delta:
@@ -72,7 +72,7 @@ class AuthService:
         return jwt.encode(claims=encode, key=private_key, algorithm=jwt_algorithm)
 
     async def set_response_cookie(
-            self, user_id: UUID, email: EmailStr, response: Response
+        self, user_id: UUID, email: EmailStr, response: Response
     ) -> Response:
         access_token = self.create_access_token(user_id=user_id, email=email)
 
@@ -89,7 +89,7 @@ class AuthService:
         return response
 
     async def authenticate(
-            self, email: EmailStr, password: str, is_seller: bool
+        self, email: EmailStr, password: str, is_seller: bool
     ) -> dict:
         async with self.db.begin():
             try:

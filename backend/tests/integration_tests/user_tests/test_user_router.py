@@ -402,7 +402,7 @@ class TestUserRoutes:
             }
 
             response = await async_test_client.post(
-                "/users/create", json=test_new_user.model_dump()
+                "/users", json=test_new_user.model_dump()
             )
 
             assert response.status_code == status.HTTP_200_OK
@@ -422,7 +422,7 @@ class TestUserRoutes:
             )
 
             response = await async_test_client.post(
-                "/users/create", json=test_new_user.model_dump()
+                "/users", json=test_new_user.model_dump()
             )
 
             assert response.status_code == status.HTTP_409_CONFLICT
@@ -438,9 +438,7 @@ class TestUserRoutes:
                 "password": "securepass123",
             }
 
-            response = await async_test_client.post(
-                "/users/create", json=incomplete_user_data
-            )
+            response = await async_test_client.post("/users", json=incomplete_user_data)
 
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert "detail" in response.json()
@@ -458,9 +456,7 @@ class TestUserRoutes:
                 "is_seller": False,
             }
 
-            response = await async_test_client.post(
-                "/users/create", json=invalid_user_data
-            )
+            response = await async_test_client.post("/users", json=invalid_user_data)
 
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert "detail" in response.json()
@@ -479,9 +475,7 @@ class TestUserRoutes:
                 "is_seller": False,
             }
 
-            response = await async_test_client.post(
-                "/users/create", json=invalid_user_data
-            )
+            response = await async_test_client.post("/users", json=invalid_user_data)
 
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert "detail" in response.json()
@@ -503,7 +497,7 @@ class TestUserRoutes:
             )
 
             response = await async_test_client.post(
-                "/users/create", json=test_new_user.model_dump()
+                "/users", json=test_new_user.model_dump()
             )
 
             assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -525,7 +519,7 @@ class TestUserRoutes:
             mock_user_controller.verify_user.return_value = {"is_verified": True}
 
             response = await async_test_client.post(
-                "/users/verify", json=test_verification_data.model_dump()
+                "/users/verification", json=test_verification_data.model_dump()
             )
 
             assert response.status_code == status.HTTP_200_OK
@@ -546,7 +540,7 @@ class TestUserRoutes:
             )
 
             response = await async_test_client.post(
-                "/users/verify", json=test_verification_data.model_dump()
+                "/users/verification", json=test_verification_data.model_dump()
             )
 
             assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -566,7 +560,7 @@ class TestUserRoutes:
             )
 
             response = await async_test_client.post(
-                "/users/verify", json=test_verification_data.model_dump()
+                "/users/verification", json=test_verification_data.model_dump()
             )
 
             assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -586,7 +580,7 @@ class TestUserRoutes:
             )
 
             response = await async_test_client.post(
-                "/users/verify", json=test_verification_data.model_dump()
+                "/users/verification", json=test_verification_data.model_dump()
             )
 
             assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -599,7 +593,9 @@ class TestUserRoutes:
         ):
             invalid_data = {"email": "invalid-email", "code": "123456"}
 
-            response = await async_test_client.post("/users/verify", json=invalid_data)
+            response = await async_test_client.post(
+                "/users/verification", json=invalid_data
+            )
 
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert "detail" in response.json()
@@ -612,7 +608,9 @@ class TestUserRoutes:
         ):
             invalid_data = {"email": "tests@example.com"}
 
-            response = await async_test_client.post("/users/verify", json=invalid_data)
+            response = await async_test_client.post(
+                "/users/verification", json=invalid_data
+            )
 
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert "detail" in response.json()
@@ -630,7 +628,7 @@ class TestUserRoutes:
             }
 
             response = await async_test_client.post(
-                "/users/verify/resend", params={"email": test_email}
+                "/users/verification/resend", params={"email": test_email}
             )
             assert response.status_code == status.HTTP_200_OK
             assert isinstance(response.json(), dict)
@@ -650,7 +648,7 @@ class TestUserRoutes:
             )
 
             response = await async_test_client.post(
-                "/users/verify/resend", params={"email": test_email}
+                "/users/verification/resend", params={"email": test_email}
             )
 
             assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -670,7 +668,7 @@ class TestUserRoutes:
             )
 
             response = await async_test_client.post(
-                "/users/verify/resend", params={"email": test_email}
+                "/users/verification/resend", params={"email": test_email}
             )
 
             assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -690,7 +688,7 @@ class TestUserRoutes:
             )
 
             response = await async_test_client.post(
-                "/users/verify/resend", params={"email": test_email}
+                "/users/verification/resend", params={"email": test_email}
             )
 
             assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -706,7 +704,7 @@ class TestUserRoutes:
             invalid_email = "invalid-email"
 
             response = await async_test_client.post(
-                "/users/verify/resend", params={"email": invalid_email}
+                "/users/verification/resend", params={"email": invalid_email}
             )
 
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -718,7 +716,7 @@ class TestUserRoutes:
         async def test_resend_verification_missing_email(
             self, async_test_client: AsyncClient, mock_user_controller: AsyncMock
         ):
-            response = await async_test_client.post("/users/verify/resend")
+            response = await async_test_client.post("/users/verification/resend")
 
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert "detail" in response.json()
@@ -735,7 +733,7 @@ class TestUserRoutes:
             )
 
             response = await async_test_client.post(
-                "/users/verify/resend", params={"email": test_email}
+                "/users/verification/resend", params={"email": test_email}
             )
 
             assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -776,7 +774,7 @@ class TestUserRoutes:
             ).model_dump()
 
             response = await async_test_client.put(
-                "/users/edit",
+                "/users/me",
                 json=update_data.model_dump(exclude_unset=True),
                 headers=auth_headers,
             )
@@ -797,7 +795,7 @@ class TestUserRoutes:
         update_data = UserUpdate(first_name="Johnny")
 
         response = await async_test_client.put(
-            "/users/edit", json=update_data.model_dump(exclude_unset=True)
+            "/users/me", json=update_data.model_dump(exclude_unset=True)
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -812,7 +810,7 @@ class TestUserRoutes:
         update_data = UserUpdate(first_name="Johnny")
 
         response = await async_test_client.put(
-            "/users/edit",
+            "/users/me",
             json=update_data.model_dump(exclude_unset=True),
             headers=invalid_headers,
         )
@@ -833,7 +831,7 @@ class TestUserRoutes:
         update_data = UserUpdate(first_name="Johnny")
 
         response = await async_test_client.put(
-            "/users/edit",
+            "/users/me",
             json=update_data.model_dump(exclude_unset=True),
             headers=expired_headers,
         )
@@ -852,7 +850,7 @@ class TestUserRoutes:
         invalid_data = {"email": "invalid-email"}
 
         response = await async_test_client.put(
-            "/users/edit", json=invalid_data, headers=auth_headers
+            "/users/me", json=invalid_data, headers=auth_headers
         )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -885,7 +883,7 @@ class TestUserRoutes:
         mock_user_controller.edit_user.return_value = expected_response
 
         response = await async_test_client.put(
-            "/users/edit",
+            "/users/me",
             json=update_data.model_dump(exclude_unset=True),
             headers=auth_headers,
         )
@@ -907,9 +905,7 @@ class TestUserRoutes:
                 "user_id": str(test_user_id)
             }
 
-            response = await async_test_client.delete(
-                "/users/delete", headers=auth_headers
-            )
+            response = await async_test_client.delete("/users/me", headers=auth_headers)
 
             assert response.status_code == status.HTTP_200_OK
             assert isinstance(response.json(), dict)
@@ -920,7 +916,7 @@ class TestUserRoutes:
         async def test_delete_user_no_token(
             self, async_test_client: AsyncClient, mock_user_controller: AsyncMock
         ):
-            response = await async_test_client.delete("/users/delete")
+            response = await async_test_client.delete("/users/me")
 
             assert response.status_code == status.HTTP_401_UNAUTHORIZED
             assert response.json()["detail"] == "Not authenticated"
@@ -933,7 +929,7 @@ class TestUserRoutes:
             invalid_headers = {"cookie": f"{http_only_auth_cookie}=invalid_token"}
 
             response = await async_test_client.delete(
-                "/users/delete", headers=invalid_headers
+                "/users/me", headers=invalid_headers
             )
 
             assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -949,7 +945,7 @@ class TestUserRoutes:
             expired_headers = {"cookie": f"{http_only_auth_cookie}=expired_token"}
 
             response = await async_test_client.delete(
-                "/users/delete", headers=expired_headers
+                "/users/me", headers=expired_headers
             )
 
             assert response.status_code == status.HTTP_401_UNAUTHORIZED
