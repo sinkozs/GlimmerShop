@@ -178,9 +178,6 @@ function ProductDetails() {
             </Container>
           </Container>
         </Container>
-        <Container fluid className="h1-section-container">
-          <h1 className="h1-section-title">YOU MIGHT ALSO LIKE</h1>
-        </Container>
       </Container>
     </>
   );

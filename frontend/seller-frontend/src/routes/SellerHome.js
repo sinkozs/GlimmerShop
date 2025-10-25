@@ -13,6 +13,9 @@ function SellerHome() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showNoProductsModal, setShowNoProductsModal] = useState(false);
+  const [showNoSearchResultsModal, setShowNoSearchResultsModal] =
+    useState(false);
+
   const navigate = useNavigate();
 
   const { seller_id } = useParams();
@@ -49,6 +52,9 @@ function SellerHome() {
       const response = await apiClient.get("/products/search/", {
         params: { query: searchQuery, seller_id: seller_id },
       });
+      if (response.data.length === 0) {
+        setShowNoSearchResultsModal(true);
+      }
       setProducts(response.data);
     } catch (error) {
       console.error("Error searching products:", error);
@@ -62,6 +68,10 @@ function SellerHome() {
 
   const closeNoProductsModal = () => {
     setShowNoProductsModal(false);
+  };
+
+  const closeNoSearchResultsModal = () => {
+    setShowNoSearchResultsModal(false);
   };
 
   return (
@@ -81,33 +91,39 @@ function SellerHome() {
             Search
           </Button>
           <Button
-            type="submit"
+            type="button"
             className="submit-search-btn clear-search-btn"
             onClick={clearSearch}
           >
             Clear
           </Button>
         </Form>
+
         <Modal
           show={showNoProductsModal}
           onClose={closeNoProductsModal}
           title="No products found!"
         >
-          <section> You haven't added any products yet.</section>
-
+          <section>You haven't added any products yet.</section>
           <Button
             onClick={() => navigate("/products/new")}
-            className="back-to-login-btn"
+            className="login-btn"
           >
             Add Your First Product
           </Button>
         </Modal>
+
+        <Modal
+          show={showNoSearchResultsModal}
+          onClose={closeNoSearchResultsModal}
+          title="No results found!"
+        >
+          <section>No products match your search query.</section>
+        </Modal>
       </Container>
 
-      {products && products.length > 0 ? (
+      {products && products.length > 0 && (
         <ProductsGrid products={products} isAuthenticated={true} />
-      ) : (
-        <section>No products to display</section>
       )}
     </Container>
   );
