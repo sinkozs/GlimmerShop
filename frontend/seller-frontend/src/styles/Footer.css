@@ -7,6 +7,9 @@
   padding-top: 3rem;
   padding-bottom: 1rem;
   flex-grow: 0;
+  flex-shrink: 0;
+  margin-top: auto;
+  max-height: 50px;
 }
 
 .footer-container .social-icons {
@@ -32,9 +35,6 @@
 .footer-container a {
   font-family: "Poppins", sans-serif;
   font-weight: 400;
-}
-
-.footer-container a {
   text-decoration: none;
   color: black;
 }
@@ -48,10 +48,11 @@
 @media (max-width: 768px) {
   .footer-container {
     min-height: 15vh;
-
+    max-height: 150px; /* Adjust for mobile */
     padding-top: 1rem;
     padding-bottom: 0.5rem;
   }
+  
   .footer-icon {
     color: lightgray;
     font-size: 20px;
