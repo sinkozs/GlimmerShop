@@ -26,7 +26,6 @@ apiClient.interceptors.response.use(
       const isLoginAttempt = error.config.url.includes('/auth/login');
 
       if ((error.response.status === 401 || error.response.status === 403) && !isLoginAttempt) {
-          console.log('Session expired or unauthorized - logging out');
           if (logoutHandler) {
               logoutHandler();
           }

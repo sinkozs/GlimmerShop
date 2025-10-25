@@ -22,7 +22,6 @@ function EditUser() {
   useEffect(() => {
     const fetchUserData = async () => {
       const sellerId = localStorage.getItem("seller_id");
-      console.log(sellerId);
       setSellerId(sellerId);
       try {
         const response = await apiClient.get(`/users/${sellerId}`);
@@ -41,7 +40,6 @@ function EditUser() {
   }, []);
 
   const handleDeleteProfile = () => {
-    console.log("delete")
     navigate(`/profile/delete`);
   };
 
@@ -54,7 +52,6 @@ function EditUser() {
     if (lastName) formData.last_name = lastName;
     if (email) formData.email = email;
     if (password) formData.password = password;
-    console.log(sellerId);
 
     await apiClient
       .put("/users/me", formData)

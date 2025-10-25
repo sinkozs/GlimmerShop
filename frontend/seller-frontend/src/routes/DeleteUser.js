@@ -26,7 +26,7 @@ function DeleteUser() {
           setShowModal(true);
         }
       } else {
-        console.log("Incorrect");
+        console.error("Incorrect");
       }
     } catch (error) {
       console.error("Error deleting user:", error);

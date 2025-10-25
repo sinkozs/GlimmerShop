@@ -27,11 +27,9 @@ function ProductDetails() {
         const product = await apiClient.get(`/products/${product_id}`);
         const productResponse = product.data;
         setProductData(productResponse);
-        console.log("product_id:", product_id, "type:", typeof product_id);
         const category = await apiClient.get(
           `/categories/product-categories/${product_id}`
         );
-        console.log(category.data);
 
         // Get array of [id, name] pairs
         const categoryEntries = Object.entries(category.data);
