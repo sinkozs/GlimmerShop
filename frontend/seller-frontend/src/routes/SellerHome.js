@@ -44,7 +44,7 @@ function SellerHome() {
     if (seller_id) {
       fetchSellerDataAndProducts();
     }
-  }, [seller_id]);
+  }, [seller_id, showNoSearchResultsModal]);
 
   const handleSearch = async (event) => {
     event.preventDefault();
@@ -72,6 +72,7 @@ function SellerHome() {
 
   const closeNoSearchResultsModal = () => {
     setShowNoSearchResultsModal(false);
+    clearSearch();
   };
 
   return (
