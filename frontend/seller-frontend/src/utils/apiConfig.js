@@ -2,6 +2,7 @@ import axios from "axios";
 import config from "../config";
 
 let logoutHandler = null;
+let isLoggingOut = false;
 
 export const setLogoutHandler = (handler) => {
     logoutHandler = handler;
@@ -20,6 +21,17 @@ apiClient.interceptors.response.use(
   error => {
       if (!error.response) {
           console.error('Network error: Unable to reach server');
+        
+          const isLoginAttempt = error.config?.url?.includes('/auth/login');
+          if (!isLoginAttempt && !isLoggingOut && logoutHandler) {
+              console.log('Logging out due to network error');
+              isLoggingOut = true;
+              logoutHandler();
+              setTimeout(() => {
+                  isLoggingOut = false;
+              }, 1000);
+          }
+          
           return Promise.reject(error);
       }
 

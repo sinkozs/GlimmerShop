@@ -10,30 +10,6 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const checkAuth = useCallback(async () => {
-    setIsCheckingAuth(true);
-    try {
-      await apiClient.get("/auth/test");
-      setIsAuthenticated(true);
-    } catch (error) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        setIsAuthenticated(false);
-        navigate("/", { replace: true });
-      }
-    } finally {
-      setIsCheckingAuth(false);
-    }
-  }, [navigate]);
-
-  // Check authentication on mount/refresh - but only if not on login page
-  useEffect(() => {
-    const isLoginPage = location.pathname === "/";
-    
-    if (!isLoginPage) {
-      checkAuth();
-    }
-  }, [location.pathname]);
-
   const login = useCallback(
     async (sellerId) => {
       try {
@@ -44,7 +20,7 @@ export const AuthProvider = ({ children }) => {
         }
         return {
           success: false,
-          error: "Login failed - Invalid credentials"
+          error: "Login failed - Invalid credentials",
         };
       } catch (error) {
         setIsAuthenticated(false);
@@ -67,6 +43,34 @@ export const AuthProvider = ({ children }) => {
       navigate("/", { replace: true });
     }
   }, [navigate]);
+
+  const checkAuth = useCallback(async () => {
+    setIsCheckingAuth(true);
+    try {
+      await apiClient.get("/auth/test");
+      setIsAuthenticated(true);
+    } catch (error) {
+      if (
+        error.response?.status === 401 ||
+        error.response?.status === 403 ||
+        !error.response
+      ) {
+        setIsAuthenticated(false);
+        navigate("/", { replace: true });
+      }
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  }, [navigate, logout]);
+
+  // Check authentication on mount/refresh - but only if not on login page
+  useEffect(() => {
+    const isLoginPage = location.pathname === "/";
+
+    if (!isLoginPage) {
+      checkAuth();
+    }
+  }, [location.pathname]);
 
   const value = {
     isAuthenticated,
