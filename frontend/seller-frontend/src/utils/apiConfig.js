@@ -23,20 +23,25 @@ apiClient.interceptors.response.use(
           return Promise.reject(error);
       }
 
-      const isAuthenticated = localStorage.getItem('seller_id');
       const isLoginAttempt = error.config.url.includes('/auth/login');
 
-      if (isAuthenticated && !isLoginAttempt) {
-          switch (error.response.status) {
-              case 404:
-                  console.error('Resource not found');
-                  break;
-              case 500:
-                  console.error('Server error');
-                  break;
-              default:
-                  console.error('An error occurred:', error.response.data);
+      if ((error.response.status === 401 || error.response.status === 403) && !isLoginAttempt) {
+          console.log('Session expired or unauthorized - logging out');
+          if (logoutHandler) {
+              logoutHandler();
           }
+          return Promise.reject(error);
+      }
+
+      switch (error.response.status) {
+          case 404:
+              console.error('Resource not found');
+              break;
+          case 500:
+              console.error('Server error');
+              break;
+          default:
+              console.error('An error occurred:', error.response.data);
       }
 
       return Promise.reject(error);

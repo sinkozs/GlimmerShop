@@ -1,5 +1,5 @@
 import React, { createContext, useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import apiClient from "../utils/apiConfig";
 
 export const AuthContext = createContext();
@@ -8,11 +8,9 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const checkAuth = useCallback(async () => {
-    // Prevent multiple concurrent auth checks
-    if (isCheckingAuth) return;
-    
     setIsCheckingAuth(true);
     try {
       await apiClient.get("/auth/test");
@@ -20,12 +18,21 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         setIsAuthenticated(false);
-        navigate("/login", { replace: true });
+        navigate("/", { replace: true });
       }
     } finally {
       setIsCheckingAuth(false);
     }
-  }, [navigate, isCheckingAuth]);
+  }, [navigate]);
+
+  // Check authentication on mount/refresh - but only if not on login page
+  useEffect(() => {
+    const isLoginPage = location.pathname === "/";
+    
+    if (!isLoginPage) {
+      checkAuth();
+    }
+  }, [location.pathname]);
 
   const login = useCallback(
     async (sellerId) => {
@@ -63,6 +70,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     isAuthenticated,
+    isCheckingAuth,
     login,
     logout,
     checkAuth,
