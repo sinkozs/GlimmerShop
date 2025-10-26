@@ -75,9 +75,15 @@ class AuthConfig:
 
 
 @dataclass
+class AppConfig:
+    default_categories: list[str]
+
+
+@dataclass
 class Config:
     db_config: DatabaseConfig
     test_db_config: DatabaseConfig
     server_config: ServerConfig
     smtp_config: SMTPConfig
     auth_config: AuthConfig
+    app_config: AppConfig
