@@ -20,6 +20,7 @@ class Category(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     category_name = Column(String(length=200))
+    is_default = Column(Boolean, default=False)
 
     product_category = relationship("ProductCategory", back_populates="category")
 

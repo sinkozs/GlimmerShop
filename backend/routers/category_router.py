@@ -12,7 +12,6 @@ from schemas.schemas import (
     CategoryToProductRequest,
     CategoryIdentifiers,
 )
-from schemas.response_schemas import DefaultCategoriesResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(
@@ -39,11 +38,6 @@ async def get_all_categories(
         controller: CategoryController = Depends(get_category_controller),
 ):
     return await controller.get_all_categories()
-
-
-@router.get("/default-categories", response_model=DefaultCategoriesResponse)
-def get_default_categories():
-    return {"categories": load_config().app_config.default_categories}
 
 
 @router.get("/search/", response_model=List[CategoryQuery])

@@ -34,7 +34,7 @@ async def initialize_categories(session_factory, default_categories: list[str]) 
             if not categories:
                 for category_name in default_categories:
                     logging.info(f"Creating category: {category_name}")
-                    new_category = Category(category_name=category_name)
+                    new_category = Category(category_name=category_name, is_default=True)
                     session.add(new_category)
 
 
