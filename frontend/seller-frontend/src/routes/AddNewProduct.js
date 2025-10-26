@@ -17,7 +17,8 @@ function AddNewProduct() {
   const [image1, setImage1] = useState(null);
   const [image2, setImage2] = useState(null);
   const [productId, setProductId] = useState("");
-  const [categoryList, setCategoryList] = useState([]);
+  const [defaultCategoryList, setDefaultCategoryList] = useState([]);
+  const [nonDefaultCategoryList, setNonDefaultCategoryList] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
@@ -26,19 +27,22 @@ function AddNewProduct() {
   const image2Ref = useRef(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchAllCategories = async () => {
       try {
-        const response = await apiClient.get(
-          `/categories`
-        );
+        const response = await apiClient.get(`/categories`);
         const categories = response.data;
-        setCategoryList(categories);
+
+        const defaultCats = categories.filter((cat) => cat.is_default);
+        const nonDefaultCats = categories.filter((cat) => !cat.is_default);
+
+        setDefaultCategoryList(defaultCats);
+        setNonDefaultCategoryList(nonDefaultCats);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }
     };
 
-    fetchCategories();
+    fetchAllCategories();
   }, []);
 
   const generateUniqueFileName = (file) => {
@@ -57,9 +61,10 @@ function AddNewProduct() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const categories = selectedCategories.length > 0 
-    ? selectedCategories.map(cat => parseInt(cat, 10)) 
-    : null;
+    const categories =
+      selectedCategories.length > 0
+        ? selectedCategories.map((cat) => parseInt(cat, 10))
+        : null;
 
     const productData = {
       name: name,
@@ -70,13 +75,10 @@ function AddNewProduct() {
       color: color,
       categories: categories,
       image_path: null,
-      image_path2: null
+      image_path2: null,
     };
     try {
-      const response = await apiClient.post(
-        `/products/new`,
-        productData
-      );
+      const response = await apiClient.post(`/products/new`, productData);
       const productId = response.data.product_id;
       setProductId(productId);
 
@@ -207,17 +209,79 @@ function AddNewProduct() {
               />
             </Form.Group>
 
-            <h3>Select category</h3>
-            {categoryList.map((category) => (
+            <h3>Primary Category</h3>
+            {defaultCategoryList.map((category) => (
               <Form.Check
                 key={category.id}
-                type="checkbox"
+                type="radio"
+                name="mainCategory"
                 label={category.category_name}
                 id={`category-${category.id}`}
                 checked={selectedCategories.includes(category.id)}
-                onChange={() => handleCategoryChange(category.id)}
+                onChange={() => {
+                  const nonDefaultSelected = selectedCategories.filter((id) =>
+                    nonDefaultCategoryList.some((cat) => cat.id === id)
+                  );
+                  setSelectedCategories([...nonDefaultSelected, category.id]);
+                }}
               />
             ))}
+
+            <h3>Select Other Categories</h3>
+            <Form.Group controlId="otherCategories" className="form-group">
+              <Form.Select
+                onChange={(e) => {
+                  const categoryId = parseInt(e.target.value);
+                  if (categoryId && !selectedCategories.includes(categoryId)) {
+                    setSelectedCategories([...selectedCategories, categoryId]);
+                  }
+                  e.target.value = "";
+                }}
+              >
+                <option value="">-- Add another category --</option>
+                {nonDefaultCategoryList
+                  .filter((cat) => !selectedCategories.includes(cat.id))
+                  .map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.category_name}
+                    </option>
+                  ))}
+              </Form.Select>
+            </Form.Group>
+
+            {selectedCategories.filter((id) =>
+              nonDefaultCategoryList.some((cat) => cat.id === id)
+            ).length > 0 && (
+              <div className="selected-categories mb-3">
+                <h4>Selected Other Categories:</h4>
+                {selectedCategories
+                  .filter((id) =>
+                    nonDefaultCategoryList.some((cat) => cat.id === id)
+                  )
+                  .map((id) => {
+                    const category = nonDefaultCategoryList.find(
+                      (cat) => cat.id === id
+                    );
+                    return (
+                      <span key={id} className="badge bg-secondary me-2">
+                        {category.category_name}
+                        <button
+                          type="button"
+                          className="btn-close btn-close-white ms-2"
+                          aria-label="X"
+                          onClick={() =>
+                            setSelectedCategories(
+                              selectedCategories.filter((catId) => catId !== id)
+                            )
+                          }
+                          style={{ fontSize: "0.7rem" }}
+                        ></button>
+                      </span>
+                    );
+                  })}
+              </div>
+            )}
+
             <Button variant="primary" type="submit" className="login-btn">
               SAVE
             </Button>
