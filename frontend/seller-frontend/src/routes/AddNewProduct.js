@@ -50,14 +50,6 @@ function AddNewProduct() {
     return `${uuidv4()}.${fileExtension}`;
   };
 
-  const handleCategoryChange = (categoryId) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -252,33 +244,38 @@ function AddNewProduct() {
             {selectedCategories.filter((id) =>
               nonDefaultCategoryList.some((cat) => cat.id === id)
             ).length > 0 && (
-              <div className="selected-categories mb-3">
+              <div>
                 <h4>Selected Other Categories:</h4>
-                {selectedCategories
-                  .filter((id) =>
-                    nonDefaultCategoryList.some((cat) => cat.id === id)
-                  )
-                  .map((id) => {
-                    const category = nonDefaultCategoryList.find(
-                      (cat) => cat.id === id
-                    );
-                    return (
-                      <span key={id} className="badge bg-secondary me-2">
-                        {category.category_name}
-                        <button
-                          type="button"
-                          className="btn-close btn-close-white ms-2"
-                          aria-label="X"
-                          onClick={() =>
-                            setSelectedCategories(
-                              selectedCategories.filter((catId) => catId !== id)
-                            )
-                          }
-                          style={{ fontSize: "0.7rem" }}
-                        ></button>
-                      </span>
-                    );
-                  })}
+                <div className="selected-categories-wrapper">
+                  {selectedCategories
+                    .filter((id) =>
+                      nonDefaultCategoryList.some((cat) => cat.id === id)
+                    )
+                    .map((id) => {
+                      const category = nonDefaultCategoryList.find(
+                        (cat) => cat.id === id
+                      );
+                      return (
+                        <span key={id} className="other-category-badge">
+                          {category.category_name}
+                          <button
+                            type="button"
+                            className="category-badge-btn"
+                            aria-label="Remove"
+                            onClick={() =>
+                              setSelectedCategories(
+                                selectedCategories.filter(
+                                  (catId) => catId !== id
+                                )
+                              )
+                            }
+                          >
+                            ×
+                          </button>
+                        </span>
+                      );
+                    })}
+                </div>
               </div>
             )}
 

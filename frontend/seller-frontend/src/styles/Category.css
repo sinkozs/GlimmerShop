@@ -41,6 +41,44 @@
   padding: 8px;
 }
 
+.selected-categories-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.other-category-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid lightgray;
+  padding: 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+}
+
+.category-badge-btn {
+  border: none;
+  background: none;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0;
+  color: #666;
+}
+
+.category-badge-btn:hover {
+  color: #000;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
 /* Mobile devices */
 @media (max-width: 768px) {
   .category-h3 {
@@ -64,6 +102,15 @@
   .category-table th,
   .category-table td {
     padding: 6px;
+  }
+
+  .other-category-badge {
+    font-size: 12px;
+    padding: 6px;
+  }
+
+  .selected-categories-wrapper {
+    gap: 6px;
   }
 
   .form-container {
