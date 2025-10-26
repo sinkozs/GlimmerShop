@@ -13,14 +13,15 @@ function SellerHome() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showNoProductsModal, setShowNoProductsModal] = useState(false);
-  const [showNoSearchResultsModal, setShowNoSearchResultsModal] =
-    useState(false);
+  const [showNoSearchResultsModal, setShowNoSearchResultsModal] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const navigate = useNavigate();
 
   const { seller_id } = useParams();
 
   useEffect(() => {
+    console.log("reloaaad")
     const fetchSellerDataAndProducts = async () => {
       try {
         const seller = await apiClient.get(`/users/${seller_id}`);
@@ -44,7 +45,7 @@ function SellerHome() {
     if (seller_id) {
       fetchSellerDataAndProducts();
     }
-  }, [seller_id, showNoSearchResultsModal]);
+  }, [seller_id, showNoSearchResultsModal, refreshTrigger]);
 
   const handleSearch = async (event) => {
     event.preventDefault();
@@ -64,6 +65,7 @@ function SellerHome() {
 
   const clearSearch = () => {
     setSearchQuery("");
+    setRefreshTrigger(prev => prev + 1)
   };
 
   const closeNoProductsModal = () => {
