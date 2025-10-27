@@ -6,6 +6,10 @@ import apiClient from "../utils/apiConfig";
 import config from "../config";
 import { useCart } from "../context/CartContext";
 import "../styles/Form.css";
+import {
+  normalizeCartItemsForCheckout,
+  validateCartItems,
+} from "../utils/checkoutHelpers";
 
 const CheckoutPage = () => {
   const { cart: userCart } = useCart();
@@ -71,16 +75,17 @@ const CheckoutPage = () => {
     setIsLoading(true);
 
     try {
-      const cart_items = userCart.map(
-        ({ id, name, price, category, quantity, image_path }) => ({
-          id,
-          name,
-          price,
-          category,
-          quantity,
-          image_path,
-        })
-      );
+      // Normalize cart items
+      const cart_items = normalizeCartItemsForCheckout(userCart);
+
+      // Validate cart items
+      const validation = validateCartItems(cart_items);
+      if (!validation.isValid) {
+        console.error("Cart validation errors:", validation.errors);
+        setErrors({ submit: validation.errors.join(", ") });
+        setIsLoading(false);
+        return;
+      }
 
       const guest_user_info = {
         first_name: formData.firstName,
@@ -112,6 +117,7 @@ const CheckoutPage = () => {
       }
     } catch (error) {
       console.error("Checkout error:", error);
+      console.error("Error details:", error.response?.data);
       setErrors({ submit: "Failed to create checkout session" });
     } finally {
       setIsLoading(false);

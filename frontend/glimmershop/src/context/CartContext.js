@@ -18,7 +18,6 @@ const cartReducer = (state, action) => {
         const newQuantity =
           updatedCart[existingItemIndex].quantity + action.payload.quantity;
 
-        // Check if new quantity exceeds stock
         if (newQuantity > state.stockQuantity) {
           return { ...state, showModal: true };
         }
@@ -26,7 +25,6 @@ const cartReducer = (state, action) => {
         updatedCart[existingItemIndex].quantity = newQuantity;
         return { ...state, cart: updatedCart };
       } else {
-        // Check if initial quantity exceeds stock
         if (action.payload.quantity > state.stockQuantity) {
           return { ...state, showModal: true };
         }

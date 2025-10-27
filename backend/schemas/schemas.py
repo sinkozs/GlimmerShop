@@ -130,7 +130,7 @@ class CartItemForCheckout(BaseModel):
     id: int
     name: str
     price: int
-    category: int
+    category: List[int]
     quantity: int
     image_path: str
 
