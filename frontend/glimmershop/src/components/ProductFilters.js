@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { v4 as uuidv4, validate as isUuid } from "uuid";
 import FilterByPrice from "./FilterByPrice";
 import FilterByMaterial from "./FilterByMaterial";
 import FilterBySeller from "./FilterBySeller";
@@ -22,46 +21,6 @@ function ProductFilters({ category_id, onProductsFetched }) {
 
   useEffect(() => {
     if (shouldFetch) {
-      const fetchFilteredProducts = async () => {
-        try {
-          const sellerId =
-            selectedSellerId && isUuid(selectedSellerId)
-              ? selectedSellerId
-              : null;
-
-          const postData = {
-            category_id: category_id,
-            materials: {
-              materials: selectedMaterials,
-            },
-            price_range: {
-              min_price: selectedPriceRange.min,
-              max_price: selectedPriceRange.max,
-            },
-            seller: {
-              seller_id: sellerId,
-            },
-          };
-
-          console.log(postData);
-          const response = await apiClient.post(
-            `/products/filter-by-material-price-and-seller`,
-            postData,
-            {
-              headers: { "Content-Type": "application/json" },
-            }
-          );
-
-          onProductsFetched(response.data);
-          if (response.data.length === 0) {
-            setShowFilterModal(true);
-          }
-        } catch (error) {
-          console.error("Error fetching filtered products:", error);
-          onProductsFetched([]);
-        }
-      };
-
       fetchFilteredProducts();
       setShouldFetch(false);
     }
@@ -73,6 +32,103 @@ function ProductFilters({ category_id, onProductsFetched }) {
     category_id,
     onProductsFetched,
   ]);
+
+  const isPriceFilterActive = () => {
+    return selectedPriceRange.min !== 0 || selectedPriceRange.max !== 1000000;
+  };
+
+  const isMaterialFilterActive = () => {
+    return selectedMaterials.length > 0;
+  };
+
+  const isSellerFilterActive = () => {
+    return selectedSellerId.length > 0;
+  };
+
+  const countActiveFilters = () => {
+    let count = 0;
+    if (isPriceFilterActive()) count++;
+    if (isMaterialFilterActive()) count++;
+    if (isSellerFilterActive()) count++;
+    return count;
+  };
+
+  const fetchFilteredProducts = async () => {
+    try {
+      const activeFiltersCount = countActiveFilters();
+
+      if (activeFiltersCount === 0) {
+        await fetchAllProducts();
+        return;
+      }
+
+      let response;
+
+      if (activeFiltersCount > 1) {
+        const postData = {
+          category_id: category_id,
+          materials: {
+            materials: isMaterialFilterActive() ? selectedMaterials : [],
+          },
+          price_range: {
+            min_price: selectedPriceRange.min,
+            max_price: selectedPriceRange.max,
+          },
+          seller: {
+            seller_id: isSellerFilterActive() ? selectedSellerId : null,
+          },
+        };
+
+        response = await apiClient.post(
+          `/products/filter-by-material-price-and-seller`,
+          postData,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      } else if (isMaterialFilterActive()) {
+        const postData = {
+          materials: selectedMaterials,
+        };
+
+        response = await apiClient.post(
+          `/products/filter-by-material?category_id=${category_id}`,
+          postData,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      } else if (isPriceFilterActive()) {
+        const postData = {
+          min_price: selectedPriceRange.min,
+          max_price: selectedPriceRange.max,
+        };
+
+        response = await apiClient.post(
+          `/products/filter-by-price?category_id=${category_id}`,
+          postData,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      } else if (isSellerFilterActive()) {
+        response = await apiClient.post(
+          `/products/filter-by-seller?category_id=${category_id}&seller_id=${selectedSellerId}`,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      onProductsFetched(response.data);
+      if (response.data.length === 0) {
+        setShowFilterModal(true);
+      }
+    } catch (error) {
+      console.error("Error fetching filtered products:", error);
+      onProductsFetched([]);
+    }
+  };
 
   const handleSellerSelection = (sellerId) => {
     setSelectedSellerId(sellerId);
@@ -97,7 +153,8 @@ function ProductFilters({ category_id, onProductsFetched }) {
 
   const clearAllFilters = () => {
     setSelectedMaterials([]);
-    setSelectedPriceRange({ min: null, max: null });
+    setSelectedSellerId([]);
+    setSelectedPriceRange({ min: 0, max: 1000000 });
     fetchAllProducts();
   };
 
